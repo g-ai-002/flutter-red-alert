@@ -15,90 +15,63 @@ class Effects {
   static const Color _smoke = Color(0xFF35302B);
 
   void addEvent(BattleEvent event) {
-    switch (event.kind) {
-      case BattleEventKind.bullet:
-        _items.add(
-          _Fx(
-            kind: _FxKind.tracer,
-            x: event.x,
-            y: event.y,
-            tx: event.tx,
-            ty: event.ty,
-            duration: 0.1,
-          ),
-        );
-        break;
-      case BattleEventKind.shell:
-        _items.add(
-          _Fx(
-            kind: _FxKind.shell,
-            x: event.x,
-            y: event.y,
-            tx: event.tx,
-            ty: event.ty,
-            duration: 0.24,
-          ),
-        );
-        break;
-      case BattleEventKind.explosion:
-        _items.add(
-          _Fx(
-            kind: _FxKind.explosion,
-            x: event.x,
-            y: event.y,
-            duration: 0.6,
-            radius: event.radius,
-          ),
-        );
-        break;
-      case BattleEventKind.build:
-        _items.add(
-          _Fx(
-            kind: _FxKind.ring,
-            x: event.x,
-            y: event.y,
-            duration: 0.7,
-            radius: math.max(1, event.radius),
-            team: event.team,
-          ),
-        );
-        break;
-      case BattleEventKind.spawn:
-        _items.add(
-          _Fx(
-            kind: _FxKind.ring,
-            x: event.x,
-            y: event.y,
-            duration: 0.45,
-            radius: 0.7,
-            team: event.team,
-          ),
-        );
-        break;
-      case BattleEventKind.unload:
-        _items.add(
-          _Fx(
-            kind: _FxKind.spark,
-            x: event.x,
-            y: event.y,
-            duration: 0.8,
-            team: event.team,
-          ),
-        );
-        break;
-      case BattleEventKind.move:
-        _items.add(
-          _Fx(
-            kind: _FxKind.ping,
-            x: event.x,
-            y: event.y,
-            duration: 0.6,
-            radius: 0.6,
-            team: event.team,
-          ),
-        );
-        break;
-    }
+    final fx = switch (event.kind) {
+      BattleEventKind.bullet => _Fx(
+        kind: _FxKind.tracer,
+        x: event.x,
+        y: event.y,
+        tx: event.tx,
+        ty: event.ty,
+        duration: 0.1,
+      ),
+      BattleEventKind.shell => _Fx(
+        kind: _FxKind.shell,
+        x: event.x,
+        y: event.y,
+        tx: event.tx,
+        ty: event.ty,
+        duration: 0.24,
+      ),
+      BattleEventKind.explosion => _Fx(
+        kind: _FxKind.explosion,
+        x: event.x,
+        y: event.y,
+        duration: 0.6,
+        radius: event.radius,
+      ),
+      BattleEventKind.build => _Fx(
+        kind: _FxKind.ring,
+        x: event.x,
+        y: event.y,
+        duration: 0.7,
+        radius: math.max(1, event.radius),
+        team: event.team,
+      ),
+      BattleEventKind.spawn => _Fx(
+        kind: _FxKind.ring,
+        x: event.x,
+        y: event.y,
+        duration: 0.45,
+        radius: 0.7,
+        team: event.team,
+      ),
+      BattleEventKind.unload => _Fx(
+        kind: _FxKind.spark,
+        x: event.x,
+        y: event.y,
+        duration: 0.8,
+        team: event.team,
+      ),
+      BattleEventKind.move => _Fx(
+        kind: _FxKind.ping,
+        x: event.x,
+        y: event.y,
+        duration: 0.6,
+        radius: 0.6,
+        team: event.team,
+      ),
+    };
+    _items.add(fx);
   }
 
   void update(double dt) {

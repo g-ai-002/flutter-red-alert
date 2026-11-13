@@ -13,3 +13,15 @@ double hashNoise(int x, int y) {
   final value = math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
   return value - value.floor();
 }
+
+/// 造型绘制的画笔复用：填充与描边各持一支，避免每次绘制都新建 Paint。
+class ArtBrush {
+  final Paint _fill = Paint();
+  final Paint _stroke = Paint()..style = PaintingStyle.stroke;
+
+  Paint solid(Color color) => _fill..color = color;
+
+  Paint outlined(Color color, double width) => _stroke
+    ..color = color
+    ..strokeWidth = width;
+}

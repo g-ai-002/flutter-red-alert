@@ -32,8 +32,10 @@
 
 ## 下载
 
-v0.2.0 为战役与迷雾版本，构建由 CI 手动选择 `v0.2.0` Tag 触发，产物包含 Android / Windows / Web；
-也可直接试玩 Web 最新版。桌面与 Android 安装包见 Release 附件。
+v0.2.0 为战役与迷雾版本，测试、Android 与 Web 构建已通过，Web 可直接试玩；
+Windows Runner 上线后会自动补齐安装包并创建 Release
+（[构建记录](http://192.168.31.120:3020/GTech/flutter-red-alert/actions/runs/3099)）。
+Web 试玩：[v0.2.0](http://192.168.31.120:3020/GTech/flutter-red-alert/src/branch/tea-pages/v0.2.0/index.html)。
 
 | 平台 | 产物 |
 | --- | --- |

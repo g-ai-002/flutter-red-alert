@@ -28,13 +28,21 @@
 
 ## 下载
 
-v0.1.0（构建发布已触发，产物见 [Gitea Release](http://192.168.31.120:3020/GTech/flutter-red-alert/releases/tag/v0.1.0)）：Android 与 Web 已通过，Windows 构建在 Runner 上线后自动补齐。
+v0.1.1（构建发布已触发，产物见 [Gitea Release](http://192.168.31.120:3020/GTech/flutter-red-alert/releases/tag/v0.1.1)）：
+重构版本，玩法与 v0.1.0 一致；Windows 产物在 Runner 上线后自动补齐。
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-red-alert-0.1.0-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-red-alert-0.1.0-windows-x86_64.zip` |
-| Web | `flutter-red-alert-0.1.0-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-red-alert-0.1.1-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-red-alert-0.1.1-windows-x86_64.zip` |
+| Web | `flutter-red-alert-0.1.1-web.zip`（解压后起静态服务器） |
+
+## 版本
+
+| 版本 | 说明 |
+| --- | --- |
+| v0.1.1 | 重构模拟 / 渲染 / 输入分层，统一生产校验，清理告警与死代码 |
+| v0.1.0 | 首个可玩版本：地图、建造、经济、战斗、AI、HUD、音效与三端发布 |
 
 ## 操作
 

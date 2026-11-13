@@ -52,9 +52,8 @@ class HomePage extends StatelessWidget {
                         constraints: const BoxConstraints(maxWidth: 1080),
                         child: wide
                             ? Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  Expanded(
+                                  const Expanded(
                                     child: _Intro(wide: true),
                                   ),
                                   const SizedBox(width: 40),
@@ -70,7 +69,7 @@ class HomePage extends StatelessWidget {
                             : Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  _Intro(wide: false),
+                                  const _Intro(wide: false),
                                   const SizedBox(height: 20),
                                   _CommandPanel(
                                     settings: settings,
@@ -117,9 +116,9 @@ class _Intro extends StatelessWidget {
               child: const Icon(Icons.star, size: 16, color: appRed),
             ),
             const SizedBox(width: 8),
-            Text(
+            const Text(
               AppConstants.tagline,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 letterSpacing: 4,
                 color: Color(0xFFC8A97A),
@@ -313,10 +312,10 @@ class _CommandPanel extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Text(
+          const Text(
             '${AppConstants.appName} v${AppConstants.version} · 本地单机，无需联网',
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 10, color: Color(0xFF6E6558)),
+            style: TextStyle(fontSize: 10, color: Color(0xFF6E6558)),
           ),
         ],
       ),

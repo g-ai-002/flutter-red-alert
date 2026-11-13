@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_red_alert/pages/home_page.dart';
 import 'package:flutter_red_alert/providers/settings_provider.dart';
 import 'package:flutter_red_alert/services/storage_service.dart';
+import 'package:flutter_red_alert/utils/constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,7 +26,7 @@ void main() {
     expect(find.text('简单'), findsOneWidget);
     expect(find.text('普通'), findsOneWidget);
     expect(find.text('困难'), findsOneWidget);
-    expect(find.textContaining('v0.1.0'), findsOneWidget);
+    expect(find.textContaining('v${AppConstants.version}'), findsOneWidget);
   });
 
   testWidgets('主菜单在窄屏与宽屏下均不溢出', (tester) async {

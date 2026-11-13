@@ -86,7 +86,7 @@ class SoundService {
         noise: 0.75,
         decay: 6,
       ),
-      SynthNote(frequency: 180, start: 0, duration: 0.08, gain: 0.5, noise: 0.3),
+      SynthNote(frequency: 180, start: 0, duration: 0.08, noise: 0.3),
     ],
     BattleFeedback.explosion: [
       SynthNote(

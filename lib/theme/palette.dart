@@ -10,6 +10,26 @@ const Color appSteel = Color(0xFF39424B);
 const Color appSand = Color(0xFFF1E6D2);
 const Color appNight = Color(0xFF121110);
 
+/// HUD 语义色：面板、描边与文字层级，界面组件不再各自写死颜色值。
+const Color hudPanel = Color(0xE6191815);
+const Color hudPanelDeep = Color(0xE6141310);
+const Color hudPanelSolid = Color(0xFF1B1915);
+const Color hudPanelAlt = Color(0xFF232019);
+const Color hudBorder = Color(0x44EFE2C8);
+const Color hudBorderSoft = Color(0x33584F41);
+const Color hudBorderGold = Color(0x44D9A94B);
+const Color hudText = Color(0xFFF4EAD6);
+const Color hudTextSoft = Color(0xFFD9CBB4);
+const Color hudTextMuted = Color(0xFFAFA393);
+const Color hudTextFaint = Color(0xFF9C9384);
+const Color hudTextDim = Color(0xFF8B8172);
+const Color hudGold = Color(0xFFD9A94B);
+const Color hudGoldBright = Color(0xFFE8C271);
+const Color hudSuccess = Color(0xFF8AD694);
+const Color hudWarning = Color(0xFFE0806F);
+const Color hudInfo = Color(0xFF9FB3C6);
+const Color hudDanger = Color(0xFFE0755F);
+
 /// 地形基础色，渲染与迷你地图共用。
 Color terrainColor(TerrainKind kind) => switch (kind) {
   TerrainKind.grass => const Color(0xFF4C6B3C),

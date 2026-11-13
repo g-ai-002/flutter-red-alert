@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../game/battle_types.dart';
 import '../theme/app_theme.dart';
 
 /// 玩法说明：目标、经济、建造流程、兵种与操作。
@@ -12,8 +13,8 @@ class GuidePage extends StatelessWidget {
       appBar: AppBar(title: const Text('玩法说明')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
-        children: const [
-          _Section(
+        children: [
+          const _Section(
             icon: Icons.flag,
             title: '战役目标',
             children: [
@@ -27,7 +28,7 @@ class GuidePage extends StatelessWidget {
               ),
             ],
           ),
-          _Section(
+          const _Section(
             icon: Icons.radar,
             title: '战争迷雾与雷达',
             children: [
@@ -41,7 +42,7 @@ class GuidePage extends StatelessWidget {
               ),
             ],
           ),
-          _Section(
+          const _Section(
             icon: Icons.paid,
             title: '经济与电力',
             children: [
@@ -55,7 +56,7 @@ class GuidePage extends StatelessWidget {
               ),
             ],
           ),
-          _Section(
+          const _Section(
             icon: Icons.construction,
             title: '建造流程',
             children: [
@@ -74,38 +75,15 @@ class GuidePage extends StatelessWidget {
             icon: Icons.groups,
             title: '兵种与克制',
             children: [
-              _UnitRow(
-                name: '步兵',
-                role: '廉价主力，清理步兵效果好，对装甲伤害很低。',
-                cost: '200',
-              ),
-              _UnitRow(
-                name: '火箭兵',
-                role: '反装甲核心，射程远，对坦克与建筑效果显著。',
-                cost: '350',
-              ),
-              _UnitRow(
-                name: '采矿车',
-                role: '自动采矿，无武装。被袭击时尽快派兵驱赶敌军。',
-                cost: '1000',
-              ),
-              _UnitRow(
-                name: '轻型坦克',
-                role: '机动快，适合骚扰矿区与追击步兵。',
-                cost: '700',
-              ),
-              _UnitRow(
-                name: '重型坦克',
-                role: '高血量高火力，攻坚与正面决战的主力。',
-                cost: '1500',
-              ),
-              _Paragraph(
+              for (final (kind, role) in _unitRoles)
+                _UnitRow(kind: kind, role: role),
+              const _Paragraph(
                 '哨戒炮塔自动攻击射程内目标，适合放在矿区与基地入口；'
                 '但它耗电，电力不足时射速会下降。',
               ),
             ],
           ),
-          _Section(
+          const _Section(
             icon: Icons.touch_app,
             title: '操作方式',
             children: [
@@ -116,7 +94,7 @@ class GuidePage extends StatelessWidget {
               _Bullet('右上角可以切换 1× / 2× 速度与暂停；Esc 取消放置或打开暂停菜单。'),
             ],
           ),
-          _Section(
+          const _Section(
             icon: Icons.tips_and_updates,
             title: '开局建议',
             children: [
@@ -126,8 +104,8 @@ class GuidePage extends StatelessWidget {
               _Bullet('攒够 4~6 辆坦克再推进，沿公路走能提高移动速度。'),
             ],
           ),
-          SizedBox(height: 12),
-          Text(
+          const SizedBox(height: 12),
+          const Text(
             '提示：本作为纯单机游戏，进度与战绩保存在本地。',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 11, color: Color(0xFF8B8172)),
@@ -237,18 +215,14 @@ class _Bullet extends StatelessWidget {
 }
 
 class _UnitRow extends StatelessWidget {
-  const _UnitRow({
-    required this.name,
-    required this.role,
-    required this.cost,
-  });
+  const _UnitRow({required this.kind, required this.role});
 
-  final String name;
+  final UnitKind kind;
   final String role;
-  final String cost;
 
   @override
   Widget build(BuildContext context) {
+    final spec = unitSpecs[kind]!;
     return Padding(
       padding: const EdgeInsets.only(bottom: 7),
       child: Row(
@@ -261,7 +235,7 @@ class _UnitRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(5),
             ),
             child: Text(
-              name,
+              spec.name,
               style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600),
             ),
           ),
@@ -274,7 +248,7 @@ class _UnitRow extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Text(
-            '¥$cost',
+            '¥${spec.cost}',
             style: const TextStyle(fontSize: 11, color: Color(0xFF8B8172)),
           ),
         ],
@@ -282,3 +256,11 @@ class _UnitRow extends StatelessWidget {
     );
   }
 }
+
+const List<(UnitKind, String)> _unitRoles = [
+  (UnitKind.rifle, '廉价主力，清理步兵效果好，对装甲伤害很低。'),
+  (UnitKind.rocket, '反装甲核心，射程远，对坦克与建筑效果显著。'),
+  (UnitKind.harvester, '自动采矿，无武装。被袭击时尽快派兵驱赶敌军。'),
+  (UnitKind.lightTank, '机动快，适合骚扰矿区与追击步兵。'),
+  (UnitKind.heavyTank, '高血量高火力，攻坚与正面决战的主力。'),
+];

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../game/battle_controller.dart';
 import '../../game/battle_state.dart';
 import '../../game/battle_types.dart';
+import '../../game/production_catalog.dart';
 import '../../theme/palette.dart';
 
 /// 建造栏：建筑 / 步兵 / 装甲三个分类，展示价格、锁定条件与生产进度。
@@ -21,20 +22,7 @@ class _BuildPanelState extends State<BuildPanel> {
 
   BattleState get _state => widget.controller.state;
 
-  List<String> get _ids {
-    return switch (_tab) {
-      ProductionCategory.structure => const [
-        'power',
-        'refinery',
-        'barracks',
-        'factory',
-        'tower',
-        'hq',
-      ],
-      ProductionCategory.infantry => const ['rifle', 'rocket'],
-      ProductionCategory.armor => const ['harvester', 'lightTank', 'heavyTank'],
-    };
-  }
+  List<ProductionItem> get _items => ProductionCatalog.of(_tab);
 
   @override
   Widget build(BuildContext context) {
@@ -42,9 +30,9 @@ class _BuildPanelState extends State<BuildPanel> {
     final job = _state.jobOf(playerTeam, _tab);
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xE6191815),
+        color: hudPanel,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0x44D9A94B)),
+        border: Border.all(color: hudBorderGold),
         boxShadow: const [
           BoxShadow(color: Color(0x66000000), blurRadius: 12, offset: Offset(0, 4)),
         ],
@@ -78,7 +66,7 @@ class _BuildPanelState extends State<BuildPanel> {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 11,
-                          color: Color(0xFF9C9384),
+                          color: hudTextFaint,
                         ),
                       ),
               ),
@@ -88,16 +76,15 @@ class _BuildPanelState extends State<BuildPanel> {
           Expanded(
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              itemCount: _ids.length,
+              itemCount: _items.length,
               separatorBuilder: (_, _) => const SizedBox(width: 6),
               itemBuilder: (context, index) {
-                final id = _ids[index];
+                final item = _items[index];
                 return _BuildCard(
-                  id: id,
-                  category: _tab,
+                  item: item,
                   controller: widget.controller,
                   compact: widget.compact,
-                  onTap: () => _onTap(id),
+                  onTap: () => _onTap(item),
                 );
               },
             ),
@@ -118,24 +105,27 @@ class _BuildPanelState extends State<BuildPanel> {
     };
   }
 
-  void _onTap(String id) {
+  void _onTap(ProductionItem item) {
     final controller = widget.controller;
-    final kind = buildingKindFromId(id);
-    if (kind != null &&
-        _state.readyStructuresOf(playerTeam).contains(kind)) {
-      controller.beginPlacement(id);
+    final building = item.building;
+    if (building != null &&
+        _state.readyStructuresOf(playerTeam).contains(building)) {
+      controller.beginPlacement(item.id);
       return;
     }
     final job = _state.jobOf(playerTeam, _tab);
     if (job != null) {
-      if (job.id == id) {
+      if (job.id == item.id) {
         controller.cancelProduction(_tab);
       } else {
-        _state.addNotice('当前${_tab.label}队列正在生产${job.name}', level: NoticeLevel.warning);
+        _state.addNotice(
+          '当前${_tab.label}队列正在生产${job.name}',
+          level: NoticeLevel.warning,
+        );
       }
       return;
     }
-    controller.requestProduction(_tab, id);
+    controller.requestProduction(_tab, item.id);
   }
 }
 
@@ -231,15 +221,13 @@ class _QueueHint extends StatelessWidget {
 
 class _BuildCard extends StatelessWidget {
   const _BuildCard({
-    required this.id,
-    required this.category,
+    required this.item,
     required this.controller,
     required this.onTap,
     this.compact = false,
   });
 
-  final String id;
-  final ProductionCategory category;
+  final ProductionItem item;
   final BattleController controller;
   final VoidCallback onTap;
   final bool compact;
@@ -247,20 +235,18 @@ class _BuildCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = controller.state;
-    final kind = buildingKindFromId(id);
-    final unit = unitKindFromId(id);
-    final name = kind?.label ?? unit?.label ?? id;
-    final icon = kind?.icon ?? unit?.icon ?? '?';
-    final cost = kind != null
-        ? buildingSpecs[kind]!.cost
-        : unitSpecs[unit!]!.cost;
-
-    final job = state.jobOf(playerTeam, category);
+    final building = item.building;
+    final job = state.jobOf(playerTeam, item.category);
     final ready =
-        kind != null && state.readyStructuresOf(playerTeam).contains(kind);
-    final lock = state.productionBlocker(playerTeam, category, id);
-    final affordable = state.creditsOf(playerTeam) >= cost;
-    final active = job != null && job.id == id;
+        building != null &&
+        state.readyStructuresOf(playerTeam).contains(building);
+    final lock = state.productionBlocker(
+      playerTeam,
+      item.category,
+      item.id,
+    );
+    final affordable = state.creditsOf(playerTeam) >= item.cost;
+    final active = job != null && job.id == item.id;
     final locked = lock != null;
     final width = compact ? 78.0 : 86.0;
 
@@ -283,7 +269,7 @@ class _BuildCard extends StatelessWidget {
               ),
               border: Border.all(
                 color: ready
-                    ? const Color(0xFFE8C271)
+                    ? hudGoldBright
                     : active
                     ? const Color(0xFFB0663F)
                     : const Color(0x33EFE2C8),
@@ -305,18 +291,18 @@ class _BuildCard extends StatelessWidget {
                             width: compact ? 22 : 24,
                             height: compact ? 22 : 24,
                             decoration: BoxDecoration(
-                              color: kind != null
+                              color: item.isBuilding
                                   ? const Color(0x33C8382B)
                                   : const Color(0x332F6FA8),
                               borderRadius: BorderRadius.circular(5),
                             ),
                             alignment: Alignment.center,
                             child: Text(
-                              icon,
+                              item.icon,
                               style: TextStyle(
                                 fontSize: compact ? 12 : 13,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFFF4EAD6),
+                                color: hudText,
                               ),
                             ),
                           ),
@@ -325,13 +311,13 @@ class _BuildCard extends StatelessWidget {
                             const Icon(
                               Icons.add_circle,
                               size: 14,
-                              color: Color(0xFFE8C271),
+                              color: hudGoldBright,
                             ),
                         ],
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        name,
+                        item.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -348,18 +334,16 @@ class _BuildCard extends StatelessWidget {
                             width: 6,
                             height: 6,
                             decoration: const BoxDecoration(
-                              color: Color(0xFFD9A94B),
+                              color: hudGold,
                               shape: BoxShape.circle,
                             ),
                           ),
                           const SizedBox(width: 3),
                           Text(
-                            '$cost',
+                            '${item.cost}',
                             style: TextStyle(
                               fontSize: compact ? 10 : 10.5,
-                              color: affordable
-                                  ? const Color(0xFFD9CBB4)
-                                  : const Color(0xFFE0755F),
+                              color: affordable ? hudTextSoft : hudDanger,
                             ),
                           ),
                         ],

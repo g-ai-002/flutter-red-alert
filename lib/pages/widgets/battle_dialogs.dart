@@ -209,54 +209,23 @@ Future<void> showPauseDialog(
                 ),
               ],
               const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () {
-                    controller.setPaused(false);
-                    Navigator.of(context).pop();
-                  },
-                  style: FilledButton.styleFrom(
-                    backgroundColor: appRed,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('继续战斗'),
-                ),
+              _PauseAction(
+                label: '继续战斗',
+                filled: true,
+                onPressed: () {
+                  controller.setPaused(false);
+                  Navigator.of(context).pop();
+                },
               ),
               const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: onGuide,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFD9CBB4),
-                    side: const BorderSide(color: Color(0x55584F41)),
-                  ),
-                  child: const Text('玩法说明'),
-                ),
-              ),
+              _PauseAction(label: '玩法说明', onPressed: onGuide),
               const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: onRestart,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFD9CBB4),
-                    side: const BorderSide(color: Color(0x55584F41)),
-                  ),
-                  child: const Text('重新开始'),
-                ),
-              ),
+              _PauseAction(label: '重新开始', onPressed: onRestart),
               const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: onHome,
-                  style: TextButton.styleFrom(
-                    foregroundColor: const Color(0xFFB7AA97),
-                  ),
-                  child: const Text('返回主菜单'),
-                ),
+              _PauseAction(
+                label: '返回主菜单',
+                text: true,
+                onPressed: onHome,
               ),
             ],
           ),
@@ -264,4 +233,50 @@ Future<void> showPauseDialog(
       ),
     ),
   );
+}
+
+class _PauseAction extends StatelessWidget {
+  const _PauseAction({
+    required this.label,
+    required this.onPressed,
+    this.filled = false,
+    this.text = false,
+  });
+
+  final String label;
+  final VoidCallback onPressed;
+  final bool filled;
+  final bool text;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: switch ((filled, text)) {
+        (true, _) => FilledButton(
+          onPressed: onPressed,
+          style: FilledButton.styleFrom(
+            backgroundColor: appRed,
+            foregroundColor: Colors.white,
+          ),
+          child: Text(label),
+        ),
+        (_, true) => TextButton(
+          onPressed: onPressed,
+          style: TextButton.styleFrom(
+            foregroundColor: const Color(0xFFB7AA97),
+          ),
+          child: Text(label),
+        ),
+        _ => OutlinedButton(
+          onPressed: onPressed,
+          style: OutlinedButton.styleFrom(
+            foregroundColor: const Color(0xFFD9CBB4),
+            side: const BorderSide(color: Color(0x55584F41)),
+          ),
+          child: Text(label),
+        ),
+      },
+    );
+  }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../game/battle_controller.dart';
 import 'battle_hud.dart';
 import 'build_panel.dart';
+import 'hud_status_bar.dart';
 import 'minimap.dart';
 
 /// 战场悬浮 HUD：顶部状态栏与提示、底部选中信息、迷你地图与建造栏。

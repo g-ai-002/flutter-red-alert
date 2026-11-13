@@ -3,237 +3,7 @@ import 'package:flutter/material.dart';
 import '../../game/battle_controller.dart';
 import '../../game/battle_state.dart';
 import '../../game/battle_types.dart';
-
-/// 顶部状态栏：资金、电力、部队与用时，右侧为速度、暂停与菜单。
-class BattleStatusBar extends StatelessWidget {
-  const BattleStatusBar({
-    super.key,
-    required this.controller,
-    required this.onPause,
-    required this.onMenu,
-  });
-
-  final BattleController controller;
-  final VoidCallback onPause;
-  final VoidCallback onMenu;
-
-  @override
-  Widget build(BuildContext context) {
-    final state = controller.state;
-    final used = state.powerUsed(playerTeam);
-    final produced = state.powerProduced(playerTeam);
-    final powerShort = used > produced;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final compact = constraints.maxWidth < 620;
-        return Row(
-          children: [
-            Flexible(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _StatChip(
-                      glyph: '资',
-                      value: '${state.creditsOf(playerTeam)}',
-                      label: '资金',
-                      color: const Color(0xFFD9A94B),
-                      compact: compact,
-                    ),
-                    const SizedBox(width: 6),
-                    _StatChip(
-                      glyph: '电',
-                      value: '$used/$produced',
-                      label: '电力',
-                      color: powerShort
-                          ? const Color(0xFFE0755F)
-                          : const Color(0xFF7FB7C9),
-                      compact: compact,
-                    ),
-                    const SizedBox(width: 6),
-                    _StatChip(
-                      glyph: '兵',
-                      value: '${state.armySize(playerTeam)}',
-                      label: '部队',
-                      color: const Color(0xFFC9B79B),
-                      compact: compact,
-                    ),
-                    if (!compact) ...[
-                      const SizedBox(width: 6),
-                      _StatChip(
-                        glyph: '时',
-                        value: controller.elapsedText,
-                        label: '用时',
-                        color: const Color(0xFFAFA595),
-                        compact: false,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            _RadarButton(controller: controller),
-            const SizedBox(width: 4),
-            _HudButton(
-              icon: Icons.speed,
-              label: controller.speed >= 2 ? '×2' : '×1',
-              onTap: controller.cycleSpeed,
-              highlight: controller.speed >= 2,
-            ),
-            const SizedBox(width: 4),
-            _HudButton(
-              icon: controller.paused ? Icons.play_arrow : Icons.pause,
-              onTap: onPause,
-            ),
-            const SizedBox(width: 4),
-            _HudButton(icon: Icons.menu, onTap: onMenu),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  const _StatChip({
-    required this.glyph,
-    required this.value,
-    required this.label,
-    required this.color,
-    required this.compact,
-  });
-
-  final String glyph;
-  final String value;
-  final String label;
-  final Color color;
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 30,
-      padding: EdgeInsets.symmetric(horizontal: compact ? 7 : 9),
-      decoration: BoxDecoration(
-        color: const Color(0xD9181714),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0x33EFE2C8)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            glyph,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-          ),
-          const SizedBox(width: 5),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFFF4EAD6),
-              fontFeatures: [FontFeature.tabularFigures()],
-            ),
-          ),
-          if (!compact) ...[
-            const SizedBox(width: 3),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 10, color: Color(0xFF928878)),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-/// 雷达按钮：显示扫描中 / 可扫描 / 冷却秒数三种状态。
-class _RadarButton extends StatelessWidget {
-  const _RadarButton({required this.controller});
-
-  final BattleController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    final state = controller.state;
-    final online = state.hasBuilding(playerTeam, BuildingKind.hq);
-    final label = !online
-        ? '离线'
-        : state.radarActive
-        ? '扫描中'
-        : state.radarReady
-        ? '雷达'
-        : '${state.radarCooldown.ceil()}s';
-    return _HudButton(
-      icon: Icons.radar,
-      label: label,
-      highlight: online && (state.radarActive || state.radarReady),
-      onTap: controller.triggerRadar,
-    );
-  }
-}
-
-class _HudButton extends StatelessWidget {
-  const _HudButton({
-    required this.icon,
-    required this.onTap,
-    this.label,
-    this.highlight = false,
-  });
-
-  final IconData icon;
-  final String? label;
-  final VoidCallback onTap;
-  final bool highlight;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: highlight ? const Color(0x66D9A94B) : const Color(0xD9181714),
-      borderRadius: BorderRadius.circular(8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          height: 30,
-          padding: const EdgeInsets.symmetric(horizontal: 7),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: highlight
-                  ? const Color(0xAAE8C271)
-                  : const Color(0x33EFE2C8),
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 16, color: const Color(0xFFF4EAD6)),
-              if (label != null) ...[
-                const SizedBox(width: 2),
-                Text(
-                  label!,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFFF4EAD6),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+import '../../theme/palette.dart';
 
 /// 选中信息 / 建造放置提示条，悬浮在建造栏上方。
 class SelectionStrip extends StatelessWidget {
@@ -247,9 +17,7 @@ class SelectionStrip extends StatelessWidget {
     final selection = controller.selection;
     if (selection == null) {
       if (controller.state.elapsed > 40) return const SizedBox.shrink();
-      return const _Tip(
-        text: '点选部队后点击地面移动，点击敌军或建筑发起攻击',
-      );
+      return const _Tip(text: '点选部队后点击地面移动，点击敌军或建筑发起攻击');
     }
     return _SelectionCard(controller: controller, info: selection);
   }
@@ -291,9 +59,9 @@ class _SelectionCard extends StatelessWidget {
       constraints: const BoxConstraints(maxWidth: 430),
       padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
       decoration: BoxDecoration(
-        color: const Color(0xE6191815),
+        color: hudPanel,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0x44EFE2C8)),
+        border: Border.all(color: hudBorder),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -312,7 +80,7 @@ class _SelectionCard extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFFF4EAD6),
+                color: hudText,
               ),
             ),
           ),
@@ -335,7 +103,7 @@ class _SelectionCard extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFFF4EAD6),
+                          color: hudText,
                         ),
                       ),
                     ),
@@ -343,10 +111,7 @@ class _SelectionCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         '敌军',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: info.team.color,
-                        ),
+                        style: TextStyle(fontSize: 10, color: info.team.color),
                       ),
                     ],
                   ],
@@ -412,7 +177,7 @@ class _MiniAction extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 15, color: const Color(0xFFD9CBB4)),
+            Icon(icon, size: 15, color: hudTextSoft),
             Text(
               label,
               style: const TextStyle(fontSize: 9, color: Color(0xFFB3A794)),
@@ -437,7 +202,7 @@ class _PlacementBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 5, 6, 5),
       decoration: BoxDecoration(
-        color: const Color(0xE61B1815),
+        color: hudPanelSolid.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: valid ? const Color(0xAA6FCF7A) : const Color(0xAAE0604F),
@@ -449,7 +214,7 @@ class _PlacementBanner extends StatelessWidget {
           Icon(
             valid ? Icons.check_circle_outline : Icons.error_outline,
             size: 16,
-            color: valid ? const Color(0xFF8AD694) : const Color(0xFFE0806F),
+            color: valid ? hudSuccess : hudWarning,
           ),
           const SizedBox(width: 6),
           Text(
@@ -457,13 +222,13 @@ class _PlacementBanner extends StatelessWidget {
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: Color(0xFFF4EAD6),
+              color: hudText,
             ),
           ),
           const SizedBox(width: 6),
           Text(
             valid ? '点击地图确认' : '靠近己方建筑的空地',
-            style: const TextStyle(fontSize: 10.5, color: Color(0xFFAFA393)),
+            style: const TextStyle(fontSize: 10.5, color: hudTextMuted),
           ),
           const SizedBox(width: 4),
           TextButton(
@@ -471,7 +236,7 @@ class _PlacementBanner extends StatelessWidget {
             style: TextButton.styleFrom(
               minimumSize: const Size(48, 28),
               padding: const EdgeInsets.symmetric(horizontal: 8),
-              foregroundColor: const Color(0xFFD9CBB4),
+              foregroundColor: hudTextSoft,
             ),
             child: const Text('取消', style: TextStyle(fontSize: 11)),
           ),
@@ -513,14 +278,14 @@ class _Toast extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = switch (level) {
-      NoticeLevel.info => const Color(0xFF9FB3C6),
-      NoticeLevel.warning => const Color(0xFFE0806F),
-      NoticeLevel.success => const Color(0xFF8AD694),
+      NoticeLevel.info => hudInfo,
+      NoticeLevel.warning => hudWarning,
+      NoticeLevel.success => hudSuccess,
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: const Color(0xE6141310),
+        color: hudPanelDeep,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color.withValues(alpha: 0.55)),
       ),

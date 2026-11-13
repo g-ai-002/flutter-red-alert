@@ -3,24 +3,25 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 import '../utils/formatters.dart';
+import 'log_buffer.dart';
 
 /// 日志服务：内存环形缓冲 + 按天文件落盘。
 ///
 /// 初始化前的日志先进入早期缓冲，初始化后补写；日志目录不可用时降级为内存模式。
 class LogService {
   static LogService? _instance;
-  static final List<String> _earlyBuffer = [];
-  final List<String> _buffer = [];
+  static const int _maxBufferLines = 2000;
+  static const int _maxEarlyLines = 500;
+  static const int _maxFileSize = 5 * 1024 * 1024;
+  static const int _maxRetentionDays = 7;
+
+  static final LogRingBuffer _earlyBuffer = LogRingBuffer(_maxEarlyLines);
+  final LogRingBuffer _buffer = LogRingBuffer(_maxBufferLines);
   Directory? _logDir;
   File? _logFile;
   DateTime? _logDate;
   bool _initialized = false;
   DateTime Function() _now = DateTime.now;
-
-  static const int _maxBufferLines = 2000;
-  static const int _maxEarlyLines = 500;
-  static const int _maxFileSize = 5 * 1024 * 1024;
-  static const int _maxRetentionDays = 7;
 
   LogService._();
 
@@ -54,8 +55,8 @@ class LogService {
       _logDate = _now();
       _cleanOldLogs();
     }
-    if (_earlyBuffer.isNotEmpty) {
-      for (final line in _earlyBuffer) {
+    if (_earlyBuffer.length > 0) {
+      for (final line in _earlyBuffer.lines) {
         _buffer.add(line);
         _appendLine(line);
       }
@@ -80,7 +81,6 @@ class LogService {
     if (inst == null || !inst._initialized) {
       final line = formatLogLine(inst?._now() ?? DateTime.now(), level, message);
       _earlyBuffer.add(line);
-      if (_earlyBuffer.length > _maxEarlyLines) _earlyBuffer.removeAt(0);
       return;
     }
     inst._write(level, message);
@@ -89,7 +89,6 @@ class LogService {
   void _write(String level, String message) {
     final line = formatLogLine(_now(), level, message);
     _buffer.add(line);
-    if (_buffer.length > _maxBufferLines) _buffer.removeAt(0);
     _appendLine(line);
   }
 
@@ -175,7 +174,7 @@ class LogService {
   /// 最近日志（内存缓冲，含尚未落盘的早期日志）。
   static List<String> getRecentLogs([int lines = 200]) {
     final inst = _instance;
-    final all = <String>[..._earlyBuffer, if (inst != null) ...inst._buffer];
+    final all = <String>[..._earlyBuffer.lines, if (inst != null) ...inst._buffer.lines];
     if (all.length <= lines) return all;
     return all.sublist(all.length - lines);
   }

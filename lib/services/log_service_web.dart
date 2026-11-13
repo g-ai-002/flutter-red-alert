@@ -1,15 +1,15 @@
 import 'package:flutter/foundation.dart';
 
 import '../utils/formatters.dart';
+import 'log_buffer.dart';
 
 /// Web 平台日志：只保留内存环形缓冲，不落盘。
 class LogService {
   LogService._();
 
-  static final List<String> _buffer = [];
-  static bool _initialized = false;
-
   static const int _maxBufferLines = 2000;
+  static final LogRingBuffer _buffer = LogRingBuffer(_maxBufferLines);
+  static bool _initialized = false;
 
   static Future<void> init({
     Future<Object?> Function()? logRoot,
@@ -40,11 +40,7 @@ class LogService {
       debugPrint('[LogService] $level $message');
     }
     _buffer.add(formatLogLine(DateTime.now(), level, message));
-    if (_buffer.length > _maxBufferLines) _buffer.removeAt(0);
   }
 
-  static List<String> getRecentLogs([int lines = 200]) {
-    if (_buffer.length <= lines) return List.unmodifiable(_buffer);
-    return _buffer.sublist(_buffer.length - lines);
-  }
+  static List<String> getRecentLogs([int lines = 200]) => _buffer.recent(lines);
 }

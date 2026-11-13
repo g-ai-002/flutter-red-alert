@@ -104,13 +104,4 @@ class VisionMap {
     if (changed) version++;
     return changed;
   }
-
-  /// 已探索但当前不可见的格数，用于 HUD 与测试。
-  int countExploredHidden() {
-    var count = 0;
-    for (var index = 0; index < _explored.length; index++) {
-      if (_explored[index] != 0 && _visible[index] == 0) count++;
-    }
-    return count;
-  }
 }

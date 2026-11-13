@@ -21,7 +21,8 @@ void main() {
     expect(vision.isVisible(5, 5), isFalse);
     expect(vision.isExplored(5, 5), isTrue);
     expect(vision.isVisible(15, 15), isTrue);
-    expect(vision.countExploredHidden(), greaterThan(0));
+    expect(vision.isExplored(5, 5), isTrue);
+    expect(vision.isVisible(5, 5), isFalse);
   });
 
   test('视野未变化时不递增版本号，避免重复重建迷雾图层', () {

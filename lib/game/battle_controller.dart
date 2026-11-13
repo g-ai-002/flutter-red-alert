@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 import '../services/log_service.dart';
@@ -65,8 +63,8 @@ class BattleController extends ChangeNotifier {
   double _notifyAccumulator = 0;
   bool _resultAnnounced = false;
 
-  BattleDifficulty get difficulty => state.difficulty;
   BattleResult? get result => state.result;
+  BattleDifficulty get difficulty => state.difficulty;
   bool get isPlacing => _placement.active;
 
   /// 放置预览状态，供渲染层直接读取。
@@ -225,9 +223,8 @@ class BattleController extends ChangeNotifier {
   void focusSelection() {
     final actors = selectedActors;
     if (actors.isEmpty) return;
-    final center = actors
-        .map((actor) => actor.position)
-        .reduce((a, b) => a + b) /
+    final center =
+        actors.map((actor) => actor.position).reduce((a, b) => a + b) /
         actors.length.toDouble();
     camera.focusOn(center);
     notifyListeners();
@@ -319,8 +316,7 @@ class BattleController extends ChangeNotifier {
   void requestProduction(ProductionCategory category, String id) {
     if (category == ProductionCategory.structure) {
       final kind = buildingKindFromId(id);
-      if (kind != null &&
-          state.readyStructuresOf(playerTeam).contains(kind)) {
+      if (kind != null && state.readyStructuresOf(playerTeam).contains(kind)) {
         beginPlacement(id);
         return;
       }
@@ -347,12 +343,4 @@ class BattleController extends ChangeNotifier {
 
   /// 对局用时，`mm:ss`。
   String get elapsedText => formatDuration(state.elapsed.round());
-
-  /// 电力负载：已用/已发，未发电时视为 1。
-  double get powerRatio {
-    final used = state.powerUsed(playerTeam);
-    final produced = state.powerProduced(playerTeam);
-    if (produced <= 0) return used > 0 ? 1 : 0;
-    return math.min(1, used / produced);
-  }
 }

@@ -55,4 +55,52 @@ void main() {
     final finder = PathFinder(map: map, isBlocked: map.blocked);
     expect(finder.find(const TilePoint(2, 2), const TilePoint(2, 2)), isEmpty);
   });
+
+  test('复用寻路缓冲后连续搜索互不影响', () {
+    final map = flatMap();
+    for (var y = 0; y <= 8; y++) {
+      map.setTerrain(4, y, TerrainKind.rock);
+    }
+    final finder = PathFinder(map: map, isBlocked: map.blocked);
+    final queries = [
+      (const TilePoint(1, 1), const TilePoint(8, 1)),
+      (const TilePoint(0, 0), const TilePoint(5, 5)),
+      (const TilePoint(8, 8), const TilePoint(1, 1)),
+      (const TilePoint(5, 5), const TilePoint(5, 5)),
+    ];
+    List<String>? expected;
+    for (var round = 0; round < 3; round++) {
+      final results = [
+        for (final query in queries)
+          finder
+              .find(query.$1, query.$2)
+              ?.map((point) => '${point.x},${point.y}')
+              .toList(),
+      ];
+      if (expected == null) {
+        expected = results.expand((path) => path ?? ['null']).toList();
+        continue;
+      }
+      expect(
+        results.expand((path) => path ?? ['null']).toList(),
+        expected,
+        reason: '第 $round 轮复用了上一轮的缓冲，结果应保持一致',
+      );
+    }
+  });
+
+  test('目标被围死后再搜索可达目标仍能成功', () {
+    final map = flatMap();
+    for (var dy = -1; dy <= 1; dy++) {
+      for (var dx = -1; dx <= 1; dx++) {
+        if (dx == 0 && dy == 0) continue;
+        map.setTerrain(5 + dx, 5 + dy, TerrainKind.water);
+      }
+    }
+    final finder = PathFinder(map: map, isBlocked: map.blocked);
+    expect(finder.find(const TilePoint(0, 0), const TilePoint(5, 5)), isNull);
+    final path = finder.find(const TilePoint(0, 0), const TilePoint(8, 8));
+    expect(path, isNotNull);
+    expect(path!.last, const TilePoint(8, 8));
+  });
 }

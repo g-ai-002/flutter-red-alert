@@ -1,4 +1,3 @@
-
 import 'package:flutter_red_alert/game/battle_state.dart';
 import 'package:flutter_red_alert/game/battle_types.dart';
 import 'package:flutter_red_alert/game/entity.dart';
@@ -29,7 +28,10 @@ void main() {
 
     test('电力收支平衡且初始有盈余', () {
       final state = BattleState.create();
-      expect(state.powerProduced(Team.red), greaterThan(state.powerUsed(Team.red)));
+      expect(
+        state.powerProduced(Team.red),
+        greaterThan(state.powerUsed(Team.red)),
+      );
       expect(state.powerFactor(Team.red), 1);
     });
   });
@@ -110,11 +112,7 @@ void main() {
       expect(barracks.alive, isTrue);
       final unitsBefore = state.unitsOf(Team.red).length;
       expect(
-        state.startProduction(
-          Team.red,
-          ProductionCategory.infantry,
-          'rifle',
-        ),
+        state.startProduction(Team.red, ProductionCategory.infantry, 'rifle'),
         isTrue,
       );
       simulate(state, 8);
@@ -127,9 +125,9 @@ void main() {
 
     test('指挥中心被摧毁后只要有其他建筑即可重建', () {
       final state = BattleState.create();
-      final hq = state.buildingsOf(
-        Team.red,
-      ).firstWhere((b) => b.spec.kind == BuildingKind.hq);
+      final hq = state
+          .buildingsOf(Team.red)
+          .firstWhere((b) => b.spec.kind == BuildingKind.hq);
       hq.applyDamage(99999);
       state.update(0.016);
       expect(state.hasBuilding(Team.red, BuildingKind.hq), isFalse);
@@ -208,10 +206,40 @@ void main() {
         UnitKind.rifle,
         const Offset(10.5, 30.5),
       );
+      expect(state.actorById(unit.id), same(unit));
       unit.applyDamage(99999);
       state.update(0.016);
       expect(state.unitsOf(Team.red).contains(unit), isFalse);
       expect(state.actorById(unit.id), isNull);
+    });
+
+    test('单位索引在批量阵亡后保持一致', () {
+      final state = BattleState.create();
+      final units = [
+        for (var i = 0; i < 6; i++)
+          state.spawnUnitForTest(
+            Team.red,
+            UnitKind.rifle,
+            Offset(9.5 + i, 30.5),
+          ),
+      ];
+      for (final unit in units) {
+        expect(state.actorById(unit.id), same(unit));
+      }
+      for (final unit in units.take(3)) {
+        unit.applyDamage(99999);
+      }
+      state.update(0.016);
+      for (final unit in units.take(3)) {
+        expect(state.actorById(unit.id), isNull);
+      }
+      for (final unit in units.skip(3)) {
+        expect(state.actorById(unit.id), same(unit));
+      }
+      expect(
+        state.actors.where((actor) => actor.alive).length,
+        state.actors.length,
+      );
     });
   });
 
@@ -221,17 +249,17 @@ void main() {
       final before = state.creditsRed;
       simulate(state, 45);
       expect(state.creditsRed, greaterThan(before));
-      final harvester = state.unitsOf(Team.red).firstWhere(
-        (u) => u.isHarvester,
-      );
+      final harvester = state
+          .unitsOf(Team.red)
+          .firstWhere((u) => u.isHarvester);
       expect(harvester.phase, isNot(HarvesterPhase.idle));
     });
 
     test('手动移动采矿车后仍会恢复自动采矿', () {
       final state = BattleState.create();
-      final harvester = state.unitsOf(Team.red).firstWhere(
-        (u) => u.isHarvester,
-      );
+      final harvester = state
+          .unitsOf(Team.red)
+          .firstWhere((u) => u.isHarvester);
       state.issueMove([harvester], const Offset(12.5, 32.5));
       expect(harvester.phase, HarvesterPhase.moving);
       simulate(state, 20);

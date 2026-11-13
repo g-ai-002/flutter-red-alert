@@ -26,16 +26,40 @@ class ActorPainter {
   final PlacementState placement;
 
   final Map<String, TextPainter> _labels = {};
+  final List<Actor> _visible = [];
+  final Paint _fill = Paint();
+  final Paint _stroke = Paint()..style = PaintingStyle.stroke;
+  final Paint _outline = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 0.055
+    ..color = const Color(0xCC15130F);
+
+  Paint _solid(Color color) => _fill..color = color;
+
+  Paint _outlined(Color color, double width) => _stroke
+    ..color = color
+    ..strokeWidth = width;
 
   void dispose() => _labels.clear();
 
   // ===== 单位与建筑 =====
 
-  void drawActors(Canvas canvas) {
-    final actors = List<Actor>.of(state.actors)
-      ..sort((a, b) => a.y.compareTo(b.y));
-    for (final actor in actors) {
+  void drawActors(Canvas canvas, Rect view) {
+    _visible.clear();
+    for (final actor in state.actors) {
       if (!actor.alive) continue;
+      if (actor is Building) {
+        if (!view.overlaps(actor.bounds)) continue;
+      } else if (actor.x + actor.radius < view.left ||
+          actor.x - actor.radius > view.right ||
+          actor.y + actor.radius < view.top ||
+          actor.y - actor.radius > view.bottom) {
+        continue;
+      }
+      _visible.add(actor);
+    }
+    _visible.sort((a, b) => a.y.compareTo(b.y));
+    for (final actor in _visible) {
       if (actor is Building) {
         _drawBuilding(canvas, actor);
       } else if (actor is Unit) {
@@ -48,10 +72,7 @@ class ActorPainter {
     final selected = selectedIds.contains(unit.id);
     final center = Offset(unit.x, unit.y);
     final teamColor = unit.team.color;
-    final outline = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.055
-      ..color = const Color(0xCC15130F);
+    final outline = _outline;
 
     canvas.drawOval(
       Rect.fromCenter(
@@ -59,7 +80,7 @@ class ActorPainter {
         width: unit.radius * 2.2,
         height: unit.radius * 1.1,
       ),
-      Paint()..color = const Color(0x55000000),
+      _solid(const Color(0x55000000)),
     );
     if (selected) {
       canvas.drawOval(
@@ -68,10 +89,7 @@ class ActorPainter {
           width: unit.radius * 2.9,
           height: unit.radius * 2.0,
         ),
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 0.06
-          ..color = const Color(0xFFF2D27A),
+        _outlined(const Color(0xFFF2D27A), 0.06),
       );
     }
 
@@ -93,7 +111,7 @@ class ActorPainter {
       canvas.drawCircle(
         center,
         unit.radius * 1.3,
-        Paint()..color = Colors.white.withValues(alpha: unit.hitFlash * 1.6),
+        _solid(Colors.white.withValues(alpha: unit.hitFlash * 1.6)),
       );
     }
     if (unit.hp < unit.maxHp) {
@@ -116,14 +134,9 @@ class ActorPainter {
     }
   }
 
-  void _drawInfantry(
-    Canvas canvas,
-    Unit unit,
-    Color teamColor,
-    Paint outline,
-  ) {
+  void _drawInfantry(Canvas canvas, Unit unit, Color teamColor, Paint outline) {
     final center = Offset(unit.x, unit.y);
-    canvas.drawCircle(center, 0.28, Paint()..color = teamColor);
+    canvas.drawCircle(center, 0.28, _solid(teamColor));
     canvas.drawCircle(center, 0.28, outline);
     // 头盔
     canvas.drawArc(
@@ -131,32 +144,32 @@ class ActorPainter {
       math.pi,
       math.pi,
       true,
-      Paint()..color = shadeColor(teamColor, -0.25),
+      _solid(shadeColor(teamColor, -0.25)),
     );
     canvas.save();
     canvas.translate(unit.x, unit.y);
     canvas.rotate(unit.facing);
-    final gunPaint = Paint()
-      ..color = unit.spec.kind == UnitKind.rocket
-          ? const Color(0xFF2C2B28)
-          : const Color(0xFF4A4A45);
+    final rocket = unit.spec.kind == UnitKind.rocket;
+    final gunPaint = _solid(
+      rocket ? const Color(0xFF2C2B28) : const Color(0xFF4A4A45),
+    );
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(
           0.1,
-          unit.spec.kind == UnitKind.rocket ? -0.07 : -0.035,
-          unit.spec.kind == UnitKind.rocket ? 0.5 : 0.42,
-          unit.spec.kind == UnitKind.rocket ? 0.14 : 0.07,
+          rocket ? -0.07 : -0.035,
+          rocket ? 0.5 : 0.42,
+          rocket ? 0.14 : 0.07,
         ),
         const Radius.circular(0.03),
       ),
       gunPaint,
     );
-    if (unit.spec.kind == UnitKind.rocket) {
+    if (rocket) {
       canvas.drawCircle(
         const Offset(0.55, 0),
         0.055,
-        Paint()..color = const Color(0xFF8E241B),
+        _solid(const Color(0xFF8E241B)),
       );
     }
     canvas.restore();
@@ -175,7 +188,7 @@ class ActorPainter {
       width: width,
       height: height,
     );
-    final trackPaint = Paint()..color = const Color(0xFF24231F);
+    final trackPaint = _solid(const Color(0xFF24231F));
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(-width / 2, -height / 2, width, height * 0.24),
@@ -197,7 +210,7 @@ class ActorPainter {
     );
     canvas.drawRRect(
       RRect.fromRectAndRadius(body, const Radius.circular(0.08)),
-      Paint()..color = teamColor,
+      _solid(teamColor),
     );
     canvas.drawRRect(
       RRect.fromRectAndRadius(body, const Radius.circular(0.08)),
@@ -206,11 +219,11 @@ class ActorPainter {
     canvas.drawCircle(
       Offset.zero,
       heavy ? 0.24 : 0.19,
-      Paint()..color = shadeColor(teamColor, -0.18),
+      _solid(shadeColor(teamColor, -0.18)),
     );
     canvas.drawRect(
       Rect.fromLTWH(0, -0.05, heavy ? 0.5 : 0.42, 0.1),
-      Paint()..color = const Color(0xFF35342F),
+      _solid(const Color(0xFF35342F)),
     );
     canvas.restore();
   }
@@ -228,7 +241,7 @@ class ActorPainter {
     final body = Rect.fromCenter(center: Offset.zero, width: 0.9, height: 0.66);
     canvas.drawRRect(
       RRect.fromRectAndRadius(body, const Radius.circular(0.08)),
-      Paint()..color = teamColor,
+      _solid(teamColor),
     );
     canvas.drawRRect(
       RRect.fromRectAndRadius(body, const Radius.circular(0.08)),
@@ -236,7 +249,7 @@ class ActorPainter {
     );
     // 矿石仓
     const bin = Rect.fromLTWH(-0.32, -0.2, 0.46, 0.4);
-    canvas.drawRect(bin, Paint()..color = const Color(0xFF3C3A33));
+    canvas.drawRect(bin, _solid(const Color(0xFF3C3A33)));
     if (unit.cargo > 0) {
       canvas.drawRect(
         Rect.fromLTWH(
@@ -245,12 +258,12 @@ class ActorPainter {
           bin.width - 0.04,
           bin.height * unit.cargoRatio,
         ),
-        Paint()..color = const Color(0xFFD9A94B),
+        _solid(const Color(0xFFD9A94B)),
       );
     }
     canvas.drawRect(
       const Rect.fromLTWH(0.2, -0.22, 0.22, 0.44),
-      Paint()..color = shadeColor(teamColor, -0.25),
+      _solid(shadeColor(teamColor, -0.25)),
     );
     canvas.restore();
   }
@@ -264,9 +277,9 @@ class ActorPainter {
         rect.translate(0.08, 0.1),
         const Radius.circular(0.12),
       ),
-      Paint()..color = const Color(0x66000000),
+      _solid(const Color(0x66000000)),
     );
-    canvas.drawRRect(body, Paint()..color = const Color(0xFF4B4E4A));
+    canvas.drawRRect(body, _solid(const Color(0xFF4B4E4A)));
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(
@@ -277,31 +290,22 @@ class ActorPainter {
         ),
         const Radius.circular(0.08),
       ),
-      Paint()..color = const Color(0xFF5B5E58),
+      _solid(const Color(0xFF5B5E58)),
     );
     // 阵营色条
     canvas.drawRect(
       Rect.fromLTWH(rect.left + 0.1, rect.bottom - 0.18, rect.width - 0.2, 0.1),
-      Paint()..color = building.team.color,
+      _solid(building.team.color),
     );
     _drawBuildingDetail(canvas, building, rect);
-    canvas.drawRRect(
-      body,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.035
-        ..color = const Color(0xFF22211E),
-    );
+    canvas.drawRRect(body, _outlined(const Color(0xFF22211E), 0.035));
     if (selected) {
       canvas.drawRRect(
         RRect.fromRectAndRadius(
           rect.inflate(0.08),
           const Radius.circular(0.14),
         ),
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 0.06
-          ..color = const Color(0xFFF2D27A),
+        _outlined(const Color(0xFFF2D27A), 0.06),
       );
     }
     if (building.hp < building.maxHp) {
@@ -347,12 +351,11 @@ class ActorPainter {
         canvas.drawPath(bolt, Paint()..color = const Color(0xFFE8C36A));
         break;
       case BuildingKind.refinery:
-        for (final dx in [rect.left + rect.width * 0.26, rect.right - rect.width * 0.26]) {
-          canvas.drawCircle(
-            Offset(dx, center.dy),
-            rect.height * 0.22,
-            dark,
-          );
+        for (final dx in [
+          rect.left + rect.width * 0.26,
+          rect.right - rect.width * 0.26,
+        ]) {
+          canvas.drawCircle(Offset(dx, center.dy), rect.height * 0.22, dark);
           canvas.drawCircle(
             Offset(dx, center.dy),
             rect.height * 0.14,
@@ -429,7 +432,7 @@ class ActorPainter {
     final rect = Rect.fromCenter(center: center, width: width, height: 0.11);
     canvas.drawRRect(
       RRect.fromRectAndRadius(rect, const Radius.circular(0.03)),
-      Paint()..color = const Color(0xCC16140F),
+      _solid(const Color(0xCC16140F)),
     );
     final clamped = ratio.clamp(0.0, 1.0);
     if (clamped <= 0) return;
@@ -443,7 +446,7 @@ class ActorPainter {
         ),
         const Radius.circular(0.02),
       ),
-      Paint()..color = color,
+      _solid(color),
     );
   }
 
@@ -510,16 +513,29 @@ class ActorPainter {
       camera.viewport.width,
       camera.viewport.height,
     );
-    for (final building in state.actors.whereType<Building>()) {
-      if (!building.alive) continue;
-      final screen = camera.worldToScreen(Offset(building.x, building.y));
-      if (!viewport.contains(screen)) continue;
-      final painter = _labelPainter(building.spec.icon, fontSize);
-      painter.paint(
-        canvas,
-        screen - Offset(painter.width / 2, painter.height / 2),
-      );
+    for (final building in state.redBuildings) {
+      _drawBuildingLabel(canvas, camera, viewport, fontSize, building);
     }
+    for (final building in state.blueBuildings) {
+      _drawBuildingLabel(canvas, camera, viewport, fontSize, building);
+    }
+  }
+
+  void _drawBuildingLabel(
+    Canvas canvas,
+    BattleCamera camera,
+    Rect viewport,
+    double fontSize,
+    Building building,
+  ) {
+    if (!building.alive) return;
+    final screen = camera.worldToScreen(Offset(building.x, building.y));
+    if (!viewport.contains(screen)) return;
+    final painter = _labelPainter(building.spec.icon, fontSize);
+    painter.paint(
+      canvas,
+      screen - Offset(painter.width / 2, painter.height / 2),
+    );
   }
 
   TextPainter _labelPainter(String text, double fontSize) {
@@ -533,9 +549,7 @@ class ActorPainter {
             fontWeight: FontWeight.w700,
             color: const Color(0xFFF4EADA),
             fontFamily: kIsWeb ? kWebFontFamily : null,
-            shadows: const [
-              Shadow(color: Color(0xCC000000), blurRadius: 4),
-            ],
+            shadows: const [Shadow(color: Color(0xCC000000), blurRadius: 4)],
           ),
         ),
         textDirection: TextDirection.ltr,

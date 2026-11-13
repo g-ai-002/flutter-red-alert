@@ -127,7 +127,8 @@ class BattleGame extends FlameGame {
       state.map.height.toDouble(),
     );
     canvas.clipRect(mapRect);
-    _terrain.paint(canvas);
+    final visible = camera.visibleWorld.inflate(2);
+    _terrain.paint(canvas, visible);
     canvas.drawRect(
       mapRect,
       Paint()
@@ -135,7 +136,7 @@ class BattleGame extends FlameGame {
         ..strokeWidth = 2.4 / camera.tileSize
         ..color = const Color(0xFF3A3630),
     );
-    _actors.drawActors(canvas);
+    _actors.drawActors(canvas, visible);
     _actors.drawGhost(canvas);
     effects.render(canvas, camera.tileSize);
     canvas.restore();

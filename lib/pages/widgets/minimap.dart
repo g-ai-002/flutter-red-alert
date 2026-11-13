@@ -1,41 +1,95 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 
 import '../../game/battle_controller.dart';
 import '../../game/entity.dart';
+import '../../game/terrain.dart';
 import '../../theme/palette.dart';
 
 /// 迷你地图：展示地形、矿石、双方单位与当前视野，点击或拖动可移动摄像机。
-class BattleMinimap extends StatelessWidget {
+///
+/// 地形只在尺寸或地图版本变化时重建 [ui.Picture]，单位与视野以约 6Hz
+/// 单独重绘，避免每次 HUD 刷新都重新遍历 44×44 格。
+class BattleMinimap extends StatefulWidget {
   const BattleMinimap({super.key, required this.controller, this.size = 124});
 
   final BattleController controller;
   final double size;
 
+  @override
+  State<BattleMinimap> createState() => _BattleMinimapState();
+}
+
+class _BattleMinimapState extends State<BattleMinimap> {
+  ui.Picture? _terrain;
+  Size _terrainSize = Size.zero;
+  int _terrainVersion = -1;
+
+  @override
+  void dispose() {
+    _terrain?.dispose();
+    super.dispose();
+  }
+
   void _focus(Offset local, Size box) {
-    final map = controller.state.map;
+    final map = widget.controller.state.map;
     final world = Offset(
       (local.dx / box.width * map.width).clamp(0, map.width.toDouble()),
       (local.dy / box.height * map.height).clamp(0, map.height.toDouble()),
     );
-    controller.focusWorld(world);
+    widget.controller.focusWorld(world);
+  }
+
+  void _ensureTerrain(GameMap map, Size size) {
+    if (_terrain != null &&
+        _terrainSize == size &&
+        _terrainVersion == map.version) {
+      return;
+    }
+    _terrain?.dispose();
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    final sx = size.width / map.width;
+    final sy = size.height / map.height;
+    final fill = Paint();
+    final sx2 = sx * 2.1;
+    final sy2 = sy * 2.1;
+    // 地形按 2 格采样，兼顾清晰度与绘制开销。
+    for (var y = 0; y < map.height; y += 2) {
+      for (var x = 0; x < map.width; x += 2) {
+        final kind = map.terrainAt(x, y);
+        final rect = Rect.fromLTWH(x * sx, y * sy, sx2, sy2);
+        canvas.drawRect(
+          rect,
+          fill..color = terrainColor(kind).withValues(alpha: 0.95),
+        );
+        if (map.oreAt(x, y) > 0) {
+          canvas.drawCircle(rect.center, sx * 0.9, fill..color = _oreColor);
+        }
+      }
+    }
+    _terrain = recorder.endRecording();
+    _terrainSize = size;
+    _terrainVersion = map.version;
   }
 
   @override
   Widget build(BuildContext context) {
-    final map = controller.state.map;
+    final map = widget.controller.state.map;
     final aspect = map.width / map.height;
-    final width = size * aspect;
+    final width = widget.size * aspect;
+    final size = Size(width, widget.size);
+    _ensureTerrain(map, size);
     return Semantics(
       label: '迷你地图',
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTapDown: (details) =>
-            _focus(details.localPosition, Size(width, size)),
-        onPanUpdate: (details) =>
-            _focus(details.localPosition, Size(width, size)),
+        onTapDown: (details) => _focus(details.localPosition, size),
+        onPanUpdate: (details) => _focus(details.localPosition, size),
         child: Container(
           width: width,
-          height: size,
+          height: widget.size,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: const Color(0x663A342B)),
@@ -44,9 +98,14 @@ class BattleMinimap extends StatelessWidget {
             ],
           ),
           clipBehavior: Clip.antiAlias,
-          child: CustomPaint(
-            painter: _MinimapPainter(controller: controller),
-            size: Size(width, size),
+          child: RepaintBoundary(
+            child: CustomPaint(
+              painter: _MinimapPainter(
+                controller: widget.controller,
+                terrain: _terrain,
+              ),
+              size: size,
+            ),
           ),
         ),
       ),
@@ -54,10 +113,15 @@ class BattleMinimap extends StatelessWidget {
   }
 }
 
+const Color _oreColor = Color(0xFFD9A94B);
+
 class _MinimapPainter extends CustomPainter {
-  _MinimapPainter({required this.controller});
+  _MinimapPainter({required this.controller, required this.terrain});
 
   final BattleController controller;
+  final ui.Picture? terrain;
+  final Paint _fill = Paint();
+  final Paint _stroke = Paint()..style = PaintingStyle.stroke;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -66,26 +130,9 @@ class _MinimapPainter extends CustomPainter {
     final sx = size.width / map.width;
     final sy = size.height / map.height;
 
-    // 地形按 2 格采样，兼顾清晰度与绘制开销。
-    for (var y = 0; y < map.height; y += 2) {
-      for (var x = 0; x < map.width; x += 2) {
-        final kind = map.terrainAt(x, y);
-        final rect = Rect.fromLTWH(x * sx, y * sy, sx * 2.1, sy * 2.1);
-        canvas.drawRect(
-          rect,
-          Paint()..color = terrainColor(kind).withValues(alpha: 0.95),
-        );
-        if (map.oreAt(x, y) > 0) {
-          canvas.drawCircle(
-            rect.center,
-            sx * 0.9,
-            Paint()..color = const Color(0xFFD9A94B),
-          );
-        }
-      }
-    }
+    if (terrain != null) canvas.drawPicture(terrain!);
 
-    for (final building in state.actors.whereType<Building>()) {
+    for (final building in state.redBuildings) {
       if (!building.alive) continue;
       canvas.drawRect(
         Rect.fromLTWH(
@@ -94,17 +141,29 @@ class _MinimapPainter extends CustomPainter {
           building.spec.width * sx,
           building.spec.height * sy,
         ),
-        Paint()..color = building.team.color,
+        _fill..color = building.team.color,
+      );
+    }
+    for (final building in state.blueBuildings) {
+      if (!building.alive) continue;
+      canvas.drawRect(
+        Rect.fromLTWH(
+          building.tileX * sx,
+          building.tileY * sy,
+          building.spec.width * sx,
+          building.spec.height * sy,
+        ),
+        _fill..color = building.team.color,
       );
     }
 
-    for (final unit in state.actors.whereType<Unit>()) {
+    for (final unit in state.redUnits) {
       if (!unit.alive) continue;
-      canvas.drawCircle(
-        Offset(unit.x * sx, unit.y * sy),
-        1.6,
-        Paint()..color = unit.team.color,
-      );
+      _drawUnit(canvas, unit, sx, sy);
+    }
+    for (final unit in state.blueUnits) {
+      if (!unit.alive) continue;
+      _drawUnit(canvas, unit, sx, sy);
     }
 
     final visible = controller.camera.visibleWorld.intersect(
@@ -118,12 +177,19 @@ class _MinimapPainter extends CustomPainter {
           visible.width * sx,
           visible.height * sy,
         ),
-        Paint()
-          ..style = PaintingStyle.stroke
+        _stroke
           ..strokeWidth = 1.4
           ..color = const Color(0xFFF4EAD6),
       );
     }
+  }
+
+  void _drawUnit(Canvas canvas, Unit unit, double sx, double sy) {
+    canvas.drawCircle(
+      Offset(unit.x * sx, unit.y * sy),
+      1.6,
+      _fill..color = unit.team.color,
+    );
   }
 
   @override

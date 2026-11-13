@@ -7,73 +7,111 @@ import '../game/terrain.dart';
 import '../theme/palette.dart';
 import 'paint_utils.dart';
 
-/// 地形图层：按地图版本缓存整张 [ui.Picture]。
+/// 地形图层：按地图版本把 44×44 格切成若干区块缓存 [ui.Picture]。
 ///
-/// 只有矿石被采空导致地形变化时地图版本才会递增，因此正常对局中每帧
-/// 只是一次 `drawPicture`，不重复绘制 44×44 格的纹理。
+/// 只有矿石被采空导致地形变化时地图版本才会递增，正常对局中每帧只回放
+/// 摄像机视野覆盖的区块，缩放到局部时不再重放整张地图的绘制指令。
 class TerrainPainter {
-  TerrainPainter(this.map);
+  TerrainPainter(this.map) {
+    _columns = (map.width + _chunkTiles - 1) ~/ _chunkTiles;
+    _rows = (map.height + _chunkTiles - 1) ~/ _chunkTiles;
+    _pictures = List<ui.Picture?>.filled(_columns * _rows, null);
+  }
+
+  static const int _chunkTiles = 11;
 
   final GameMap map;
 
-  ui.Picture? _picture;
+  late final int _columns;
+  late final int _rows;
+  late final List<ui.Picture?> _pictures;
   int _version = -1;
 
-  void paint(Canvas canvas) {
-    if (_picture == null || _version != map.version) {
-      _picture?.dispose();
-      _picture = _build();
-      _version = map.version;
+  void paint(Canvas canvas, Rect visible) {
+    if (_version != map.version) _rebuild();
+    for (var row = 0; row < _rows; row++) {
+      for (var column = 0; column < _columns; column++) {
+        final picture = _pictures[row * _columns + column];
+        if (picture == null) continue;
+        final rect = Rect.fromLTWH(
+          column * _chunkTiles.toDouble(),
+          row * _chunkTiles.toDouble(),
+          _chunkTiles.toDouble(),
+          _chunkTiles.toDouble(),
+        );
+        if (rect.inflate(1).overlaps(visible)) canvas.drawPicture(picture);
+      }
     }
-    canvas.drawPicture(_picture!);
   }
 
   void dispose() {
-    _picture?.dispose();
-    _picture = null;
+    for (final picture in _pictures) {
+      picture?.dispose();
+    }
+    _pictures.fillRange(0, _pictures.length, null);
+    _version = -1;
   }
 
-  ui.Picture _build() {
+  void _rebuild() {
+    dispose();
+    for (var row = 0; row < _rows; row++) {
+      for (var column = 0; column < _columns; column++) {
+        _pictures[row * _columns + column] = _buildChunk(column, row);
+      }
+    }
+    _version = map.version;
+  }
+
+  ui.Picture _buildChunk(int column, int row) {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
     final gridPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.012
       ..color = const Color(0x14FFFFFF);
-    for (var y = 0; y < map.height; y++) {
-      for (var x = 0; x < map.width; x++) {
-        final kind = map.terrainAt(x, y);
-        final noise = hashNoise(x, y);
-        final base = terrainColor(kind);
-        final rect = Rect.fromLTWH(x.toDouble(), y.toDouble(), 1.01, 1.01);
-        canvas.drawRect(
-          rect,
-          Paint()..color = shadeColor(base, noise * 0.12 - 0.06),
-        );
-        switch (kind) {
-          case TerrainKind.grass:
-            _paintGrass(canvas, x, y, noise);
-            break;
-          case TerrainKind.dirt:
-            _paintDirt(canvas, x, y, noise);
-            break;
-          case TerrainKind.road:
-            _paintRoad(canvas, x, y);
-            break;
-          case TerrainKind.water:
-            _paintWater(canvas, x, y, noise);
-            break;
-          case TerrainKind.rock:
-            _paintRock(canvas, x, y, noise);
-            break;
-          case TerrainKind.ore:
-            _paintOre(canvas, x, y, map.oreAt(x, y), noise);
-            break;
-        }
-        canvas.drawRect(rect, gridPaint);
+    // 区块向外多画一格，避免相邻区块边界出现 1% 绘制误差造成的接缝。
+    final startX = (column * _chunkTiles - 1).clamp(0, map.width - 1);
+    final startY = (row * _chunkTiles - 1).clamp(0, map.height - 1);
+    final endX = ((column + 1) * _chunkTiles + 1).clamp(0, map.width);
+    final endY = ((row + 1) * _chunkTiles + 1).clamp(0, map.height);
+    for (var y = startY; y < endY; y++) {
+      for (var x = startX; x < endX; x++) {
+        _paintTile(canvas, x, y, gridPaint);
       }
     }
     return recorder.endRecording();
+  }
+
+  void _paintTile(Canvas canvas, int x, int y, Paint gridPaint) {
+    final kind = map.terrainAt(x, y);
+    final noise = hashNoise(x, y);
+    final base = terrainColor(kind);
+    final rect = Rect.fromLTWH(x.toDouble(), y.toDouble(), 1.01, 1.01);
+    canvas.drawRect(
+      rect,
+      Paint()..color = shadeColor(base, noise * 0.12 - 0.06),
+    );
+    switch (kind) {
+      case TerrainKind.grass:
+        _paintGrass(canvas, x, y, noise);
+        break;
+      case TerrainKind.dirt:
+        _paintDirt(canvas, x, y, noise);
+        break;
+      case TerrainKind.road:
+        _paintRoad(canvas, x, y);
+        break;
+      case TerrainKind.water:
+        _paintWater(canvas, x, y, noise);
+        break;
+      case TerrainKind.rock:
+        _paintRock(canvas, x, y, noise);
+        break;
+      case TerrainKind.ore:
+        _paintOre(canvas, x, y, map.oreAt(x, y), noise);
+        break;
+    }
+    canvas.drawRect(rect, gridPaint);
   }
 
   void _paintGrass(Canvas canvas, int x, int y, double noise) {

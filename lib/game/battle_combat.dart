@@ -37,17 +37,7 @@ extension BattleCombat on BattleState {
       _fireAt(unit, target);
       return;
     }
-    if (unit.repathTimer <= 0 || !unit.hasPath) {
-      final goal = _approachTile(target);
-      final path = goal == null
-          ? null
-          : _finder.find(TilePoint(unit.x.floor(), unit.y.floor()), goal);
-      if (path != null) unit.setPath(path);
-      unit.repathTimer = 0.9;
-    }
-    if (unit.hasPath) {
-      _followPath(unit, dt);
-    }
+    _chase(unit, _approachTile(target), dt, repath: 0.9);
   }
 
   /// 目标进入最近射程时向后拉开距离，给火炮留出开火空间。
@@ -57,34 +47,39 @@ extension BattleCombat on BattleState {
       final dy = unit.y - target.y;
       final distance = math.sqrt(dx * dx + dy * dy);
       if (distance > 0.01) {
-        final goal = _nearestFreeTile(
-          Offset(
-            unit.x + dx / distance * unit.spec.minRange,
-            unit.y + dy / distance * unit.spec.minRange,
+        _repath(
+          unit,
+          _nearestFreeTile(
+            Offset(
+              unit.x + dx / distance * unit.spec.minRange,
+              unit.y + dy / distance * unit.spec.minRange,
+            ),
           ),
+          repath: 0.8,
         );
-        final path = goal == null
-            ? null
-            : _finder.find(TilePoint(unit.x.floor(), unit.y.floor()), goal);
-        if (path != null) unit.setPath(path);
+      } else {
+        unit.repathTimer = 0.8;
       }
-      unit.repathTimer = 0.8;
     }
     if (unit.hasPath) _followPath(unit, dt);
   }
 
   void _fireAt(Unit unit, Actor target) {
     if (unit.fireCooldown > 0) return;
-    final spec = unit.spec;
     if (!_inFiringBand(unit, target)) return;
-    unit.fireCooldown = spec.cooldown / powerFactor(unit.team);
-    unit.facing = math.atan2(target.y - unit.y, target.x - unit.x);
+    _shoot(unit, target, unit.spec);
+  }
+
+  /// 冷却、炮口朝向与伤害结算是单位与防御建筑的共同出口。
+  void _shoot(Actor attacker, Actor target, WeaponStats spec) {
+    attacker.fireCooldown = spec.cooldown / powerFactor(attacker.team);
+    attacker.facing = math.atan2(target.y - attacker.y, target.x - attacker.x);
     _applyDamage(
-      attacker: unit,
+      attacker: attacker,
       target: target,
       attack: spec.attack,
       multiplier: spec.multiplierAgainst(target.armor),
-      shell: spec.armor == ArmorClass.vehicle,
+      shell: spec.firesShell,
       splash: spec.splash,
     );
   }
@@ -143,45 +138,28 @@ extension BattleCombat on BattleState {
   }
 
   void _updateBuildings(double dt) {
-    for (final building in redBuildings) {
-      if (building.alive) _updateDefense(building, dt);
-    }
-    for (final building in blueBuildings) {
+    for (final building in allBuildings) {
       if (building.alive) _updateDefense(building, dt);
     }
   }
 
   void _updateDefense(Building building, double dt) {
-    building.advanceFlash(dt);
-    if (!building.spec.isDefense) return;
-    building.fireCooldown = math.max(0, building.fireCooldown - dt);
-    if (building.fireCooldown > 0) return;
+    building.advanceCombatTimers(dt);
+    final spec = building.spec;
+    if (!spec.isDefense || building.fireCooldown > 0) return;
     final target = nearestEnemy(
       building.team,
       building.position,
-      maxDistance: building.spec.range,
+      maxDistance: spec.range,
       building: building,
     );
     if (target == null) return;
-    building.fireCooldown = building.spec.cooldown / powerFactor(building.team);
-    building.facing = math.atan2(target.y - building.y, target.x - building.x);
-    _applyDamage(
-      attacker: building,
-      target: target,
-      attack: building.spec.attack,
-      multiplier: building.spec.multiplierAgainst(target.armor),
-      shell: true,
-    );
+    _shoot(building, target, spec);
   }
 
   /// 射程判定：对建筑按外沿矩形计算，对单位按圆形半径略微放宽。
   double _distanceTo(Actor from, Actor to) {
-    if (to is Building) {
-      final rect = to.bounds;
-      final dx = math.max(math.max(rect.left - from.x, 0), from.x - rect.right);
-      final dy = math.max(math.max(rect.top - from.y, 0), from.y - rect.bottom);
-      return math.sqrt(dx * dx + dy * dy) - 0.25;
-    }
+    if (to is Building) return distanceToRect(from.position, to.bounds) - 0.25;
     return (from.position - to.position).distance - to.radius * 0.4;
   }
 

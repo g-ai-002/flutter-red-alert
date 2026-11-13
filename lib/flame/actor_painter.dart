@@ -214,10 +214,7 @@ class ActorPainter {
     if (camera.tileSize < 13) return;
     final fontSize = (camera.tileSize * 0.52).clamp(8.0, 18.0);
     final viewport = Rect.fromLTWH(0, 0, camera.viewport.width, camera.viewport.height);
-    for (final building in state.redBuildings) {
-      _drawBuildingLabel(canvas, camera, viewport, fontSize, building);
-    }
-    for (final building in state.blueBuildings) {
+    for (final building in state.allBuildings) {
       _drawBuildingLabel(canvas, camera, viewport, fontSize, building);
     }
   }

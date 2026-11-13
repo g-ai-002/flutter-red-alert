@@ -69,8 +69,32 @@ enum BuildingKind {
   final String description;
 }
 
+/// 单位与建筑共用的武器参数：攻击、射程、冷却、护甲倍率与弹道表现。
+///
+/// 具体数值仍留在 [UnitSpec] / [BuildingSpec]，这里只收敛双方相同的查询与结算。
+mixin WeaponStats {
+  int get attack;
+  double get range;
+  double get cooldown;
+  double get vsInfantry;
+  double get vsVehicle;
+  double get vsStructure;
+
+  /// 是否使用抛物线炮弹特效（车辆与防御建筑）。
+  bool get firesShell;
+
+  /// 溅射半径（格），0 表示单体伤害。
+  double get splash;
+
+  double multiplierAgainst(ArmorClass armor) => switch (armor) {
+    ArmorClass.infantry => vsInfantry,
+    ArmorClass.vehicle => vsVehicle,
+    ArmorClass.structure => vsStructure,
+  };
+}
+
 /// 单位参数。数值集中在这里，平衡调整只改这一处。
-class UnitSpec {
+class UnitSpec with WeaponStats {
   const UnitSpec({
     required this.kind,
     required this.cost,
@@ -101,11 +125,17 @@ class UnitSpec {
   final double speed;
   final double buildSeconds;
   final ProductionCategory category;
+  @override
   final int attack;
+  @override
   final double range;
+  @override
   final double cooldown;
+  @override
   final double vsInfantry;
+  @override
   final double vsVehicle;
+  @override
   final double vsStructure;
   final BuildingKind? requires;
 
@@ -116,6 +146,7 @@ class UnitSpec {
   final double minRange;
 
   /// 溅射半径（格），0 表示单体伤害。
+  @override
   final double splash;
 
   /// 每秒维修量，0 表示没有维修能力。
@@ -130,15 +161,12 @@ class UnitSpec {
   bool get isHarvester => kind == UnitKind.harvester;
   bool get isEngineer => repair > 0;
 
-  double multiplierAgainst(ArmorClass armor) => switch (armor) {
-    ArmorClass.infantry => vsInfantry,
-    ArmorClass.vehicle => vsVehicle,
-    ArmorClass.structure => vsStructure,
-  };
+  @override
+  bool get firesShell => armor == ArmorClass.vehicle;
 }
 
 /// 建筑参数。
-class BuildingSpec {
+class BuildingSpec with WeaponStats {
   const BuildingSpec({
     required this.kind,
     required this.cost,
@@ -167,11 +195,17 @@ class BuildingSpec {
   final int width;
   final int height;
   final BuildingKind? requires;
+  @override
   final int attack;
+  @override
   final double range;
+  @override
   final double cooldown;
+  @override
   final double vsInfantry;
+  @override
   final double vsVehicle;
+  @override
   final double vsStructure;
 
   /// 该建筑可排产的生产分类。
@@ -185,11 +219,11 @@ class BuildingSpec {
   bool get isProducer => producesCategory != null;
   bool get isDefense => attack > 0;
 
-  double multiplierAgainst(ArmorClass armor) => switch (armor) {
-    ArmorClass.infantry => vsInfantry,
-    ArmorClass.vehicle => vsVehicle,
-    ArmorClass.structure => vsStructure,
-  };
+  @override
+  bool get firesShell => true;
+
+  @override
+  double get splash => 0;
 }
 
 /// 全部单位参数。

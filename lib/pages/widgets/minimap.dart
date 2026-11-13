@@ -96,27 +96,23 @@ class _MinimapPainter extends CustomPainter {
 
     final radar = state.radarActive;
     final vision = state.vision;
-    for (final team in Team.values) {
-      for (final building in state.buildingsOf(team)) {
-        if (!building.alive) continue;
-        if (team == Team.blue && !radar && !vision.sees(building)) continue;
-        canvas.drawRect(
-          Rect.fromLTWH(
-            building.tileX * sx,
-            building.tileY * sy,
-            building.spec.width * sx,
-            building.spec.height * sy,
-          ),
-          _fill..color = building.team.color,
-        );
-      }
+    for (final building in state.allBuildings) {
+      if (!building.alive) continue;
+      if (building.team == Team.blue && !radar && !vision.sees(building)) continue;
+      canvas.drawRect(
+        Rect.fromLTWH(
+          building.tileX * sx,
+          building.tileY * sy,
+          building.spec.width * sx,
+          building.spec.height * sy,
+        ),
+        _fill..color = building.team.color,
+      );
     }
-    for (final team in Team.values) {
-      for (final unit in state.unitsOf(team)) {
-        if (!unit.alive) continue;
-        if (team == Team.blue && !radar && !vision.sees(unit)) continue;
-        _drawUnit(canvas, unit, sx, sy);
-      }
+    for (final unit in state.allUnits) {
+      if (!unit.alive) continue;
+      if (unit.team == Team.blue && !radar && !vision.sees(unit)) continue;
+      _drawUnit(canvas, unit, sx, sy);
     }
 
     if (radar) {

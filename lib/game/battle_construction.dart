@@ -41,22 +41,20 @@ extension BattleConstruction on BattleState {
   }
 
   Building? placeReadyStructure(Team team, BuildingKind kind) {
-    final ready = _readyStructures[team]!;
-    if (!ready.contains(kind)) return null;
+    if (!hasReadyStructure(team, kind)) return null;
     final spec = buildingSpecs[kind]!;
     final spot = findPlacement(spec, team);
     if (spot == null) return null;
-    ready.remove(kind);
+    _readyStructures[team]!.remove(kind);
     return _completeBuilding(team, kind, spot.x, spot.y);
   }
 
   /// 尝试在指定格放置已就绪的建筑。
   Building? placeStructureAt(Team team, BuildingKind kind, int tileX, int tileY) {
-    final ready = _readyStructures[team]!;
-    if (!ready.contains(kind)) return null;
+    if (!hasReadyStructure(team, kind)) return null;
     final spec = buildingSpecs[kind]!;
     if (!canPlaceBuilding(spec, tileX, tileY, team: team)) return null;
-    ready.remove(kind);
+    _readyStructures[team]!.remove(kind);
     return _completeBuilding(team, kind, tileX, tileY);
   }
 

@@ -17,7 +17,7 @@ extension BattleMovement on BattleState {
         radius: 2,
       );
       if (slot == null) continue;
-      final path = _finder.find(TilePoint(unit.x.floor(), unit.y.floor()), slot);
+      final path = _finder.find(_tileOf(unit), slot);
       if (path == null) continue;
       unit
         ..order = UnitOrder.move
@@ -65,8 +65,7 @@ extension BattleMovement on BattleState {
 
   /// 单个单位的每帧行为：采矿车走状态机，其余按攻击 / 移动 / 待命分派。
   void _updateUnit(Unit unit, double dt) {
-    unit.advanceFlash(dt);
-    unit.fireCooldown = math.max(0, unit.fireCooldown - dt);
+    unit.advanceCombatTimers(dt);
     unit.repathTimer = math.max(0, unit.repathTimer - dt);
     if (unit.isHarvester) {
       _updateHarvester(unit, dt);
@@ -138,15 +137,7 @@ extension BattleMovement on BattleState {
     unit.targetId = target.id;
     final gap = _distanceTo(unit, target);
     if (gap > unit.spec.range) {
-      if (unit.repathTimer <= 0 || !unit.hasPath) {
-        final goal = _approachTile(target);
-        final path = goal == null
-            ? null
-            : _finder.find(TilePoint(unit.x.floor(), unit.y.floor()), goal);
-        if (path != null) unit.setPath(path);
-        unit.repathTimer = 0.8;
-      }
-      if (unit.hasPath) _followPath(unit, dt);
+      _chase(unit, _approachTile(target), dt, repath: 0.8);
       return;
     }
     unit.clearPath();
@@ -176,6 +167,21 @@ extension BattleMovement on BattleState {
       best = actor;
     }
     return best;
+  }
+
+  TilePoint _tileOf(Unit unit) => TilePoint(unit.x.floor(), unit.y.floor());
+
+  /// 重算到 [goal] 的路径；[goal] 为空表示无法抵达，仅重置计时避免每步重算。
+  void _repath(Unit unit, TilePoint? goal, {required double repath}) {
+    final path = goal == null ? null : _finder.find(_tileOf(unit), goal);
+    if (path != null) unit.setPath(path);
+    unit.repathTimer = repath;
+  }
+
+  /// 追击：到达重算间隔或路径走完时重新寻路，然后跟随当前路径。
+  void _chase(Unit unit, TilePoint? goal, double dt, {required double repath}) {
+    if (unit.repathTimer <= 0 || !unit.hasPath) _repath(unit, goal, repath: repath);
+    if (unit.hasPath) _followPath(unit, dt);
   }
 
   void _followPath(Unit unit, double dt) {
@@ -338,7 +344,7 @@ extension BattleMovement on BattleState {
       unit.clearPath();
       return;
     }
-    final path = _finder.find(TilePoint(unit.x.floor(), unit.y.floor()), goal);
+    final path = _finder.find(_tileOf(unit), goal);
     if (path == null) {
       unit.clearPath();
     } else {

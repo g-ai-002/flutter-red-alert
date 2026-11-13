@@ -28,6 +28,9 @@ extension BattleProduction on BattleState {
 
   List<BuildingKind> readyStructuresOf(Team team) => _readyViews[team]!;
 
+  /// 某类建筑是否已生产完成、等待放置。
+  bool hasReadyStructure(Team team, BuildingKind kind) => _readyStructures[team]!.contains(kind);
+
   bool canProduce(Team team, ProductionCategory category, String id) =>
       productionBlocker(team, category, id) == null;
 

@@ -41,6 +41,13 @@ TilePoint? searchTile({
   return null;
 }
 
+/// 点到矩形的最短欧氏距离，点在框内返回 0；射程判定与放置预览共用。
+double distanceToRect(Offset point, Rect rect) {
+  final dx = math.max(math.max(rect.left - point.dx, 0.0), point.dx - rect.right);
+  final dy = math.max(math.max(rect.top - point.dy, 0.0), point.dy - rect.bottom);
+  return math.sqrt(dx * dx + dy * dy);
+}
+
 /// 单位指令。
 enum UnitOrder { idle, move, attack }
 
@@ -70,6 +77,9 @@ abstract class Actor {
   /// 受击闪白剩余时间，由渲染层推进。
   double hitFlash = 0;
 
+  /// 开火冷却，单位与防御建筑共用。
+  double fireCooldown = 0;
+
   bool get alive => hp > 0;
 
   bool get isBuilding => this is Building;
@@ -88,8 +98,10 @@ abstract class Actor {
     hitFlash = 0.2;
   }
 
-  void advanceFlash(double dt) {
+  /// 推进受击闪白与开火冷却，每个逻辑步调用一次。
+  void advanceCombatTimers(double dt) {
     if (hitFlash > 0) hitFlash = math.max(0, hitFlash - dt);
+    if (fireCooldown > 0) fireCooldown = math.max(0, fireCooldown - dt);
   }
 }
 
@@ -106,9 +118,6 @@ class Building extends Actor {
   final BuildingSpec spec;
   final int tileX;
   final int tileY;
-
-  /// 防御建筑的开火冷却。
-  double fireCooldown = 0;
 
   String get name => spec.name;
 
@@ -153,8 +162,7 @@ class Unit extends Actor {
   /// 攻击目标 id。
   int? targetId;
 
-  /// 开火冷却与追击重算计时。
-  double fireCooldown = 0;
+  /// 追击重算计时。
   double repathTimer = 0;
 
   /// 采矿车状态。

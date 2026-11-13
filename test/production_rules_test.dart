@@ -34,6 +34,20 @@ void main() {
     expect(state.productionBlocker(Team.red, ProductionCategory.structure, 'hq'), isNull);
   });
 
+  test('就绪建筑判定在放置前后保持一致', () {
+    final state = BattleState.create();
+    expect(state.hasReadyStructure(Team.red, BuildingKind.barracks), isFalse);
+    expect(state.startProduction(Team.red, ProductionCategory.structure, 'barracks'), isTrue);
+
+    for (var i = 0; i < 13 * 60; i++) {
+      state.update(1 / 60);
+    }
+
+    expect(state.hasReadyStructure(Team.red, BuildingKind.barracks), isTrue);
+    expect(state.placeReadyStructure(Team.red, BuildingKind.barracks), isNotNull);
+    expect(state.hasReadyStructure(Team.red, BuildingKind.barracks), isFalse);
+  });
+
   test('基地建筑全灭后无法再重建指挥中心', () {
     final state = BattleState.create();
     for (final building in state.buildingsOf(Team.red)) {

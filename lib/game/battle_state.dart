@@ -137,6 +137,18 @@ class BattleState {
 
   List<Building> buildingsOf(Team team) => team == Team.red ? redBuildings : blueBuildings;
 
+  /// 双方全部单位，主循环与渲染共用，避免重复手写红蓝两轮遍历。
+  Iterable<Unit> get allUnits sync* {
+    yield* redUnits;
+    yield* blueUnits;
+  }
+
+  /// 双方全部建筑，防御推进、建筑标签与迷你地图共用。
+  Iterable<Building> get allBuildings sync* {
+    yield* redBuildings;
+    yield* blueBuildings;
+  }
+
   int creditsOf(Team team) => team == Team.red ? creditsRed : creditsBlue;
 
   Actor? actorById(int id) {
@@ -280,10 +292,7 @@ class BattleState {
     _updateVision(dt);
     _updateRadar(dt);
     _updateProduction(dt);
-    for (final unit in redUnits) {
-      if (unit.alive) _updateUnit(unit, dt);
-    }
-    for (final unit in blueUnits) {
+    for (final unit in allUnits) {
       if (unit.alive) _updateUnit(unit, dt);
     }
     _updateBuildings(dt);

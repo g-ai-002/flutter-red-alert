@@ -42,13 +42,7 @@ class BuildingArt {
     final canvas = Canvas(recorder);
     _draw(
       canvas,
-      Building(
-        id: 0,
-        team: building.team,
-        spec: building.spec,
-        tileX: 0,
-        tileY: 0,
-      ),
+      Building(id: 0, team: building.team, spec: building.spec, tileX: 0, tileY: 0),
       outline,
     );
     return recorder.endRecording();
@@ -58,21 +52,13 @@ class BuildingArt {
     final rect = building.bounds.deflate(0.05);
     final body = RRect.fromRectAndRadius(rect, const Radius.circular(0.12));
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        rect.translate(0.08, 0.1),
-        const Radius.circular(0.12),
-      ),
+      RRect.fromRectAndRadius(rect.translate(0.08, 0.1), const Radius.circular(0.12)),
       brush.solid(const Color(0x66000000)),
     );
     canvas.drawRRect(body, brush.solid(const Color(0xFF4B4E4A)));
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromLTWH(
-          rect.left + 0.08,
-          rect.top + 0.08,
-          rect.width - 0.16,
-          rect.height - 0.16,
-        ),
+        Rect.fromLTWH(rect.left + 0.08, rect.top + 0.08, rect.width - 0.16, rect.height - 0.16),
         const Radius.circular(0.08),
       ),
       brush.solid(const Color(0xFF5B5E58)),
@@ -101,11 +87,7 @@ class BuildingArt {
     switch (building.spec.kind) {
       case BuildingKind.hq:
         canvas.drawCircle(center, rect.width * 0.16, dark);
-        canvas.drawCircle(
-          center,
-          rect.width * 0.1,
-          brush.solid(building.team.color),
-        );
+        canvas.drawCircle(center, rect.width * 0.1, brush.solid(building.team.color));
         canvas.drawLine(
           Offset(center.dx, rect.top + 0.1),
           Offset(center.dx, center.dy - rect.width * 0.16),
@@ -125,10 +107,7 @@ class BuildingArt {
         canvas.drawPath(bolt, brush.solid(const Color(0xFFE8C36A)));
         break;
       case BuildingKind.refinery:
-        for (final dx in [
-          rect.left + rect.width * 0.26,
-          rect.right - rect.width * 0.26,
-        ]) {
+        for (final dx in [rect.left + rect.width * 0.26, rect.right - rect.width * 0.26]) {
           canvas.drawCircle(Offset(dx, center.dy), rect.height * 0.22, dark);
           canvas.drawCircle(
             Offset(dx, center.dy),
@@ -139,12 +118,7 @@ class BuildingArt {
         break;
       case BuildingKind.barracks:
         canvas.drawRect(
-          Rect.fromLTWH(
-            rect.left + 0.2,
-            rect.bottom - 0.34,
-            rect.width - 0.4,
-            0.2,
-          ),
+          Rect.fromLTWH(rect.left + 0.2, rect.bottom - 0.34, rect.width - 0.4, 0.2),
           dark,
         );
         for (var i = 0; i < 3; i++) {
@@ -177,11 +151,7 @@ class BuildingArt {
         break;
       case BuildingKind.tower:
         canvas.drawCircle(center, rect.width * 0.3, dark);
-        canvas.drawCircle(
-          center,
-          rect.width * 0.2,
-          brush.solid(building.team.color),
-        );
+        canvas.drawCircle(center, rect.width * 0.2, brush.solid(building.team.color));
         canvas.save();
         canvas.translate(center.dx, center.dy);
         canvas.rotate(building.facing);

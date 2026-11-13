@@ -27,10 +27,7 @@ class PlacementState {
     final spec = this.spec;
     final center = _center;
     if (spec == null || center == null) return null;
-    return TilePoint(
-      (center.dx - spec.width / 2).round(),
-      (center.dy - spec.height / 2).round(),
-    );
+    return TilePoint((center.dx - spec.width / 2).round(), (center.dy - spec.height / 2).round());
   }
 
   bool get valid {

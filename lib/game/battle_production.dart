@@ -24,8 +24,7 @@ class ProductionJob {
 extension BattleProduction on BattleState {
   Map<ProductionCategory, ProductionJob?> queuesOf(Team team) => _queues[team]!;
 
-  ProductionJob? jobOf(Team team, ProductionCategory category) =>
-      _queues[team]![category];
+  ProductionJob? jobOf(Team team, ProductionCategory category) => _queues[team]![category];
 
   List<BuildingKind> readyStructuresOf(Team team) => _readyViews[team]!;
 
@@ -60,12 +59,7 @@ extension BattleProduction on BattleState {
   String nameOf(String id) => ProductionCatalog.byId(id)?.name ?? id;
 
   /// 开始生产；资金立即扣除，队列已有任务或条件不足时返回 false。
-  bool startProduction(
-    Team team,
-    ProductionCategory category,
-    String id, {
-    bool announce = true,
-  }) {
+  bool startProduction(Team team, ProductionCategory category, String id, {bool announce = true}) {
     if (result != null) return false;
     final item = ProductionCatalog.byId(id);
     final queue = _queues[team]!;
@@ -119,10 +113,7 @@ extension BattleProduction on BattleState {
           _readyStructures[team]!.add(job.item.building!);
           _queues[team]![category] = null;
           if (team == Team.red) {
-            addNotice(
-              '${job.name}已就绪，点击建造栏放置',
-              level: NoticeLevel.success,
-            );
+            addNotice('${job.name}已就绪，点击建造栏放置', level: NoticeLevel.success);
           }
         } else {
           _completeUnitJob(team, category, job);
@@ -131,11 +122,7 @@ extension BattleProduction on BattleState {
     }
   }
 
-  void _completeUnitJob(
-    Team team,
-    ProductionCategory category,
-    ProductionJob job,
-  ) {
+  void _completeUnitJob(Team team, ProductionCategory category, ProductionJob job) {
     if (_trySpawnUnit(team, job.item.unit!)) return;
     // 出兵口被占满时保持 100%，等待空位；生产者被摧毁则中止并退款。
     if (hasBuilding(team, producerForCategory[category]!)) return;
@@ -155,14 +142,7 @@ extension BattleProduction on BattleState {
       if (tile == null) continue;
       _spawnUnit(team, kind, tile.center);
       _queues[team]![category] = null;
-      _emit(
-        BattleEvent(
-          BattleEventKind.spawn,
-          tile.x + 0.5,
-          tile.y + 0.5,
-          team: team,
-        ),
-      );
+      _emit(BattleEvent(BattleEventKind.spawn, tile.x + 0.5, tile.y + 0.5, team: team));
       if (team == Team.red) {
         addNotice('${kind.label}已出厂', level: NoticeLevel.success);
       }

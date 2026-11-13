@@ -25,8 +25,7 @@ class BattleHudLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final compact =
-            constraints.maxWidth < 760 || constraints.maxHeight < 420;
+        final compact = constraints.maxWidth < 760 || constraints.maxHeight < 420;
         final bottomHeight = compact ? 124.0 : 150.0;
         return AnimatedBuilder(
           animation: controller,
@@ -36,11 +35,7 @@ class BattleHudLayout extends StatelessWidget {
                 top: 0,
                 left: 0,
                 right: 0,
-                child: BattleStatusBar(
-                  controller: controller,
-                  onPause: onPause,
-                  onMenu: onMenu,
-                ),
+                child: BattleStatusBar(controller: controller, onPause: onPause, onMenu: onMenu),
               ),
               Positioned(
                 top: 40,
@@ -63,16 +58,10 @@ class BattleHudLayout extends StatelessWidget {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          BattleMinimap(
-                            controller: controller,
-                            size: bottomHeight,
-                          ),
+                          BattleMinimap(controller: controller, size: bottomHeight),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: BuildPanel(
-                              controller: controller,
-                              compact: compact,
-                            ),
+                            child: BuildPanel(controller: controller, compact: compact),
                           ),
                         ],
                       ),

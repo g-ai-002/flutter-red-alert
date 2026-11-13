@@ -78,9 +78,7 @@ class _RedAlertAppState extends State<RedAlertApp> with WidgetsBindingObserver {
             builder: (context, child) => SystemUiOverlay(
               child: Listener(
                 behavior: HitTestBehavior.translucent,
-                onPointerDown: kIsWeb
-                    ? (_) => MusicService.retryOnInteraction()
-                    : null,
+                onPointerDown: kIsWeb ? (_) => MusicService.retryOnInteraction() : null,
                 child: child ?? const SizedBox.shrink(),
               ),
             ),

@@ -42,25 +42,17 @@ class HomePage extends StatelessWidget {
                   final wide = constraints.maxWidth >= 900;
                   return Center(
                     child: SingleChildScrollView(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: wide ? 48 : 20,
-                        vertical: 24,
-                      ),
+                      padding: EdgeInsets.symmetric(horizontal: wide ? 48 : 20, vertical: 24),
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 1080),
                         child: wide
                             ? Row(
                                 children: [
-                                  const Expanded(
-                                    child: _Intro(wide: true),
-                                  ),
+                                  const Expanded(child: _Intro(wide: true)),
                                   const SizedBox(width: 40),
                                   SizedBox(
                                     width: 380,
-                                    child: _CommandPanel(
-                                      settings: settings,
-                                      stats: stats,
-                                    ),
+                                    child: _CommandPanel(settings: settings, stats: stats),
                                   ),
                                 ],
                               )
@@ -69,10 +61,7 @@ class HomePage extends StatelessWidget {
                                 children: [
                                   const _Intro(wide: false),
                                   const SizedBox(height: 20),
-                                  _CommandPanel(
-                                    settings: settings,
-                                    stats: stats,
-                                  ),
+                                  _CommandPanel(settings: settings, stats: stats),
                                 ],
                               ),
                       ),
@@ -96,9 +85,7 @@ class _Intro extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: wide
-          ? CrossAxisAlignment.start
-          : CrossAxisAlignment.center,
+      crossAxisAlignment: wide ? CrossAxisAlignment.start : CrossAxisAlignment.center,
       children: [
         Row(
           mainAxisSize: MainAxisSize.min,
@@ -116,11 +103,7 @@ class _Intro extends StatelessWidget {
             const SizedBox(width: 8),
             const Text(
               AppConstants.tagline,
-              style: TextStyle(
-                fontSize: 12,
-                letterSpacing: 4,
-                color: Color(0xFFC8A97A),
-              ),
+              style: TextStyle(fontSize: 12, letterSpacing: 4, color: Color(0xFFC8A97A)),
             ),
           ],
         ),
@@ -132,9 +115,7 @@ class _Intro extends StatelessWidget {
             fontWeight: FontWeight.w800,
             letterSpacing: wide ? 10 : 8,
             color: const Color(0xFFF6EDDC),
-            shadows: const [
-              Shadow(color: Color(0xAA000000), blurRadius: 18, offset: Offset(0, 4)),
-            ],
+            shadows: const [Shadow(color: Color(0xAA000000), blurRadius: 18, offset: Offset(0, 4))],
           ),
         ),
         const SizedBox(height: 8),
@@ -144,11 +125,7 @@ class _Intro extends StatelessWidget {
             '开采矿石、建设基地、训练装甲集群。'
             '在中国边境的荒原上，指挥赤军摧毁蓝军的前哨与指挥中心。',
             textAlign: wide ? TextAlign.left : TextAlign.center,
-            style: const TextStyle(
-              fontSize: 13,
-              height: 1.7,
-              color: Color(0xFFB7AA97),
-            ),
+            style: const TextStyle(fontSize: 13, height: 1.7, color: Color(0xFFB7AA97)),
           ),
         ),
         const SizedBox(height: 18),
@@ -187,10 +164,7 @@ class _FeatureTag extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: const Color(0xFFC8A97A)),
           const SizedBox(width: 5),
-          Text(
-            text,
-            style: const TextStyle(fontSize: 11.5, color: Color(0xFFCFC3B0)),
-          ),
+          Text(text, style: const TextStyle(fontSize: 11.5, color: Color(0xFFCFC3B0))),
         ],
       ),
     );
@@ -239,8 +213,7 @@ class _CommandPanel extends StatelessWidget {
                     onTap: () => settings.setDifficulty(difficulty),
                   ),
                 ),
-                if (difficulty != BattleDifficulty.values.last)
-                  const SizedBox(width: 6),
+                if (difficulty != BattleDifficulty.values.last) const SizedBox(width: 6),
               ],
             ],
           ),
@@ -256,11 +229,9 @@ class _CommandPanel extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const GuidePage(),
-                    ),
-                  ),
+                  onPressed: () =>
+                      Navigator.of(context)
+                          .push(MaterialPageRoute<void>(builder: (_) => const GuidePage())),
                   icon: const Icon(Icons.menu_book, size: 16),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFD9CBB4),
@@ -275,11 +246,9 @@ class _CommandPanel extends StatelessWidget {
                 width: 46,
                 height: 40,
                 child: OutlinedButton(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const SettingsPage(),
-                    ),
-                  ),
+                  onPressed: () =>
+                      Navigator.of(context)
+                          .push(MaterialPageRoute<void>(builder: (_) => const SettingsPage())),
                   style: OutlinedButton.styleFrom(
                     padding: EdgeInsets.zero,
                     foregroundColor: const Color(0xFFD9CBB4),
@@ -297,15 +266,10 @@ class _CommandPanel extends StatelessWidget {
             children: [
               _StatText(label: '胜场', value: '${stats.wins}'),
               _StatText(label: '负场', value: '${stats.losses}'),
-              _StatText(
-                label: '胜率',
-                value: '${(stats.winRate * 100).round()}%',
-              ),
+              _StatText(label: '胜率', value: '${(stats.winRate * 100).round()}%'),
               _StatText(
                 label: '最快',
-                value: stats.bestSeconds == null
-                    ? '—'
-                    : formatDuration(stats.bestSeconds!),
+                value: stats.bestSeconds == null ? '—' : formatDuration(stats.bestSeconds!),
               ),
             ],
           ),
@@ -322,11 +286,7 @@ class _CommandPanel extends StatelessWidget {
 }
 
 class _DifficultyButton extends StatelessWidget {
-  const _DifficultyButton({
-    required this.difficulty,
-    required this.selected,
-    required this.onTap,
-  });
+  const _DifficultyButton({required this.difficulty, required this.selected, required this.onTap});
 
   final BattleDifficulty difficulty;
   final bool selected;
@@ -343,14 +303,8 @@ class _DifficultyButton extends StatelessWidget {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: selected
-              ? const Color(0xCC8E241B)
-              : const Color(0xFF232019),
-          border: Border.all(
-            color: selected
-                ? const Color(0xFFE8C271)
-                : const Color(0x44584F41),
-          ),
+          color: selected ? const Color(0xCC8E241B) : const Color(0xFF232019),
+          border: Border.all(color: selected ? const Color(0xFFE8C271) : const Color(0x44584F41)),
         ),
         child: Text(
           difficulty.label,
@@ -381,18 +335,13 @@ class _StartButton extends StatelessWidget {
             child: FilledButton(
               onPressed: () {
                 SoundService.play(BattleFeedback.command);
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const CampaignPage(),
-                  ),
-                );
+                Navigator.of(context)
+                    .push(MaterialPageRoute<void>(builder: (_) => const CampaignPage()));
               },
               style: FilledButton.styleFrom(
                 backgroundColor: appRed,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 elevation: 0,
               ),
               child: const Row(
@@ -402,11 +351,7 @@ class _StartButton extends StatelessWidget {
                   SizedBox(width: 4),
                   Text(
                     '开始战役',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 2,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: 2),
                   ),
                 ],
               ),
@@ -418,18 +363,14 @@ class _StartButton extends StatelessWidget {
             child: OutlinedButton(
               onPressed: () {
                 SoundService.play(BattleFeedback.command);
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => BattlePage(difficulty: difficulty),
-                  ),
-                );
+                Navigator.of(
+                  context,
+                ).push(MaterialPageRoute<void>(builder: (_) => BattlePage(difficulty: difficulty)));
               },
               style: OutlinedButton.styleFrom(
                 foregroundColor: const Color(0xFFF0E2CA),
                 side: const BorderSide(color: Color(0x88D9A94B)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 padding: EdgeInsets.zero,
               ),
               child: const Column(
@@ -437,19 +378,9 @@ class _StartButton extends StatelessWidget {
                 children: [
                   Text(
                     '遭遇战',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1,
-                    ),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, letterSpacing: 1),
                   ),
-                  Text(
-                    '自由对战',
-                    style: TextStyle(
-                      fontSize: 9,
-                      color: Color(0xFFB7AA97),
-                    ),
-                  ),
+                  Text('自由对战', style: TextStyle(fontSize: 9, color: Color(0xFFB7AA97))),
                 ],
               ),
             ),
@@ -480,10 +411,7 @@ class _StatText extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 2),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 10, color: Color(0xFF8B8172)),
-          ),
+          Text(label, style: const TextStyle(fontSize: 10, color: Color(0xFF8B8172))),
         ],
       ),
     );

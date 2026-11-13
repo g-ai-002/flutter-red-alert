@@ -29,11 +29,7 @@ void main() {
       greaterThan(0),
       reason: 'AI 应建造战车工厂',
     );
-    expect(
-      state.armySize(Team.blue),
-      greaterThan(2),
-      reason: 'AI 应持续扩军',
-    );
+    expect(state.armySize(Team.blue), greaterThan(2), reason: 'AI 应持续扩军');
   });
 
   test('AI 在积累足够部队后发起进攻', () {
@@ -41,10 +37,7 @@ void main() {
     final ai = AiCommander(team: Team.blue, difficulty: BattleDifficulty.easy);
     state.onAiTick = ai.update;
     simulate(state, 150);
-    final attackers = state
-        .unitsOf(Team.blue)
-        .where((u) => u.order == UnitOrder.attack)
-        .length;
+    final attackers = state.unitsOf(Team.blue).where((u) => u.order == UnitOrder.attack).length;
     expect(attackers, greaterThan(0), reason: 'AI 应下达进攻指令');
   });
 

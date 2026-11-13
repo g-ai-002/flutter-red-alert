@@ -8,16 +8,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   test('战役关卡 id 唯一且按顺序衔接', () {
-    expect(
-      campaignMissions.map((mission) => mission.id).toSet().length,
-      campaignMissions.length,
-    );
+    expect(campaignMissions.map((mission) => mission.id).toSet().length, campaignMissions.length);
     expect(campaignMissions.first.objective, MissionObjective.eradicate);
     expect(campaignMissions.last.objective, MissionObjective.decapitate);
-    expect(
-      nextMissionOf(campaignMissions.first)?.id,
-      campaignMissions[1].id,
-    );
+    expect(nextMissionOf(campaignMissions.first)?.id, campaignMissions[1].id);
     expect(nextMissionOf(campaignMissions.last), isNull);
     expect(missionById('outpost')?.title, contains('前哨战'));
     expect(missionById('missing'), isNull);
@@ -33,18 +27,14 @@ void main() {
     expect(state.redUnits.length, 2 + mission.startingArmy.length);
     expect(state.blueUnits.length, 2 + mission.enemyArmy.length);
     expect(
-      state.blueBuildings.where(
-        (building) => building.spec.kind == BuildingKind.tower,
-      ),
+      state.blueBuildings.where((building) => building.spec.kind == BuildingKind.tower),
       isNotEmpty,
     );
   });
 
   test('歼灭战摧毁指挥中心不会直接获胜', () {
     final state = BattleState.create(mission: campaignMissions.first);
-    final hq = state.blueBuildings.firstWhere(
-      (building) => building.spec.kind == BuildingKind.hq,
-    );
+    final hq = state.blueBuildings.firstWhere((building) => building.spec.kind == BuildingKind.hq);
     hq.applyDamage(hq.maxHp);
     state.update(0.016);
 
@@ -54,9 +44,7 @@ void main() {
 
   test('斩首行动摧毁指挥中心立即获胜', () {
     final state = BattleState.create(mission: campaignMissions.last);
-    final hq = state.blueBuildings.firstWhere(
-      (building) => building.spec.kind == BuildingKind.hq,
-    );
+    final hq = state.blueBuildings.firstWhere((building) => building.spec.kind == BuildingKind.hq);
     hq.applyDamage(hq.maxHp);
     state.update(0.016);
 

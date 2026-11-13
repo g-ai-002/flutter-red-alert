@@ -39,10 +39,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(880, 420));
     await tester.pumpWidget(
       await buildShell(
-        BattlePage(
-          difficulty: campaignMissions.first.difficulty,
-          mission: campaignMissions.first,
-        ),
+        BattlePage(difficulty: campaignMissions.first.difficulty, mission: campaignMissions.first),
       ),
     );
     await tester.pump(const Duration(milliseconds: 300));
@@ -55,11 +52,7 @@ void main() {
   });
 
   testWidgets('遭遇战仍可单独开始', (tester) async {
-    await tester.pumpWidget(
-      await buildShell(
-        const BattlePage(difficulty: BattleDifficulty.hard),
-      ),
-    );
+    await tester.pumpWidget(await buildShell(const BattlePage(difficulty: BattleDifficulty.hard)));
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.textContaining('开始战斗'), findsNothing);
     expect(tester.takeException(), isNull);

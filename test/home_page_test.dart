@@ -47,9 +47,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('困难'));
     await tester.pumpAndSettle();
-    final provider = tester
-        .element(find.byType(HomePage))
-        .read<SettingsProvider>();
+    final provider = tester.element(find.byType(HomePage)).read<SettingsProvider>();
     expect(provider.difficulty.label, '困难');
   });
 }

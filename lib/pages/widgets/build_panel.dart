@@ -64,10 +64,7 @@ class _BuildPanelState extends State<BuildPanel> {
                         _hintForTab(),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: hudTextFaint,
-                        ),
+                        style: const TextStyle(fontSize: 11, color: hudTextFaint),
                       ),
               ),
             ],
@@ -108,8 +105,7 @@ class _BuildPanelState extends State<BuildPanel> {
   void _onTap(ProductionItem item) {
     final controller = widget.controller;
     final building = item.building;
-    if (building != null &&
-        _state.readyStructuresOf(playerTeam).contains(building)) {
+    if (building != null && _state.readyStructuresOf(playerTeam).contains(building)) {
       controller.beginPlacement(item.id);
       return;
     }
@@ -118,10 +114,7 @@ class _BuildPanelState extends State<BuildPanel> {
       if (job.id == item.id) {
         controller.cancelProduction(_tab);
       } else {
-        _state.addNotice(
-          '当前${_tab.label}队列正在生产${job.name}',
-          level: NoticeLevel.warning,
-        );
+        _state.addNotice('当前${_tab.label}队列正在生产${job.name}', level: NoticeLevel.warning);
       }
       return;
     }
@@ -152,9 +145,7 @@ class _TabButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: active ? const Color(0x33D9A94B) : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(
-            color: active ? const Color(0xAAD9A94B) : const Color(0x334F4A40),
-          ),
+          border: Border.all(color: active ? const Color(0xAAD9A94B) : const Color(0x334F4A40)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -172,10 +163,7 @@ class _TabButton extends StatelessWidget {
               Container(
                 width: 5,
                 height: 5,
-                decoration: const BoxDecoration(
-                  color: appRed,
-                  shape: BoxShape.circle,
-                ),
+                decoration: const BoxDecoration(color: appRed, shape: BoxShape.circle),
               ),
             ],
           ],
@@ -186,11 +174,7 @@ class _TabButton extends StatelessWidget {
 }
 
 class _QueueHint extends StatelessWidget {
-  const _QueueHint({
-    required this.name,
-    required this.progress,
-    required this.onCancel,
-  });
+  const _QueueHint({required this.name, required this.progress, required this.onCancel});
 
   final String name;
   final double progress;
@@ -237,14 +221,8 @@ class _BuildCard extends StatelessWidget {
     final state = controller.state;
     final building = item.building;
     final job = state.jobOf(playerTeam, item.category);
-    final ready =
-        building != null &&
-        state.readyStructuresOf(playerTeam).contains(building);
-    final lock = state.productionBlocker(
-      playerTeam,
-      item.category,
-      item.id,
-    );
+    final ready = building != null && state.readyStructuresOf(playerTeam).contains(building);
+    final lock = state.productionBlocker(playerTeam, item.category, item.id);
     final affordable = state.creditsOf(playerTeam) >= item.cost;
     final active = job != null && job.id == item.id;
     final locked = lock != null;
@@ -307,12 +285,7 @@ class _BuildCard extends StatelessWidget {
                             ),
                           ),
                           const Spacer(),
-                          if (ready)
-                            const Icon(
-                              Icons.add_circle,
-                              size: 14,
-                              color: hudGoldBright,
-                            ),
+                          if (ready) const Icon(Icons.add_circle, size: 14, color: hudGoldBright),
                         ],
                       ),
                       const SizedBox(height: 2),
@@ -323,9 +296,7 @@ class _BuildCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: compact ? 10.5 : 11.5,
                           fontWeight: FontWeight.w600,
-                          color: locked
-                              ? const Color(0xFF8B8477)
-                              : const Color(0xFFECE1CC),
+                          color: locked ? const Color(0xFF8B8477) : const Color(0xFFECE1CC),
                         ),
                       ),
                       Row(
@@ -333,10 +304,7 @@ class _BuildCard extends StatelessWidget {
                           Container(
                             width: 6,
                             height: 6,
-                            decoration: const BoxDecoration(
-                              color: hudGold,
-                              shape: BoxShape.circle,
-                            ),
+                            decoration: const BoxDecoration(color: hudGold, shape: BoxShape.circle),
                           ),
                           const SizedBox(width: 3),
                           Text(
@@ -379,10 +347,7 @@ class _BuildCard extends StatelessWidget {
                         lock,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 9,
-                          color: Color(0xFFC9B79B),
-                        ),
+                        style: const TextStyle(fontSize: 9, color: Color(0xFFC9B79B)),
                       ),
                     ),
                   ),
@@ -397,10 +362,7 @@ class _BuildCard extends StatelessWidget {
                       alignment: Alignment.center,
                       child: const Text(
                         '资金不足',
-                        style: TextStyle(
-                          fontSize: 9,
-                          color: Color(0xFFFFB4A2),
-                        ),
+                        style: TextStyle(fontSize: 9, color: Color(0xFFFFB4A2)),
                       ),
                     ),
                   ),

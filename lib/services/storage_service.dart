@@ -6,11 +6,7 @@ import '../utils/constants.dart';
 
 /// 单机战绩：胜场、负场与最快通关时间。
 class BattleStats {
-  const BattleStats({
-    required this.wins,
-    required this.losses,
-    required this.bestSeconds,
-  });
+  const BattleStats({required this.wins, required this.losses, required this.bestSeconds});
 
   final int wins;
   final int losses;
@@ -57,9 +53,7 @@ class StorageService {
     return prefs;
   }
 
-  Future<void> _write(
-    Future<bool> Function(SharedPreferences prefs) action,
-  ) async {
+  Future<void> _write(Future<bool> Function(SharedPreferences prefs) action) async {
     try {
       await action(_p);
     } catch (_) {}
@@ -82,8 +76,7 @@ class StorageService {
   Future<void> setHapticsEnabled(bool value) =>
       _write((p) => p.setBool(AppConstants.prefKeyHaptics, value));
 
-  LogicRate get logicRate =>
-      LogicRate.byName(_p.getString(AppConstants.prefKeyLogicRate));
+  LogicRate get logicRate => LogicRate.byName(_p.getString(AppConstants.prefKeyLogicRate));
 
   Future<void> setLogicRate(LogicRate value) =>
       _write((p) => p.setString(AppConstants.prefKeyLogicRate, value.name));
@@ -100,22 +93,20 @@ class StorageService {
     bestSeconds: _p.getInt(AppConstants.prefKeyBestSeconds),
   );
 
-  Future<void> recordResult(BattleResult result, int seconds) =>
-      _write((p) async {
-        final next = stats.record(result, seconds);
-        await p.setInt(AppConstants.prefKeyWins, next.wins);
-        await p.setInt(AppConstants.prefKeyLosses, next.losses);
-        final best = next.bestSeconds;
-        if (best != null) {
-          await p.setInt(AppConstants.prefKeyBestSeconds, best);
-        }
-        return true;
-      });
+  Future<void> recordResult(BattleResult result, int seconds) => _write((p) async {
+    final next = stats.record(result, seconds);
+    await p.setInt(AppConstants.prefKeyWins, next.wins);
+    await p.setInt(AppConstants.prefKeyLosses, next.losses);
+    final best = next.bestSeconds;
+    if (best != null) {
+      await p.setInt(AppConstants.prefKeyBestSeconds, best);
+    }
+    return true;
+  });
 
   /// 已通关的战役关卡 id 集合。
   Set<String> get completedMissions =>
-      (_p.getStringList(AppConstants.prefKeyCampaign) ?? const <String>[])
-          .toSet();
+      (_p.getStringList(AppConstants.prefKeyCampaign) ?? const <String>[]).toSet();
 
   Future<void> completeMission(String missionId) => _write((p) async {
     final completed = completedMissions..add(missionId);

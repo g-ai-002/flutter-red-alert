@@ -37,10 +37,7 @@ void main() {
     final built = painter.builtChunks;
 
     final oreIndex = map.oreIndices.first;
-    expect(
-      map.mine(oreIndex % map.width, oreIndex ~/ map.width, 999999),
-      greaterThan(0),
-    );
+    expect(map.mine(oreIndex % map.width, oreIndex ~/ map.width, 999999), greaterThan(0));
 
     painter.paint(_recorder(), full);
     expect(painter.builtChunks, built + 1);

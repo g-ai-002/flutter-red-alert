@@ -16,8 +16,7 @@ void main() {
   });
 
   test('视野中心被限制在地图范围内', () {
-    final camera = BattleCamera(mapWidth: 44, mapHeight: 44)
-      ..updateViewport(const Size(400, 400));
+    final camera = BattleCamera(mapWidth: 44, mapHeight: 44)..updateViewport(const Size(400, 400));
     camera.focusOn(const Offset(-100, -100));
     expect(camera.center.dx, greaterThanOrEqualTo(0));
     expect(camera.center.dy, greaterThanOrEqualTo(0));

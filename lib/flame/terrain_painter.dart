@@ -54,8 +54,7 @@ class TerrainPainter {
     } else {
       for (final tile in dirty) {
         final chunk =
-            (tile ~/ map.width ~/ _chunkTiles) * _columns +
-            (tile % map.width ~/ _chunkTiles);
+            (tile ~/ map.width ~/ _chunkTiles) * _columns + (tile % map.width ~/ _chunkTiles);
         _pictures[chunk]?.dispose();
         _pictures[chunk] = null;
       }
@@ -97,10 +96,7 @@ class TerrainPainter {
     final noise = hashNoise(x, y);
     final base = terrainColor(kind);
     final rect = Rect.fromLTWH(x.toDouble(), y.toDouble(), 1.01, 1.01);
-    canvas.drawRect(
-      rect,
-      Paint()..color = shadeColor(base, noise * 0.12 - 0.06),
-    );
+    canvas.drawRect(rect, Paint()..color = shadeColor(base, noise * 0.12 - 0.06));
     switch (kind) {
       case TerrainKind.grass:
         _paintGrass(canvas, x, y, noise);
@@ -135,11 +131,7 @@ class TerrainPainter {
       canvas.drawLine(Offset(fx, fy), Offset(fx + 0.05, fy - 0.14), paint);
     }
     if (noise > 0.85) {
-      canvas.drawCircle(
-        Offset(x + 0.7, y + 0.3),
-        0.12,
-        Paint()..color = const Color(0x22552F1E),
-      );
+      canvas.drawCircle(Offset(x + 0.7, y + 0.3), 0.12, Paint()..color = const Color(0x22552F1E));
     }
   }
 
@@ -171,11 +163,7 @@ class TerrainPainter {
       ..strokeWidth = 0.05
       ..strokeCap = StrokeCap.round;
     final yOffset = 0.3 + noise * 0.3;
-    canvas.drawLine(
-      Offset(x + 0.2, y + yOffset),
-      Offset(x + 0.55, y + yOffset),
-      paint,
-    );
+    canvas.drawLine(Offset(x + 0.2, y + yOffset), Offset(x + 0.55, y + yOffset), paint);
     canvas.drawLine(
       Offset(x + 0.55, y + yOffset + 0.25),
       Offset(x + 0.85, y + yOffset + 0.25),

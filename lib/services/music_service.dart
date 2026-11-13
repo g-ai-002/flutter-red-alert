@@ -35,9 +35,7 @@ class MusicService {
       target(true);
       return;
     }
-    if (!_failed &&
-        _handle != null &&
-        SoLoud.instance.getIsValidVoiceHandle(_handle!)) {
+    if (!_failed && _handle != null && SoLoud.instance.getIsValidVoiceHandle(_handle!)) {
       return;
     }
     final starting = _starting;
@@ -55,10 +53,7 @@ class MusicService {
     try {
       final soloud = SoLoud.instance;
       if (!soloud.isInitialized) await soloud.init();
-      _source ??= await soloud.loadMem(
-        'redalert-bgm.wav',
-        synthesizeMusicWav(),
-      );
+      _source ??= await soloud.loadMem('redalert-bgm.wav', synthesizeMusicWav());
     } catch (error) {
       _failed = true;
       debugPrint('[MusicService] 背景音乐加载失败: $error');

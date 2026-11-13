@@ -7,18 +7,11 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   BattleState readyState() {
     final state = BattleState.create();
-    state.startProduction(
-      Team.red,
-      ProductionCategory.structure,
-      BuildingKind.barracks.name,
-    );
+    state.startProduction(Team.red, ProductionCategory.structure, BuildingKind.barracks.name);
     for (var t = 0.0; t < 13; t += 1 / 60) {
       state.update(1 / 60);
     }
-    expect(
-      state.readyStructuresOf(Team.red),
-      contains(BuildingKind.barracks),
-    );
+    expect(state.readyStructuresOf(Team.red), contains(BuildingKind.barracks));
     return state;
   }
 
@@ -74,10 +67,7 @@ void main() {
     final spot = state.findPlacement(spec, Team.red);
     expect(spot, isNotNull);
     final placement = PlacementState(state: state, team: Team.red)
-      ..begin(
-        BuildingKind.tower,
-        Offset(spot!.x + spec.width / 2, spot.y + spec.height / 2),
-      );
+      ..begin(BuildingKind.tower, Offset(spot!.x + spec.width / 2, spot.y + spec.height / 2));
     expect(placement.valid, isTrue);
     expect(placement.commit(), isNull);
     expect(state.countBuildings(Team.red, BuildingKind.tower), 0);

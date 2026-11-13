@@ -39,29 +39,20 @@ class WarRoomPainter extends CustomPainter {
       radar,
     );
     final sweep = Paint()
-      ..shader = const LinearGradient(
-        colors: [Color(0x00E8C271), Color(0x33E8C271)],
-      ).createShader(Rect.fromCircle(center: center, radius: radius));
+      ..shader = const LinearGradient(colors: [Color(0x00E8C271), Color(0x33E8C271)])
+          .createShader(Rect.fromCircle(center: center, radius: radius));
     canvas.drawPath(
       Path()
         ..moveTo(center.dx, center.dy)
         ..lineTo(center.dx + radius, center.dy)
-        ..arcTo(
-          Rect.fromCircle(center: center, radius: radius),
-          0,
-          -0.5,
-          false,
-        )
+        ..arcTo(Rect.fromCircle(center: center, radius: radius), 0, -0.5, false)
         ..close(),
       sweep,
     );
 
     final stripe = Paint()..color = const Color(0x14C8382B);
     for (var i = 0; i < 6; i++) {
-      canvas.drawRect(
-        Rect.fromLTWH(-40 + i * 26.0, size.height * 0.78, 10, 200),
-        stripe,
-      );
+      canvas.drawRect(Rect.fromLTWH(-40 + i * 26.0, size.height * 0.78, 10, 200), stripe);
     }
   }
 

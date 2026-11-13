@@ -50,12 +50,11 @@ class ProductionCatalog {
   static final Map<String, ProductionItem> _byId = _build();
 
   /// 某一分类的生产项，顺序即建造栏展示顺序。
-  static List<ProductionItem> of(ProductionCategory category) =>
-      switch (category) {
-        ProductionCategory.structure => _itemsOf(_structureOrder),
-        ProductionCategory.infantry => _itemsOf(_infantryOrder),
-        ProductionCategory.armor => _itemsOf(_armorOrder),
-      };
+  static List<ProductionItem> of(ProductionCategory category) => switch (category) {
+    ProductionCategory.structure => _itemsOf(_structureOrder),
+    ProductionCategory.infantry => _itemsOf(_infantryOrder),
+    ProductionCategory.armor => _itemsOf(_armorOrder),
+  };
 
   static ProductionItem? byId(String id) => _byId[id];
 

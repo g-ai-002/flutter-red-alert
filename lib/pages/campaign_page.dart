@@ -21,10 +21,7 @@ class CampaignPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1814),
         surfaceTintColor: Colors.transparent,
-        title: const Text(
-          '战役模式',
-          style: TextStyle(fontSize: 17, letterSpacing: 3),
-        ),
+        title: const Text('战役模式', style: TextStyle(fontSize: 17, letterSpacing: 3)),
         actions: [
           Center(
             child: Padding(
@@ -134,47 +131,30 @@ class _MissionCard extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           mission.subtitle,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: Color(0xFFAFA393),
-                          ),
+                          style: const TextStyle(fontSize: 11, color: Color(0xFFAFA393)),
                         ),
                       ],
                     ),
                   ),
                   _Chip(text: mission.objective.label, color: accent),
                   const SizedBox(width: 6),
-                  _Chip(
-                    text: mission.difficulty.label,
-                    color: const Color(0xFF9FB3C6),
-                  ),
+                  _Chip(text: mission.difficulty.label, color: const Color(0xFF9FB3C6)),
                 ],
               ),
               const SizedBox(height: 10),
               Text(
                 mission.brief,
-                style: const TextStyle(
-                  fontSize: 12,
-                  height: 1.6,
-                  color: Color(0xFFC4B8A4),
-                ),
+                style: const TextStyle(fontSize: 12, height: 1.6, color: Color(0xFFC4B8A4)),
               ),
               const SizedBox(height: 10),
               Row(
                 children: [
-                  const Icon(
-                    Icons.track_changes,
-                    size: 14,
-                    color: Color(0xFFC8A97A),
-                  ),
+                  const Icon(Icons.track_changes, size: 14, color: Color(0xFFC8A97A)),
                   const SizedBox(width: 5),
                   Expanded(
                     child: Text(
                       mission.objectiveText,
-                      style: const TextStyle(
-                        fontSize: 11.5,
-                        color: Color(0xFFD9CBB4),
-                      ),
+                      style: const TextStyle(fontSize: 11.5, color: Color(0xFFD9CBB4)),
                     ),
                   ),
                   Text(
@@ -183,11 +163,7 @@ class _MissionCard extends StatelessWidget {
                         : unlocked
                         ? '点击出击'
                         : '通关上一关后解锁',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: accent,
-                    ),
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: accent),
                   ),
                 ],
               ),
@@ -202,10 +178,7 @@ class _MissionCard extends StatelessWidget {
     SoundService.play(BattleFeedback.command);
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => BattlePage(
-          difficulty: mission.difficulty,
-          mission: mission,
-        ),
+        builder: (_) => BattlePage(difficulty: mission.difficulty, mission: mission),
       ),
     );
   }
@@ -226,10 +199,7 @@ class _Chip extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
-      child: Text(
-        text,
-        style: TextStyle(fontSize: 10, color: color),
-      ),
+      child: Text(text, style: TextStyle(fontSize: 10, color: color)),
     );
   }
 }

@@ -17,11 +17,7 @@ import 'unit_art.dart';
 /// 所有坐标以格子为单位，由战场入口统一施加摄像机变换；这里负责视野裁剪、
 /// 选中框、血条与标签，具体造型交给 [UnitArt] 与 [BuildingArt]。
 class ActorPainter {
-  ActorPainter({
-    required this.state,
-    required this.selectedIds,
-    required this.placement,
-  }) {
+  ActorPainter({required this.state, required this.selectedIds, required this.placement}) {
     final brush = ArtBrush();
     _brush = brush;
     _unitArt = UnitArt(brush);
@@ -90,11 +86,7 @@ class ActorPainter {
     );
     if (selected) {
       canvas.drawOval(
-        Rect.fromCenter(
-          center: center,
-          width: unit.radius * 2.9,
-          height: unit.radius * 2.0,
-        ),
+        Rect.fromCenter(center: center, width: unit.radius * 2.9, height: unit.radius * 2.0),
         _brush.outlined(const Color(0xFFF2D27A), 0.06),
       );
     }
@@ -178,9 +170,7 @@ class ActorPainter {
     final spec = placement.spec;
     final tile = placement.tile;
     if (spec == null || tile == null) return;
-    final color = placement.valid
-        ? const Color(0xFF6FCF7A)
-        : const Color(0xFFE0604F);
+    final color = placement.valid ? const Color(0xFF6FCF7A) : const Color(0xFFE0604F);
     final rect = Rect.fromLTWH(
       tile.x.toDouble(),
       tile.y.toDouble(),
@@ -223,12 +213,7 @@ class ActorPainter {
   void drawBuildingLabels(Canvas canvas, BattleCamera camera) {
     if (camera.tileSize < 13) return;
     final fontSize = (camera.tileSize * 0.52).clamp(8.0, 18.0);
-    final viewport = Rect.fromLTWH(
-      0,
-      0,
-      camera.viewport.width,
-      camera.viewport.height,
-    );
+    final viewport = Rect.fromLTWH(0, 0, camera.viewport.width, camera.viewport.height);
     for (final building in state.redBuildings) {
       _drawBuildingLabel(canvas, camera, viewport, fontSize, building);
     }
@@ -249,10 +234,7 @@ class ActorPainter {
     final screen = camera.worldToScreen(Offset(building.x, building.y));
     if (!viewport.contains(screen)) return;
     final painter = _labelPainter(building.spec.icon, fontSize);
-    painter.paint(
-      canvas,
-      screen - Offset(painter.width / 2, painter.height / 2),
-    );
+    painter.paint(canvas, screen - Offset(painter.width / 2, painter.height / 2));
   }
 
   TextPainter _labelPainter(String text, double fontSize) {

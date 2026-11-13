@@ -21,11 +21,7 @@ extension BattleCombat on BattleState {
     if (unit.targetId != null) return;
     if (unit.repathTimer > 0) return;
     unit.repathTimer = 0.4;
-    final target = nearestEnemy(
-      unit.team,
-      unit.position,
-      maxDistance: unit.spec.range + 1.2,
-    );
+    final target = nearestEnemy(unit.team, unit.position, maxDistance: unit.spec.range + 1.2);
     if (target == null) return;
     unit.targetId = target.id;
   }
@@ -139,12 +135,7 @@ extension BattleCombat on BattleState {
     return (from.position - to.position).distance - to.radius * 0.4;
   }
 
-  Actor? nearestEnemy(
-    Team team,
-    Offset from, {
-    double? maxDistance,
-    Building? building,
-  }) {
+  Actor? nearestEnemy(Team team, Offset from, {double? maxDistance, Building? building}) {
     Actor? best;
     var bestScore = double.infinity;
     for (final actor in unitsOf(team.opponent)) {

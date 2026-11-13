@@ -12,16 +12,8 @@ extension BattleSetup on BattleState {
     _spawnBuilding(Team.blue, BuildingKind.power, 32, 6);
     _spawnBuilding(Team.blue, BuildingKind.refinery, 38, 8);
     for (var i = 0; i < 2; i++) {
-      _spawnUnit(
-        Team.red,
-        UnitKind.harvester,
-        GameMap.redBase + Offset(0, 2.2 + i),
-      );
-      _spawnUnit(
-        Team.blue,
-        UnitKind.harvester,
-        GameMap.blueBase + Offset(0, -2.2 - i),
-      );
+      _spawnUnit(Team.red, UnitKind.harvester, GameMap.redBase + Offset(0, 2.2 + i));
+      _spawnUnit(Team.blue, UnitKind.harvester, GameMap.blueBase + Offset(0, -2.2 - i));
     }
     addNotice('指挥中心已就位，先建兵营再图进取');
   }

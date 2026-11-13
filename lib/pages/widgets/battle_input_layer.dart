@@ -31,9 +31,7 @@ class _BattleInputLayerState extends State<BattleInputLayer> {
         Positioned.fill(child: _buildPointerListener()),
         if (_boxRect != null)
           Positioned.fill(
-            child: IgnorePointer(
-              child: CustomPaint(painter: _SelectionBoxPainter(_boxRect!)),
-            ),
+            child: IgnorePointer(child: CustomPaint(painter: _SelectionBoxPainter(_boxRect!))),
           ),
       ],
     );
@@ -44,10 +42,7 @@ class _BattleInputLayerState extends State<BattleInputLayer> {
       behavior: HitTestBehavior.translucent,
       onPointerSignal: (event) {
         if (event is PointerScrollEvent) {
-          _controller.camera.zoomAt(
-            event.localPosition,
-            event.scrollDelta.dy > 0 ? 0.88 : 1.14,
-          );
+          _controller.camera.zoomAt(event.localPosition, event.scrollDelta.dy > 0 ? 0.88 : 1.14);
         }
       },
       onPointerDown: (event) {
@@ -56,17 +51,13 @@ class _BattleInputLayerState extends State<BattleInputLayer> {
         }
       },
       child: MouseRegion(
-        cursor: _controller.isPlacing
-            ? SystemMouseCursors.precise
-            : SystemMouseCursors.basic,
+        cursor: _controller.isPlacing ? SystemMouseCursors.precise : SystemMouseCursors.basic,
         onHover: (event) {
           if (_controller.isPlacing) {
             _controller.updateGhost(event.localPosition);
           }
         },
-        child: isDesktopPlatform
-            ? _buildDesktopGesture()
-            : _buildTouchGesture(),
+        child: isDesktopPlatform ? _buildDesktopGesture() : _buildTouchGesture(),
       ),
     );
   }
@@ -88,9 +79,7 @@ class _BattleInputLayerState extends State<BattleInputLayer> {
         final start = _dragStart;
         if (start == null) return;
         if ((details.localPosition - start).distance < 8) return;
-        setState(
-          () => _boxRect = Rect.fromPoints(start, details.localPosition),
-        );
+        setState(() => _boxRect = Rect.fromPoints(start, details.localPosition));
       },
       onPanEnd: (_) {
         final rect = _boxRect;
@@ -127,19 +116,13 @@ class _BattleInputLayerState extends State<BattleInputLayer> {
             return;
           }
           final target = _scaleAnchor * details.scale;
-          camera.zoomAt(
-            details.localFocalPoint,
-            (target / camera.tileSize).clamp(0.75, 1.35),
-          );
+          camera.zoomAt(details.localFocalPoint, (target / camera.tileSize).clamp(0.75, 1.35));
           camera.panByScreen(details.focalPointDelta);
           return;
         }
         if (details.pointerCount >= 2) {
           final target = _scaleAnchor * details.scale;
-          camera.zoomAt(
-            details.localFocalPoint,
-            (target / camera.tileSize).clamp(0.75, 1.35),
-          );
+          camera.zoomAt(details.localFocalPoint, (target / camera.tileSize).clamp(0.75, 1.35));
         }
         camera.panByScreen(details.focalPointDelta);
       },
@@ -175,6 +158,5 @@ class _SelectionBoxPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _SelectionBoxPainter oldDelegate) =>
-      oldDelegate.rect != rect;
+  bool shouldRepaint(covariant _SelectionBoxPainter oldDelegate) => oldDelegate.rect != rect;
 }

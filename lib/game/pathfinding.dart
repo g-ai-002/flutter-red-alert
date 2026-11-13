@@ -28,11 +28,7 @@ class PathFinder {
   final _NodeHeap _open = _NodeHeap();
   int _generation = 0;
 
-  List<TilePoint>? find(
-    TilePoint start,
-    TilePoint goal, {
-    int maxNodes = 6000,
-  }) {
+  List<TilePoint>? find(TilePoint start, TilePoint goal, {int maxNodes = 6000}) {
     if (!map.inBounds(goal.x, goal.y)) return null;
     if (start == goal) return const [];
 
@@ -80,11 +76,7 @@ class PathFinder {
           _discovered[nextIndex] = generation;
           _cameFrom[nextIndex] = current;
           _gScore[nextIndex] = tentative;
-          _open.push(
-            nextIndex,
-            tentative + _heuristic(nx, ny, goal.x, goal.y),
-            tentative,
-          );
+          _open.push(nextIndex, tentative + _heuristic(nx, ny, goal.x, goal.y), tentative);
         }
       }
     }

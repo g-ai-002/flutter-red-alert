@@ -18,9 +18,7 @@ String formatDuration(int seconds) {
   final hours = total ~/ 3600;
   final minutes = (total % 3600) ~/ 60;
   final rest = total % 60;
-  return hours > 0
-      ? '$hours:${pad2(minutes)}:${pad2(rest)}'
-      : '${pad2(minutes)}:${pad2(rest)}';
+  return hours > 0 ? '$hours:${pad2(minutes)}:${pad2(rest)}' : '${pad2(minutes)}:${pad2(rest)}';
 }
 
 String formatLogLine(DateTime time, String level, String message) =>

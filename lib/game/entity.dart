@@ -13,8 +13,7 @@ class TilePoint {
   Offset get center => Offset(x + 0.5, y + 0.5);
 
   @override
-  bool operator ==(Object other) =>
-      other is TilePoint && other.x == x && other.y == y;
+  bool operator ==(Object other) => other is TilePoint && other.x == x && other.y == y;
 
   @override
   int get hashCode => x * 100003 + y;
@@ -102,11 +101,7 @@ class Building extends Actor {
     required this.spec,
     required this.tileX,
     required this.tileY,
-  }) : super(
-         x: tileX + spec.width / 2,
-         y: tileY + spec.height / 2,
-         maxHp: spec.maxHp,
-       );
+  }) : super(x: tileX + spec.width / 2, y: tileY + spec.height / 2, maxHp: spec.maxHp);
 
   final BuildingSpec spec;
   final int tileX;
@@ -185,8 +180,7 @@ class Unit extends Actor {
 
   bool get hasPath => pathIndex < path.length;
 
-  TilePoint? get nextWaypoint =>
-      pathIndex < path.length ? path[pathIndex] : null;
+  TilePoint? get nextWaypoint => pathIndex < path.length ? path[pathIndex] : null;
 
   bool get full => cargo >= spec.capacity;
 

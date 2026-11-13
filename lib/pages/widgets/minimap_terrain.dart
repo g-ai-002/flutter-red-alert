@@ -18,11 +18,7 @@ class MinimapTerrainCache {
 
   static const Color _oreColor = Color(0xFFD9A94B);
 
-  ui.Picture? pictureFor({
-    required GameMap map,
-    required VisionMap vision,
-    required Size size,
-  }) {
+  ui.Picture? pictureFor({required GameMap map, required VisionMap vision, required Size size}) {
     if (_picture != null &&
         _size == size &&
         _mapVersion == map.version &&
@@ -39,10 +35,7 @@ class MinimapTerrainCache {
       for (var x = 0; x < map.width; x += 2) {
         final kind = map.terrainAt(x, y);
         final rect = Rect.fromLTWH(x * sx, y * sy, sx * 2.1, sy * 2.1);
-        canvas.drawRect(
-          rect,
-          fill..color = terrainColor(kind).withValues(alpha: 0.95),
-        );
+        canvas.drawRect(rect, fill..color = terrainColor(kind).withValues(alpha: 0.95));
         if (map.oreAt(x, y) > 0) {
           canvas.drawCircle(rect.center, sx * 0.9, fill..color = _oreColor);
         }

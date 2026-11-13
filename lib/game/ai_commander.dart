@@ -59,12 +59,7 @@ class AiCommander {
     final reserve = state.armySize(team) < difficulty.waveSize ? 700 : 250;
     if (state.creditsOf(team) < cost + reserve) return;
     if (!state.canProduce(team, ProductionCategory.structure, want.name)) return;
-    state.startProduction(
-      team,
-      ProductionCategory.structure,
-      want.name,
-      announce: false,
-    );
+    state.startProduction(team, ProductionCategory.structure, want.name, announce: false);
   }
 
   /// 先补齐指挥中心与电力，再按计划表补建筑。
@@ -82,19 +77,11 @@ class AiCommander {
   void _manageProduction(BattleState state) {
     final credits = state.creditsOf(team);
     if (state.jobOf(team, ProductionCategory.armor) == null &&
-        state.canProduce(
-          team,
-          ProductionCategory.armor,
-          UnitKind.lightTank.name,
-        )) {
+        state.canProduce(team, ProductionCategory.armor, UnitKind.lightTank.name)) {
       _startArmor(state, credits);
     }
     if (state.jobOf(team, ProductionCategory.infantry) == null &&
-        state.canProduce(
-          team,
-          ProductionCategory.infantry,
-          UnitKind.rifle.name,
-        ) &&
+        state.canProduce(team, ProductionCategory.infantry, UnitKind.rifle.name) &&
         credits >= 500) {
       final wantRocket = state.armySize(team) % 3 == 2;
       state.startProduction(
@@ -119,12 +106,7 @@ class AiCommander {
       want = null;
     }
     if (want == null) return;
-    state.startProduction(
-      team,
-      ProductionCategory.armor,
-      want.name,
-      announce: false,
-    );
+    state.startProduction(team, ProductionCategory.armor, want.name, announce: false);
   }
 
   void _manageArmy(BattleState state, double dt) {
@@ -139,9 +121,7 @@ class AiCommander {
         .where((u) => (u.position - base).distance < 12)
         .toList();
     if (intruder.isNotEmpty) {
-      final defenders = units
-          .where((u) => u.order != UnitOrder.attack)
-          .toList();
+      final defenders = units.where((u) => u.order != UnitOrder.attack).toList();
       if (defenders.isNotEmpty) {
         state.issueAttack(defenders, intruder.first.id);
       }

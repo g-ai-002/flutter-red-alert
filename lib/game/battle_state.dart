@@ -30,15 +30,7 @@ class BattleNotice {
 enum BattleEventKind { bullet, shell, explosion, build, spawn, unload, move }
 
 class BattleEvent {
-  const BattleEvent(
-    this.kind,
-    this.x,
-    this.y, {
-    this.tx,
-    this.ty,
-    this.team,
-    this.radius = 0.5,
-  });
+  const BattleEvent(this.kind, this.x, this.y, {this.tx, this.ty, this.team, this.radius = 0.5});
 
   final BattleEventKind kind;
   final double x;
@@ -64,8 +56,7 @@ class BattleState {
     _random = math.Random(seed);
     _finder = PathFinder(
       map: map,
-      isBlocked: (x, y) =>
-          map.blocked(x, y) || _occupancy[y * map.width + x] != null,
+      isBlocked: (x, y) => map.blocked(x, y) || _occupancy[y * map.width + x] != null,
     );
   }
 
@@ -77,10 +68,7 @@ class BattleState {
     int setupSeed = 7,
   }) {
     final state = BattleState(
-      map: GameMap.generate(
-        size: mission?.mapSize ?? 44,
-        seed: mission?.mapSeed ?? mapSeed,
-      ),
+      map: GameMap.generate(size: mission?.mapSize ?? 44, seed: mission?.mapSeed ?? mapSeed),
       difficulty: mission?.difficulty ?? difficulty,
       mission: mission,
       seed: setupSeed,
@@ -140,16 +128,14 @@ class BattleState {
     for (final team in Team.values) team: <BuildingKind>[],
   };
   late final Map<Team, UnmodifiableListView<BuildingKind>> _readyViews = {
-    for (final team in Team.values)
-      team: UnmodifiableListView(_readyStructures[team]!),
+    for (final team in Team.values) team: UnmodifiableListView(_readyStructures[team]!),
   };
 
   // ===== 查询 =====
 
   List<Unit> unitsOf(Team team) => team == Team.red ? redUnits : blueUnits;
 
-  List<Building> buildingsOf(Team team) =>
-      team == Team.red ? redBuildings : blueBuildings;
+  List<Building> buildingsOf(Team team) => team == Team.red ? redBuildings : blueBuildings;
 
   int creditsOf(Team team) => team == Team.red ? creditsRed : creditsBlue;
 
@@ -165,11 +151,9 @@ class BattleState {
 
   bool isBlocked(int x, int y) => map.blocked(x, y) || buildingAt(x, y) != null;
 
-  int countBuildings(Team team, BuildingKind kind) =>
-      _buildingCounts[team]![kind] ?? 0;
+  int countBuildings(Team team, BuildingKind kind) => _buildingCounts[team]![kind] ?? 0;
 
-  bool hasBuilding(Team team, BuildingKind kind) =>
-      countBuildings(team, kind) > 0;
+  bool hasBuilding(Team team, BuildingKind kind) => countBuildings(team, kind) > 0;
 
   int powerProduced(Team team) => _powerOutput[team]!;
 
@@ -181,16 +165,14 @@ class BattleState {
     counts[kind] = (counts[kind] ?? 0) + delta;
     final power = building.spec.power;
     if (power >= 0) {
-      _powerOutput[building.team] =
-          _powerOutput[building.team]! + power * delta;
+      _powerOutput[building.team] = _powerOutput[building.team]! + power * delta;
     } else {
       _powerDraw[building.team] = _powerDraw[building.team]! - power * delta;
     }
   }
 
   /// 电力充足时为 1，不足时生产与防御效率减半。
-  double powerFactor(Team team) =>
-      powerUsed(team) > powerProduced(team) ? 0.5 : 1.0;
+  double powerFactor(Team team) => powerUsed(team) > powerProduced(team) ? 0.5 : 1.0;
 
   /// 战斗单位数量（不含采矿车）。
   int armySize(Team team) => unitsOf(team).where((u) => !u.isHarvester).length;
@@ -222,13 +204,11 @@ class BattleState {
   // ===== 视野与雷达 =====
 
   /// 目标是否对玩家可见；己方目标恒为可见。
-  bool isVisibleToPlayer(Actor actor) =>
-      actor.team == Team.red || vision.sees(actor);
+  bool isVisibleToPlayer(Actor actor) => actor.team == Team.red || vision.sees(actor);
 
   bool get radarActive => radarRemaining > 0;
 
-  bool get radarReady =>
-      radarCooldown <= 0 && hasBuilding(Team.red, BuildingKind.hq);
+  bool get radarReady => radarCooldown <= 0 && hasBuilding(Team.red, BuildingKind.hq);
 
   /// 启动一次雷达扫描：要求指挥中心在线且冷却结束。
   bool triggerRadar() {
@@ -348,15 +328,10 @@ class BattleState {
   void _checkVictory() {
     if (result != null) return;
     final decapitate = mission?.objective == MissionObjective.decapitate;
-    final blueLost = decapitate
-        ? !hasBuilding(Team.blue, BuildingKind.hq)
-        : blueBuildings.isEmpty;
+    final blueLost = decapitate ? !hasBuilding(Team.blue, BuildingKind.hq) : blueBuildings.isEmpty;
     if (blueLost) {
       result = BattleResult.victory;
-      addNotice(
-        decapitate ? '蓝军指挥中心被摧毁，战斗胜利' : '蓝军基地已被摧毁，战斗胜利',
-        level: NoticeLevel.success,
-      );
+      addNotice(decapitate ? '蓝军指挥中心被摧毁，战斗胜利' : '蓝军基地已被摧毁，战斗胜利', level: NoticeLevel.success);
     } else if (redBuildings.isEmpty) {
       result = BattleResult.defeat;
       addNotice('赤军基地失守，战斗失败', level: NoticeLevel.warning);
@@ -379,13 +354,8 @@ class BattleState {
   int randomInt(int max) => max <= 0 ? 0 : _random.nextInt(max);
 
   /// 测试辅助：直接生成单位与建筑，绕过生产与放置校验。
-  Unit spawnUnitForTest(Team team, UnitKind kind, Offset at) =>
-      _spawnUnit(team, kind, at);
+  Unit spawnUnitForTest(Team team, UnitKind kind, Offset at) => _spawnUnit(team, kind, at);
 
-  Building spawnBuildingForTest(
-    Team team,
-    BuildingKind kind,
-    int tileX,
-    int tileY,
-  ) => _spawnBuilding(team, kind, tileX, tileY);
+  Building spawnBuildingForTest(Team team, BuildingKind kind, int tileX, int tileY) =>
+      _spawnBuilding(team, kind, tileX, tileY);
 }

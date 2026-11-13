@@ -38,14 +38,11 @@ class VisionMap {
   /// 可见或已探索范围变化时递增。
   int version = 0;
 
-  bool inBounds(int x, int y) =>
-      x >= 0 && y >= 0 && x < width && y < height;
+  bool inBounds(int x, int y) => x >= 0 && y >= 0 && x < width && y < height;
 
-  bool isVisible(int x, int y) =>
-      inBounds(x, y) && _visible[y * width + x] != 0;
+  bool isVisible(int x, int y) => inBounds(x, y) && _visible[y * width + x] != 0;
 
-  bool isExplored(int x, int y) =>
-      inBounds(x, y) && _explored[y * width + x] != 0;
+  bool isExplored(int x, int y) => inBounds(x, y) && _explored[y * width + x] != 0;
 
   /// 目标是否处在视野内：建筑任意一格可见即视为可见。
   bool sees(Actor actor) {

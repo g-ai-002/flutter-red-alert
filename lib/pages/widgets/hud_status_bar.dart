@@ -44,9 +44,7 @@ class BattleStatusBar extends StatelessWidget {
                       glyph: '电',
                       value: '$used/$produced',
                       label: '电力',
-                      color: used > produced
-                          ? hudWarning
-                          : const Color(0xFF7FB7C9),
+                      color: used > produced ? hudWarning : const Color(0xFF7FB7C9),
                       compact: compact,
                     ),
                     const SizedBox(width: 6),
@@ -81,10 +79,7 @@ class BattleStatusBar extends StatelessWidget {
               highlight: controller.speed >= 2,
             ),
             const SizedBox(width: 4),
-            _HudButton(
-              icon: controller.paused ? Icons.play_arrow : Icons.pause,
-              onTap: onPause,
-            ),
+            _HudButton(icon: controller.paused ? Icons.play_arrow : Icons.pause, onTap: onPause),
             const SizedBox(width: 4),
             _HudButton(icon: Icons.menu, onTap: onMenu),
           ],
@@ -131,20 +126,13 @@ class _StatChip extends StatelessWidget {
         children: [
           Text(
             glyph,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
           ),
           const SizedBox(width: 5),
           Text(value, style: _valueStyle),
           if (!compact) ...[
             const SizedBox(width: 3),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 10, color: Color(0xFF928878)),
-            ),
+            Text(label, style: const TextStyle(fontSize: 10, color: Color(0xFF928878))),
           ],
         ],
       ),
@@ -179,12 +167,7 @@ class _RadarButton extends StatelessWidget {
 }
 
 class _HudButton extends StatelessWidget {
-  const _HudButton({
-    required this.icon,
-    required this.onTap,
-    this.label,
-    this.highlight = false,
-  });
+  const _HudButton({required this.icon, required this.onTap, this.label, this.highlight = false});
 
   final IconData icon;
   final String? label;
@@ -205,9 +188,7 @@ class _HudButton extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: highlight
-                  ? const Color(0xAAE8C271)
-                  : const Color(0x33EFE2C8),
+              color: highlight ? const Color(0xAAE8C271) : const Color(0x33EFE2C8),
             ),
           ),
           child: Row(
@@ -218,11 +199,7 @@ class _HudButton extends StatelessWidget {
                 const SizedBox(width: 2),
                 Text(
                   label!,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: hudText,
-                  ),
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: hudText),
                 ),
               ],
             ],

@@ -72,10 +72,7 @@ void main() {
     for (var round = 0; round < 3; round++) {
       final results = [
         for (final query in queries)
-          finder
-              .find(query.$1, query.$2)
-              ?.map((point) => '${point.x},${point.y}')
-              .toList(),
+          finder.find(query.$1, query.$2)?.map((point) => '${point.x},${point.y}').toList(),
       ];
       if (expected == null) {
         expected = results.expand((path) => path ?? ['null']).toList();

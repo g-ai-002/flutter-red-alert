@@ -29,9 +29,7 @@ class UnitArt {
     if (spec.kind == UnitKind.rifle || spec.kind == UnitKind.rocket) {
       _drawBody(canvas, key, spec, team, outline);
       canvas.rotate(unit.facing);
-      canvas.drawPicture(
-        _cache[key + _weaponKey] ??= _recordWeapon(spec, team),
-      );
+      canvas.drawPicture(_cache[key + _weaponKey] ??= _recordWeapon(spec, team));
     } else {
       canvas.rotate(unit.facing);
       _drawBody(canvas, key, spec, team, outline);
@@ -40,13 +38,7 @@ class UnitArt {
     canvas.restore();
   }
 
-  void _drawBody(
-    Canvas canvas,
-    int key,
-    UnitSpec spec,
-    Team team,
-    Paint outline,
-  ) {
+  void _drawBody(Canvas canvas, int key, UnitSpec spec, Team team, Paint outline) {
     canvas.drawPicture(_cache[key] ??= _recordBody(spec, team, outline));
   }
 
@@ -100,22 +92,13 @@ class UnitArt {
     final rocket = spec.kind == UnitKind.rocket;
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromLTWH(
-          0.1,
-          rocket ? -0.07 : -0.035,
-          rocket ? 0.5 : 0.42,
-          rocket ? 0.14 : 0.07,
-        ),
+        Rect.fromLTWH(0.1, rocket ? -0.07 : -0.035, rocket ? 0.5 : 0.42, rocket ? 0.14 : 0.07),
         const Radius.circular(0.03),
       ),
       brush.solid(rocket ? const Color(0xFF2C2B28) : const Color(0xFF4A4A45)),
     );
     if (rocket) {
-      canvas.drawCircle(
-        const Offset(0.55, 0),
-        0.055,
-        brush.solid(const Color(0xFF8E241B)),
-      );
+      canvas.drawCircle(const Offset(0.55, 0), 0.055, brush.solid(const Color(0xFF8E241B)));
     }
   }
 
@@ -123,11 +106,7 @@ class UnitArt {
     final heavy = spec.kind == UnitKind.heavyTank;
     final width = heavy ? 0.86 : 0.74;
     final height = heavy ? 0.72 : 0.62;
-    final body = Rect.fromCenter(
-      center: Offset.zero,
-      width: width,
-      height: height,
-    );
+    final body = Rect.fromCenter(center: Offset.zero, width: width, height: height);
     final track = brush.solid(const Color(0xFF24231F));
     for (final top in [-height / 2, height / 2 - height * 0.24]) {
       canvas.drawRRect(
@@ -142,15 +121,8 @@ class UnitArt {
       RRect.fromRectAndRadius(body, const Radius.circular(0.08)),
       brush.solid(teamColor),
     );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(body, const Radius.circular(0.08)),
-      outline,
-    );
-    canvas.drawCircle(
-      Offset.zero,
-      heavy ? 0.24 : 0.19,
-      brush.solid(shadeColor(teamColor, -0.18)),
-    );
+    canvas.drawRRect(RRect.fromRectAndRadius(body, const Radius.circular(0.08)), outline);
+    canvas.drawCircle(Offset.zero, heavy ? 0.24 : 0.19, brush.solid(shadeColor(teamColor, -0.18)));
     canvas.drawRect(
       Rect.fromLTWH(0, -0.05, heavy ? 0.5 : 0.42, 0.1),
       brush.solid(const Color(0xFF35342F)),
@@ -163,10 +135,7 @@ class UnitArt {
       RRect.fromRectAndRadius(body, const Radius.circular(0.08)),
       brush.solid(teamColor),
     );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(body, const Radius.circular(0.08)),
-      outline,
-    );
+    canvas.drawRRect(RRect.fromRectAndRadius(body, const Radius.circular(0.08)), outline);
     // 矿石仓：仓位随载货量填充，填充部分由 _harvesterCargo 逐帧绘制。
     canvas.drawRect(_cargoBin, brush.solid(const Color(0xFF3C3A33)));
     canvas.drawRect(

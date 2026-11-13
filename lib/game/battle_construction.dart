@@ -51,12 +51,7 @@ extension BattleConstruction on BattleState {
   }
 
   /// 尝试在指定格放置已就绪的建筑。
-  Building? placeStructureAt(
-    Team team,
-    BuildingKind kind,
-    int tileX,
-    int tileY,
-  ) {
+  Building? placeStructureAt(Team team, BuildingKind kind, int tileX, int tileY) {
     final ready = _readyStructures[team]!;
     if (!ready.contains(kind)) return null;
     final spec = buildingSpecs[kind]!;
@@ -65,12 +60,7 @@ extension BattleConstruction on BattleState {
     return _completeBuilding(team, kind, tileX, tileY);
   }
 
-  Building _completeBuilding(
-    Team team,
-    BuildingKind kind,
-    int tileX,
-    int tileY,
-  ) {
+  Building _completeBuilding(Team team, BuildingKind kind, int tileX, int tileY) {
     final building = _spawnBuilding(team, kind, tileX, tileY);
     _emit(
       BattleEvent(
@@ -109,9 +99,7 @@ extension BattleConstruction on BattleState {
   }
 
   Unit _spawnUnit(Team team, UnitKind kind, Offset at) {
-    final tile =
-        _nearestFreeTile(at, radius: 6) ??
-        TilePoint(at.dx.floor(), at.dy.floor());
+    final tile = _nearestFreeTile(at, radius: 6) ?? TilePoint(at.dx.floor(), at.dy.floor());
     final unit = Unit(
       id: _nextId++,
       team: team,
@@ -137,13 +125,7 @@ extension BattleConstruction on BattleState {
 
 /// 点到矩形的轴向间距，建筑选址与贴近判定共用。
 double _rectGap(Offset point, Rect rect) {
-  final dx = math.max(
-    math.max(rect.left - point.dx, 0.0),
-    point.dx - rect.right,
-  );
-  final dy = math.max(
-    math.max(rect.top - point.dy, 0.0),
-    point.dy - rect.bottom,
-  );
+  final dx = math.max(math.max(rect.left - point.dx, 0.0), point.dx - rect.right);
+  final dy = math.max(math.max(rect.top - point.dy, 0.0), point.dy - rect.bottom);
   return math.max(dx, dy);
 }

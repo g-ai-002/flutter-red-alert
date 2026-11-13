@@ -42,10 +42,7 @@ class BattleCamera {
 
   double get effectiveMinTileSize {
     if (viewport.isEmpty) return minTileSize;
-    final fit = math.min(
-      viewport.width / mapWidth,
-      viewport.height / mapHeight,
-    );
+    final fit = math.min(viewport.width / mapWidth, viewport.height / mapHeight);
     return fit.clamp(minTileSize, maxTileSize).toDouble();
   }
 
@@ -54,8 +51,7 @@ class BattleCamera {
       (screen - viewport.center(Offset.zero)) / tileSize + center;
 
   /// 格子坐标换算为屏幕坐标。
-  Offset worldToScreen(Offset world) =>
-      (world - center) * tileSize + viewport.center(Offset.zero);
+  Offset worldToScreen(Offset world) => (world - center) * tileSize + viewport.center(Offset.zero);
 
   Rect get visibleWorld {
     final halfW = viewport.width / 2 / tileSize;
@@ -96,12 +92,8 @@ class BattleCamera {
     if (viewport.isEmpty) return;
     final halfW = viewport.width / 2 / tileSize;
     final halfH = viewport.height / 2 / tileSize;
-    final x = halfW * 2 >= mapWidth
-        ? mapWidth / 2
-        : center.dx.clamp(halfW, mapWidth - halfW);
-    final y = halfH * 2 >= mapHeight
-        ? mapHeight / 2
-        : center.dy.clamp(halfH, mapHeight - halfH);
+    final x = halfW * 2 >= mapWidth ? mapWidth / 2 : center.dx.clamp(halfW, mapWidth - halfW);
+    final y = halfH * 2 >= mapHeight ? mapHeight / 2 : center.dy.clamp(halfH, mapHeight - halfH);
     center = Offset(x.toDouble(), y.toDouble());
   }
 }

@@ -37,10 +37,7 @@ class _Tip extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: const Color(0x33EFE2C8)),
       ),
-      child: Text(
-        text,
-        style: const TextStyle(fontSize: 11.5, color: Color(0xFFC9BDA9)),
-      ),
+      child: Text(text, style: const TextStyle(fontSize: 11.5, color: Color(0xFFC9BDA9))),
     );
   }
 }
@@ -77,11 +74,7 @@ class _SelectionCard extends StatelessWidget {
             alignment: Alignment.center,
             child: Text(
               info.icon,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: hudText,
-              ),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: hudText),
             ),
           ),
           const SizedBox(width: 7),
@@ -95,9 +88,7 @@ class _SelectionCard extends StatelessWidget {
                   children: [
                     Flexible(
                       child: Text(
-                        info.count > 1
-                            ? '${info.name} ×${info.count}'
-                            : info.name,
+                        info.count > 1 ? '${info.name} ×${info.count}' : info.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -109,10 +100,7 @@ class _SelectionCard extends StatelessWidget {
                     ),
                     if (!isOwn) ...[
                       const SizedBox(width: 4),
-                      Text(
-                        '敌军',
-                        style: TextStyle(fontSize: 10, color: info.team.color),
-                      ),
+                      Text('敌军', style: TextStyle(fontSize: 10, color: info.team.color)),
                     ],
                   ],
                 ),
@@ -134,16 +122,8 @@ class _SelectionCard extends StatelessWidget {
           ),
           if (canCommand) ...[
             const SizedBox(width: 6),
-            _MiniAction(
-              icon: Icons.pan_tool_alt,
-              label: '停止',
-              onTap: controller.stopSelected,
-            ),
-            _MiniAction(
-              icon: Icons.select_all,
-              label: '全选',
-              onTap: controller.selectAllSameKind,
-            ),
+            _MiniAction(icon: Icons.pan_tool_alt, label: '停止', onTap: controller.stopSelected),
+            _MiniAction(icon: Icons.select_all, label: '全选', onTap: controller.selectAllSameKind),
             _MiniAction(
               icon: Icons.center_focus_strong,
               label: '定位',
@@ -157,11 +137,7 @@ class _SelectionCard extends StatelessWidget {
 }
 
 class _MiniAction extends StatelessWidget {
-  const _MiniAction({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
+  const _MiniAction({required this.icon, required this.label, required this.onTap});
 
   final IconData icon;
   final String label;
@@ -178,10 +154,7 @@ class _MiniAction extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 15, color: hudTextSoft),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 9, color: Color(0xFFB3A794)),
-            ),
+            Text(label, style: const TextStyle(fontSize: 9, color: Color(0xFFB3A794))),
           ],
         ),
       ),
@@ -204,9 +177,7 @@ class _PlacementBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: hudPanelSolid.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: valid ? const Color(0xAA6FCF7A) : const Color(0xAAE0604F),
-        ),
+        border: Border.all(color: valid ? const Color(0xAA6FCF7A) : const Color(0xAAE0604F)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -219,11 +190,7 @@ class _PlacementBanner extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             '放置 ${spec.kind.label}',
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: hudText,
-            ),
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: hudText),
           ),
           const SizedBox(width: 6),
           Text(
@@ -298,10 +265,7 @@ class _Toast extends StatelessWidget {
             decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(width: 6),
-          Text(
-            text,
-            style: const TextStyle(fontSize: 11.5, color: Color(0xFFEDE0CA)),
-          ),
+          Text(text, style: const TextStyle(fontSize: 11.5, color: Color(0xFFEDE0CA))),
         ],
       ),
     );

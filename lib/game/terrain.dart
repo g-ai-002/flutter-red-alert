@@ -111,9 +111,7 @@ class GameMap {
   bool buildable(int x, int y) {
     if (!inBounds(x, y)) return false;
     final kind = terrainAt(x, y);
-    return kind == TerrainKind.grass ||
-        kind == TerrainKind.dirt ||
-        kind == TerrainKind.road;
+    return kind == TerrainKind.grass || kind == TerrainKind.dirt || kind == TerrainKind.road;
   }
 
   /// 该格是否阻挡地面单位通行。
@@ -168,11 +166,7 @@ class GameMap {
     ], width: 1.6);
 
     _road(const [Offset(8, 35), Offset(4, 30), Offset(4.5, 27.5)], width: 1.2);
-    _road(const [
-      Offset(35, 8),
-      Offset(39, 13),
-      Offset(38.5, 15.5),
-    ], width: 1.2);
+    _road(const [Offset(35, 8), Offset(39, 13), Offset(38.5, 15.5)], width: 1.2);
     _road(const [Offset(19, 28), Offset(14, 24), Offset(13, 21)], width: 1.1);
     _road(const [Offset(27, 18), Offset(31, 22), Offset(32, 25)], width: 1.1);
 
@@ -239,8 +233,7 @@ class GameMap {
           _ore[index] = math.max(_ore[index], 2000);
         } else if (kind == TerrainKind.dirt) {
           // 基地平整不覆盖水域与岩石，保留天然屏障。
-          if (_terrain[index] == TerrainKind.water ||
-              _terrain[index] == TerrainKind.rock) {
+          if (_terrain[index] == TerrainKind.water || _terrain[index] == TerrainKind.rock) {
             continue;
           }
           _terrain[index] = TerrainKind.dirt;
@@ -286,11 +279,7 @@ class GameMap {
     }
   }
 
-  void _road(
-    List<Offset> points, {
-    double width = 1.0,
-    TerrainKind kind = TerrainKind.road,
-  }) {
+  void _road(List<Offset> points, {double width = 1.0, TerrainKind kind = TerrainKind.road}) {
     for (var i = 0; i < points.length - 1; i++) {
       final a = points[i];
       final b = points[i + 1];

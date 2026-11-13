@@ -7,34 +7,30 @@ void main() {
     final ids = ProductionCatalog.all.map((item) => item.id).toList();
     expect(ids.toSet().length, ids.length);
     expect(
-      ProductionCatalog.all
-          .where((item) => item.isBuilding)
-          .map((item) => item.building)
-          .toSet(),
+      ProductionCatalog.all.where((item) => item.isBuilding).map((item) => item.building).toSet(),
       BuildingKind.values.toSet(),
     );
     expect(
-      ProductionCatalog.all
-          .where((item) => !item.isBuilding)
-          .map((item) => item.unit)
-          .toSet(),
+      ProductionCatalog.all.where((item) => !item.isBuilding).map((item) => item.unit).toSet(),
       UnitKind.values.toSet(),
     );
   });
 
   test('分类顺序与建造栏展示一致', () {
-    expect(
-      ProductionCatalog.of(ProductionCategory.structure).map((i) => i.id),
-      ['power', 'refinery', 'barracks', 'factory', 'tower', 'hq'],
-    );
-    expect(
-      ProductionCatalog.of(ProductionCategory.infantry).map((i) => i.id),
-      ['rifle', 'rocket'],
-    );
-    expect(
-      ProductionCatalog.of(ProductionCategory.armor).map((i) => i.id),
-      ['harvester', 'lightTank', 'heavyTank'],
-    );
+    expect(ProductionCatalog.of(ProductionCategory.structure).map((i) => i.id), [
+      'power',
+      'refinery',
+      'barracks',
+      'factory',
+      'tower',
+      'hq',
+    ]);
+    expect(ProductionCatalog.of(ProductionCategory.infantry).map((i) => i.id), ['rifle', 'rocket']);
+    expect(ProductionCatalog.of(ProductionCategory.armor).map((i) => i.id), [
+      'harvester',
+      'lightTank',
+      'heavyTank',
+    ]);
   });
 
   test('目录条目直接取自参数表', () {
@@ -50,10 +46,7 @@ void main() {
     expect(barracks.name, buildingSpecs[BuildingKind.barracks]!.name);
     expect(barracks.cost, buildingSpecs[BuildingKind.barracks]!.cost);
     expect(barracks.seconds, buildingSpecs[BuildingKind.barracks]!.buildSeconds);
-    expect(
-      barracks.requires,
-      buildingSpecs[BuildingKind.barracks]!.requires,
-    );
+    expect(barracks.requires, buildingSpecs[BuildingKind.barracks]!.requires);
   });
 
   test('未知 id 与跨分类查询都返回空', () {

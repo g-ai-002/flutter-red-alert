@@ -60,42 +60,47 @@ class GameMission {
 /// 三关战役，按顺序解锁。
 const List<GameMission> campaignMissions = [
   GameMission(
-    id: 'outpost', title: '第一关 · 前哨战', subtitle: '黎明前的试探',
-    brief: '蓝军在前方荒原扎下一座前哨，只有零散守军。'
+    id: 'outpost',
+    title: '第一关 · 前哨战',
+    subtitle: '黎明前的试探',
+    brief:
+        '蓝军在前方荒原扎下一座前哨，只有零散守军。'
         '带两个班的步兵和一辆轻坦，把它的建筑全部拔掉，熟悉指挥节奏。',
     objective: MissionObjective.eradicate,
     difficulty: BattleDifficulty.easy,
-    mapSeed: 20261114, bonusCredits: 1200,
-    startingArmy: [
-      UnitKind.rifle, UnitKind.rifle, UnitKind.rifle, UnitKind.lightTank,
-    ],
+    mapSeed: 20261114,
+    bonusCredits: 1200,
+    startingArmy: [UnitKind.rifle, UnitKind.rifle, UnitKind.rifle, UnitKind.lightTank],
     enemyArmy: [UnitKind.rifle, UnitKind.rifle],
     enemyBuildings: [BuildingKind.tower],
   ),
   GameMission(
-    id: 'oreline', title: '第二关 · 矿石走廊', subtitle: '补给线上的拉锯',
-    brief: '双方同时盯上了横贯地图的矿脉。蓝军已经修好战车工厂，'
+    id: 'oreline',
+    title: '第二关 · 矿石走廊',
+    subtitle: '补给线上的拉锯',
+    brief:
+        '双方同时盯上了横贯地图的矿脉。蓝军已经修好战车工厂，'
         '枪骑兵与火箭兵会不断压上来，先稳住经济再反推。',
     objective: MissionObjective.eradicate,
     difficulty: BattleDifficulty.normal,
-    mapSeed: 20261117, bonusCredits: 2000,
-    startingArmy: [
-      UnitKind.rifle, UnitKind.rocket, UnitKind.rocket, UnitKind.harvester,
-    ],
+    mapSeed: 20261117,
+    bonusCredits: 2000,
+    startingArmy: [UnitKind.rifle, UnitKind.rocket, UnitKind.rocket, UnitKind.harvester],
     enemyArmy: [UnitKind.rifle, UnitKind.lightTank],
     enemyBuildings: [BuildingKind.barracks, BuildingKind.tower],
   ),
   GameMission(
-    id: 'decapitation', title: '第三关 · 斩首行动', subtitle: '直取指挥中心',
-    brief: '蓝军把重兵收拢在指挥中心周围，外围据点反而空虚。'
+    id: 'decapitation',
+    title: '第三关 · 斩首行动',
+    subtitle: '直取指挥中心',
+    brief:
+        '蓝军把重兵收拢在指挥中心周围，外围据点反而空虚。'
         '渗透部队需要绕过炮塔直取指挥中心，一旦得手敌军将全线动摇。',
     objective: MissionObjective.decapitate,
     difficulty: BattleDifficulty.hard,
-    mapSeed: 20261121, bonusCredits: 2600,
-    startingArmy: [
-      UnitKind.rocket, UnitKind.rocket, UnitKind.heavyTank,
-      UnitKind.lightTank,
-    ],
+    mapSeed: 20261121,
+    bonusCredits: 2600,
+    startingArmy: [UnitKind.rocket, UnitKind.rocket, UnitKind.heavyTank, UnitKind.lightTank],
     enemyArmy: [UnitKind.heavyTank, UnitKind.rifle, UnitKind.rifle],
     enemyBuildings: [BuildingKind.tower, BuildingKind.tower],
   ),

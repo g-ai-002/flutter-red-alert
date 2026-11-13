@@ -28,10 +28,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(settings.logicRate, LogicRate.hz30);
 
-    final hard = find.widgetWithText(
-      RadioListTile<BattleDifficulty>,
-      BattleDifficulty.hard.label,
-    );
+    final hard = find.widgetWithText(RadioListTile<BattleDifficulty>, BattleDifficulty.hard.label);
     await tester.scrollUntilVisible(hard, 200);
     await tester.pumpAndSettle();
     await tester.tap(hard);

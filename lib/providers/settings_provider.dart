@@ -18,8 +18,7 @@ class SettingsProvider extends ChangeNotifier {
   final StorageService _storage;
 
   bool get darkMode => _storage.darkMode;
-  Future<void> setDarkMode(bool value) =>
-      _update(() => _storage.setDarkMode(value));
+  Future<void> setDarkMode(bool value) => _update(() => _storage.setDarkMode(value));
 
   bool get soundEnabled => _storage.soundEnabled;
   Future<void> setSoundEnabled(bool value) => _update(() async {
@@ -41,8 +40,7 @@ class SettingsProvider extends ChangeNotifier {
   });
 
   LogicRate get logicRate => _storage.logicRate;
-  Future<void> setLogicRate(LogicRate value) =>
-      _update(() => _storage.setLogicRate(value));
+  Future<void> setLogicRate(LogicRate value) => _update(() => _storage.setLogicRate(value));
 
   BattleDifficulty get difficulty => _storage.difficulty;
   Future<void> setDifficulty(BattleDifficulty value) =>
@@ -59,9 +57,7 @@ class SettingsProvider extends ChangeNotifier {
 
   /// 第一关直接开放，之后每关要求上一关已通关。
   bool isMissionUnlocked(GameMission mission) {
-    final index = campaignMissions.indexWhere(
-      (item) => item.id == mission.id,
-    );
+    final index = campaignMissions.indexWhere((item) => item.id == mission.id);
     if (index <= 0) return index == 0;
     final previous = campaignMissions[index - 1];
     return completedMissions.contains(previous.id);
@@ -70,8 +66,7 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> completeMission(String missionId) =>
       _update(() => _storage.completeMission(missionId));
 
-  void _syncFeedback() =>
-      SoundService.configure(sound: soundEnabled, haptics: hapticsEnabled);
+  void _syncFeedback() => SoundService.configure(sound: soundEnabled, haptics: hapticsEnabled);
 
   /// 写入偏好后统一通知界面，避免每个 setter 重复一遍。
   Future<void> _update(Future<void> Function() write) async {

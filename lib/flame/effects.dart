@@ -142,11 +142,7 @@ class Effects {
     final dy = ey - sy;
     final length = math.sqrt(dx * dx + dy * dy);
     if (length > 0.01) {
-      canvas.drawLine(
-        Offset(x, y),
-        Offset(x - dx / length * 0.5, y - dy / length * 0.5),
-        trail,
-      );
+      canvas.drawLine(Offset(x, y), Offset(x - dx / length * 0.5, y - dy / length * 0.5), trail);
     }
     canvas.drawCircle(Offset(x, y), 0.09, _fill..color = _core);
   }
@@ -169,10 +165,7 @@ class Effects {
       final angle = i * math.pi * 2 / 5 + 0.7;
       final distance = grow * 0.8;
       canvas.drawCircle(
-        Offset(
-          fx.x + math.cos(angle) * distance,
-          fx.y + math.sin(angle) * distance - t * 0.5,
-        ),
+        Offset(fx.x + math.cos(angle) * distance, fx.y + math.sin(angle) * distance - t * 0.5),
         grow * 0.32,
         smokePaint,
       );
@@ -223,10 +216,7 @@ class Effects {
       final distance = t * 0.9;
       canvas.drawLine(
         Offset(fx.x, fx.y - 0.2),
-        Offset(
-          fx.x + math.cos(angle) * distance,
-          fx.y - 0.2 + math.sin(angle) * distance,
-        ),
+        Offset(fx.x + math.cos(angle) * distance, fx.y - 0.2 + math.sin(angle) * distance),
         _stroke
           ..color = color.withValues(alpha: 1 - t)
           ..strokeWidth = 0.06,

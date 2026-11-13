@@ -13,9 +13,7 @@ Future<Widget> buildBattle() async {
   final storage = await StorageService.instance;
   return ChangeNotifierProvider(
     create: (_) => SettingsProvider(storage),
-    child: const MaterialApp(
-      home: BattlePage(difficulty: BattleDifficulty.normal),
-    ),
+    child: const MaterialApp(home: BattlePage(difficulty: BattleDifficulty.normal)),
   );
 }
 

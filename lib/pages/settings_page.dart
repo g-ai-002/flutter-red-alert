@@ -101,15 +101,12 @@ class SettingsPage extends StatelessWidget {
                   title: const Text('打开日志目录'),
                   trailing: const Icon(Icons.folder_open),
                   onTap: () async {
-                    final path =
-                        await FileSystemService.instance.getLogRootPath();
-                    final opened =
-                        await FileSystemService.instance.openDirectory(path);
+                    final path = await FileSystemService.instance.getLogRootPath();
+                    final opened = await FileSystemService.instance.openDirectory(path);
                     if (!context.mounted) return;
                     if (!opened) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('无法打开目录：$path')),
-                      );
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(content: Text('无法打开目录：$path')));
                     }
                   },
                 ),
@@ -148,11 +145,7 @@ class SettingsPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (path.isNotEmpty)
-                Text(
-                  path,
-                  style: const TextStyle(fontSize: 10),
-                ),
+              if (path.isNotEmpty) Text(path, style: const TextStyle(fontSize: 10)),
               const SizedBox(height: 6),
               Expanded(
                 child: Container(
@@ -179,10 +172,7 @@ class SettingsPage extends StatelessWidget {
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('关闭'),
-          ),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('关闭')),
         ],
       ),
     );

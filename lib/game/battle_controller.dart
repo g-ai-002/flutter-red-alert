@@ -28,16 +28,9 @@ const Team playerTeam = Team.red;
 /// 对局控制器：把纯逻辑的 [BattleState] 包装成界面可用的状态，
 /// 负责选择、指令、建造放置、提示与摄像机，并以约 6Hz 通知 HUD 重绘。
 class BattleController extends ChangeNotifier {
-  BattleController({
-    required this.state,
-    required this.logicRate,
-    BattleCamera? cameraOverride,
-  }) : camera =
-           cameraOverride ??
-           BattleCamera(
-             mapWidth: state.map.width,
-             mapHeight: state.map.height,
-           ) {
+  BattleController({required this.state, required this.logicRate, BattleCamera? cameraOverride})
+    : camera =
+          cameraOverride ?? BattleCamera(mapWidth: state.map.width, mapHeight: state.map.height) {
     _ai = AiCommander(team: Team.blue, difficulty: state.difficulty);
     state.onAiTick = _ai.update;
     _placement = PlacementState(state: state, team: playerTeam);
@@ -98,9 +91,7 @@ class BattleController extends ChangeNotifier {
     if (state.result != null && !_resultAnnounced) {
       _resultAnnounced = true;
       SoundService.play(
-        state.result == BattleResult.victory
-            ? BattleFeedback.victory
-            : BattleFeedback.defeat,
+        state.result == BattleResult.victory ? BattleFeedback.victory : BattleFeedback.defeat,
       );
       LogService.info(
         '对局结束: ${state.result == BattleResult.victory ? '胜利' : '失败'}, '
@@ -224,8 +215,7 @@ class BattleController extends ChangeNotifier {
     final actors = selectedActors;
     if (actors.isEmpty) return;
     final center =
-        actors.map((actor) => actor.position).reduce((a, b) => a + b) /
-        actors.length.toDouble();
+        actors.map((actor) => actor.position).reduce((a, b) => a + b) / actors.length.toDouble();
     camera.focusOn(center);
     notifyListeners();
   }
@@ -300,9 +290,7 @@ class BattleController extends ChangeNotifier {
   void triggerRadar() {
     if (!state.triggerRadar()) {
       state.addNotice(
-        state.hasBuilding(playerTeam, BuildingKind.hq)
-            ? '雷达冷却中，请稍后再扫描'
-            : '指挥中心已被摧毁，雷达离线',
+        state.hasBuilding(playerTeam, BuildingKind.hq) ? '雷达冷却中，请稍后再扫描' : '指挥中心已被摧毁，雷达离线',
         level: NoticeLevel.warning,
       );
     } else {

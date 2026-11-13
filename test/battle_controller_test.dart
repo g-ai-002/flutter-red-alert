@@ -64,16 +64,8 @@ void main() {
 
   test('框选选中矩形内的己方单位', () {
     final controller = makeController();
-    final a = controller.state.spawnUnitForTest(
-      Team.red,
-      UnitKind.rifle,
-      const Offset(11.5, 32.5),
-    );
-    final b = controller.state.spawnUnitForTest(
-      Team.red,
-      UnitKind.rifle,
-      const Offset(12.5, 33.5),
-    );
+    final a = controller.state.spawnUnitForTest(Team.red, UnitKind.rifle, const Offset(11.5, 32.5));
+    final b = controller.state.spawnUnitForTest(Team.red, UnitKind.rifle, const Offset(12.5, 33.5));
     controller.camera.focusOn(const Offset(12, 33));
     final topLeft = controller.camera.worldToScreen(const Offset(10, 31));
     final bottomRight = controller.camera.worldToScreen(const Offset(14, 35));
@@ -87,20 +79,13 @@ void main() {
     controller.requestProduction(ProductionCategory.structure, 'barracks');
     expect(controller.state.jobOf(Team.red, ProductionCategory.structure), isNotNull);
     simulate(controller, 13);
-    expect(
-      controller.state.readyStructuresOf(Team.red),
-      contains(BuildingKind.barracks),
-    );
+    expect(controller.state.readyStructuresOf(Team.red), contains(BuildingKind.barracks));
     controller.beginPlacement('barracks');
     expect(controller.isPlacing, isTrue);
     expect(controller.ghostTile, isNotNull);
     final tile = controller.ghostTile!;
-    controller.camera.focusOn(
-      Offset(tile.x + 1, tile.y + 1),
-    );
-    final screen = controller.camera.worldToScreen(
-      Offset(tile.x + 1, tile.y + 1),
-    );
+    controller.camera.focusOn(Offset(tile.x + 1, tile.y + 1));
+    final screen = controller.camera.worldToScreen(Offset(tile.x + 1, tile.y + 1));
     controller.tap(screen);
     expect(controller.isPlacing, isFalse);
     expect(controller.state.buildingsOf(Team.red).length, before + 1);

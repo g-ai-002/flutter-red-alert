@@ -16,9 +16,7 @@ class SelectionState {
 
   List<Unit> get units => state.selectableUnits(team, ids);
 
-  List<Actor> get actors => [
-    for (final id in ids) ?state.actorById(id),
-  ];
+  List<Actor> get actors => [for (final id in ids) ?state.actorById(id)];
 
   /// 当前选中的指挥官信息；多选时汇总生命值。
   SelectionInfo? get summary {
@@ -36,9 +34,7 @@ class SelectionState {
         count: 1,
       );
     }
-    final sameName = selected.every(
-      (actor) => actor.displayName == first.displayName,
-    );
+    final sameName = selected.every((actor) => actor.displayName == first.displayName);
     var hp = 0;
     var maxHp = 0;
     for (final actor in selected) {
@@ -47,9 +43,7 @@ class SelectionState {
     }
     return SelectionInfo(
       name: sameName ? first.displayName : '混编部队',
-      icon: sameName
-          ? (first is Unit ? first.spec.icon : (first as Building).spec.icon)
-          : '编',
+      icon: sameName ? (first is Unit ? first.spec.icon : (first as Building).spec.icon) : '编',
       hp: hp,
       maxHp: maxHp,
       team: first.team,
@@ -61,8 +55,7 @@ class SelectionState {
   /// 只有全部为玩家单位时才接受移动与攻击指令。
   bool get canCommand {
     final selected = actors;
-    return selected.isNotEmpty &&
-        selected.every((actor) => actor is Unit && actor.team == team);
+    return selected.isNotEmpty && selected.every((actor) => actor is Unit && actor.team == team);
   }
 
   void clear() => ids.clear();

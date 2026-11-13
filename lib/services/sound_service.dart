@@ -78,33 +78,12 @@ class SoundService {
       SynthNote(frequency: 1046, start: 0.18, duration: 0.16, gain: 0.38),
     ],
     BattleFeedback.fire: [
-      SynthNote(
-        frequency: 720,
-        start: 0,
-        duration: 0.045,
-        gain: 0.4,
-        noise: 0.75,
-        decay: 6,
-      ),
+      SynthNote(frequency: 720, start: 0, duration: 0.045, gain: 0.4, noise: 0.75, decay: 6),
       SynthNote(frequency: 180, start: 0, duration: 0.08, noise: 0.3),
     ],
     BattleFeedback.explosion: [
-      SynthNote(
-        frequency: 120,
-        start: 0,
-        duration: 0.22,
-        gain: 0.7,
-        noise: 0.85,
-        decay: 4,
-      ),
-      SynthNote(
-        frequency: 62,
-        start: 0.02,
-        duration: 0.34,
-        gain: 0.75,
-        noise: 0.5,
-        decay: 3,
-      ),
+      SynthNote(frequency: 120, start: 0, duration: 0.22, gain: 0.7, noise: 0.85, decay: 4),
+      SynthNote(frequency: 62, start: 0.02, duration: 0.34, gain: 0.75, noise: 0.5, decay: 3),
       SynthNote(frequency: 240, start: 0.01, duration: 0.14, gain: 0.3, noise: 0.6),
     ],
     BattleFeedback.harvest: [

@@ -63,10 +63,7 @@ void main() {
       expect(map.terrainAt(oreTile.$1, oreTile.$2), TerrainKind.dirt);
       expect(map.version, greaterThan(beforeVersion));
       expect(map.oreIndices.length, beforeOreTiles - 1);
-      expect(
-        map.oreIndices.contains(oreTile.$2 * map.width + oreTile.$1),
-        isFalse,
-      );
+      expect(map.oreIndices.contains(oreTile.$2 * map.width + oreTile.$1), isFalse);
     });
 
     test('矿点索引覆盖全部矿石格且采空后移除', () {
@@ -74,10 +71,7 @@ void main() {
       final indices = map.oreIndices.toList();
       expect(indices.length, map.countOf(TerrainKind.ore));
       for (final index in indices.take(10)) {
-        expect(
-          map.oreAt(index % map.width, index ~/ map.width),
-          greaterThan(0),
-        );
+        expect(map.oreAt(index % map.width, index ~/ map.width), greaterThan(0));
       }
       final first = indices.first;
       map.mine(first % map.width, first ~/ map.width, 999999);

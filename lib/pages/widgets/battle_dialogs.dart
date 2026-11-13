@@ -38,9 +38,7 @@ Future<void> showBattleResultDialog(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: (victory ? appGold : appRed).withValues(alpha: 0.16),
-                  border: Border.all(
-                    color: victory ? const Color(0xFFD9A94B) : appRed,
-                  ),
+                  border: Border.all(color: victory ? const Color(0xFFD9A94B) : appRed),
                 ),
                 child: Icon(
                   victory ? Icons.military_tech : Icons.local_fire_department,
@@ -60,10 +58,7 @@ Future<void> showBattleResultDialog(
               ),
               const SizedBox(height: 6),
               Text(
-                message ??
-                    (victory
-                        ? '蓝军基地已被彻底摧毁，黎明属于赤军。'
-                        : '赤军基地失守，整顿旗鼓再来一次。'),
+                message ?? (victory ? '蓝军基地已被彻底摧毁，黎明属于赤军。' : '赤军基地失守，整顿旗鼓再来一次。'),
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 12, color: Color(0xFFB7AA97)),
               ),
@@ -139,10 +134,7 @@ class _ResultStat extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Text(
-              label,
-              style: const TextStyle(fontSize: 10, color: Color(0xFF9C9180)),
-            ),
+            Text(label, style: const TextStyle(fontSize: 10, color: Color(0xFF9C9180))),
             const SizedBox(height: 2),
             Text(
               value,
@@ -202,10 +194,7 @@ Future<void> showPauseDialog(
                 const SizedBox(height: 3),
                 Text(
                   '目标：${state.mission!.objectiveText}',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Color(0xFFC8A97A),
-                  ),
+                  style: const TextStyle(fontSize: 11, color: Color(0xFFC8A97A)),
                 ),
               ],
               const SizedBox(height: 16),
@@ -222,11 +211,7 @@ Future<void> showPauseDialog(
               const SizedBox(height: 8),
               _PauseAction(label: '重新开始', onPressed: onRestart),
               const SizedBox(height: 8),
-              _PauseAction(
-                label: '返回主菜单',
-                text: true,
-                onPressed: onHome,
-              ),
+              _PauseAction(label: '返回主菜单', text: true, onPressed: onHome),
             ],
           ),
         ),
@@ -255,17 +240,12 @@ class _PauseAction extends StatelessWidget {
       child: switch ((filled, text)) {
         (true, _) => FilledButton(
           onPressed: onPressed,
-          style: FilledButton.styleFrom(
-            backgroundColor: appRed,
-            foregroundColor: Colors.white,
-          ),
+          style: FilledButton.styleFrom(backgroundColor: appRed, foregroundColor: Colors.white),
           child: Text(label),
         ),
         (_, true) => TextButton(
           onPressed: onPressed,
-          style: TextButton.styleFrom(
-            foregroundColor: const Color(0xFFB7AA97),
-          ),
+          style: TextButton.styleFrom(foregroundColor: const Color(0xFFB7AA97)),
           child: Text(label),
         ),
         _ => OutlinedButton(

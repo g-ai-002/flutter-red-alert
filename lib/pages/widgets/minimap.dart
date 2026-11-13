@@ -49,11 +49,7 @@ class _BattleMinimapState extends State<BattleMinimap> {
     final aspect = map.width / map.height;
     final width = widget.size * aspect;
     final size = Size(width, widget.size);
-    final terrain = _terrain.pictureFor(
-      map: map,
-      vision: state.vision,
-      size: size,
-    );
+    final terrain = _terrain.pictureFor(map: map, vision: state.vision, size: size);
     return Semantics(
       label: '迷你地图',
       child: GestureDetector(
@@ -66,17 +62,12 @@ class _BattleMinimapState extends State<BattleMinimap> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: const Color(0x663A342B)),
-            boxShadow: const [
-              BoxShadow(color: Color(0x66000000), blurRadius: 8),
-            ],
+            boxShadow: const [BoxShadow(color: Color(0x66000000), blurRadius: 8)],
           ),
           clipBehavior: Clip.antiAlias,
           child: RepaintBoundary(
             child: CustomPaint(
-              painter: _MinimapPainter(
-                controller: widget.controller,
-                terrain: terrain,
-              ),
+              painter: _MinimapPainter(controller: widget.controller, terrain: terrain),
               size: size,
             ),
           ),
@@ -130,8 +121,7 @@ class _MinimapPainter extends CustomPainter {
 
     if (radar) {
       final center = map.baseOf(Team.red);
-      final progress =
-          1 - state.radarRemaining / BattleState.radarScanSeconds;
+      final progress = 1 - state.radarRemaining / BattleState.radarScanSeconds;
       canvas.drawCircle(
         Offset(center.dx * sx, center.dy * sy),
         math.max(map.width, map.height) * sx * progress,
@@ -146,12 +136,7 @@ class _MinimapPainter extends CustomPainter {
     );
     if (!visible.isEmpty) {
       canvas.drawRect(
-        Rect.fromLTWH(
-          visible.left * sx,
-          visible.top * sy,
-          visible.width * sx,
-          visible.height * sy,
-        ),
+        Rect.fromLTWH(visible.left * sx, visible.top * sy, visible.width * sx, visible.height * sy),
         _stroke
           ..strokeWidth = 1.4
           ..color = hudText,
@@ -160,11 +145,7 @@ class _MinimapPainter extends CustomPainter {
   }
 
   void _drawUnit(Canvas canvas, Unit unit, double sx, double sy) {
-    canvas.drawCircle(
-      Offset(unit.x * sx, unit.y * sy),
-      1.6,
-      _fill..color = unit.team.color,
-    );
+    canvas.drawCircle(Offset(unit.x * sx, unit.y * sy), 1.6, _fill..color = unit.team.color);
   }
 
   @override

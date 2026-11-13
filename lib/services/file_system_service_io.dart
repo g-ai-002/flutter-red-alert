@@ -8,9 +8,7 @@ import 'log_service.dart';
 class FileSystemService {
   FileSystemService._(this.appDirName);
 
-  static final FileSystemService instance = FileSystemService._(
-    'FlutterRedAlert',
-  );
+  static final FileSystemService instance = FileSystemService._('FlutterRedAlert');
 
   final String appDirName;
 

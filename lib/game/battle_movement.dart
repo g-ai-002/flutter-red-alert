@@ -4,8 +4,7 @@ part of 'battle_state.dart';
 extension BattleMovement on BattleState {
   /// 下达移动指令，按网格阵型分配落点。
   void issueMove(List<Unit> units, Offset destination) {
-    final ordered = units.where((u) => u.alive).toList()
-      ..sort((a, b) => a.id.compareTo(b.id));
+    final ordered = units.where((u) => u.alive).toList()..sort((a, b) => a.id.compareTo(b.id));
     if (ordered.isEmpty) return;
     final offsets = _formationOffsets(ordered.length);
     final baseTile = TilePoint(destination.dx.floor(), destination.dy.floor());
@@ -18,10 +17,7 @@ extension BattleMovement on BattleState {
         radius: 2,
       );
       if (slot == null) continue;
-      final path = _finder.find(
-        TilePoint(unit.x.floor(), unit.y.floor()),
-        slot,
-      );
+      final path = _finder.find(TilePoint(unit.x.floor(), unit.y.floor()), slot);
       if (path == null) continue;
       unit
         ..order = UnitOrder.move
@@ -35,12 +31,7 @@ extension BattleMovement on BattleState {
     }
     if (placed > 0) {
       _emit(
-        BattleEvent(
-          BattleEventKind.move,
-          destination.dx,
-          destination.dy,
-          team: ordered.first.team,
-        ),
+        BattleEvent(BattleEventKind.move, destination.dx, destination.dy, team: ordered.first.team),
       );
     }
   }
@@ -126,8 +117,7 @@ extension BattleMovement on BattleState {
     final dx = tx - unit.x;
     final dy = ty - unit.y;
     final distance = math.sqrt(dx * dx + dy * dy);
-    final speed =
-        unit.spec.speed * map.speedFactor(waypoint.x, waypoint.y) * dt;
+    final speed = unit.spec.speed * map.speedFactor(waypoint.x, waypoint.y) * dt;
     if (distance <= speed || distance < 0.02) {
       unit
         ..x = tx
@@ -225,9 +215,7 @@ extension BattleMovement on BattleState {
       case HarvesterPhase.unloading:
         unit.miningTimer -= dt;
         if (unit.miningTimer > 0) return;
-        final refinery = unit.refineryId == null
-            ? null
-            : actorById(unit.refineryId!);
+        final refinery = unit.refineryId == null ? null : actorById(unit.refineryId!);
         if (refinery == null) {
           unit.phase = HarvesterPhase.idle;
           unit.repathTimer = 0;
@@ -238,15 +226,7 @@ extension BattleMovement on BattleState {
           final multiplier = unit.team == Team.blue ? difficulty.aiIncome : 1.0;
           final income = (earned * multiplier).round();
           _addCredits(unit.team, income);
-          _emit(
-            BattleEvent(
-              BattleEventKind.unload,
-              unit.x,
-              unit.y,
-              team: unit.team,
-              radius: 0.4,
-            ),
-          );
+          _emit(BattleEvent(BattleEventKind.unload, unit.x, unit.y, team: unit.team, radius: 0.4));
           if (unit.team == Team.red) {
             addNotice('采矿车入库 +$income', level: NoticeLevel.success);
           }

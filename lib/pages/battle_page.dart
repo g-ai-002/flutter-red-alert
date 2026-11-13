@@ -44,18 +44,13 @@ class _BattlePageState extends State<BattlePage> with WidgetsBindingObserver {
     super.initState();
     final settings = context.read<SettingsProvider>();
     _logicRate = settings.logicRate;
-    _state = BattleState.create(
-      difficulty: widget.difficulty,
-      mission: widget.mission,
-    );
+    _state = BattleState.create(difficulty: widget.difficulty, mission: widget.mission);
     _controller = BattleController(state: _state, logicRate: _logicRate);
     _game = BattleGame(controller: _controller, logicRate: _logicRate);
     _controller.addListener(_onControllerChanged);
     WidgetsBinding.instance.addObserver(this);
     _state.addNotice(
-      widget.mission == null
-          ? '战役目标：摧毁蓝军全部建筑'
-          : '战役目标：${widget.mission!.objectiveText}',
+      widget.mission == null ? '战役目标：摧毁蓝军全部建筑' : '战役目标：${widget.mission!.objectiveText}',
     );
     LogService.info(
       '开始战斗: ${widget.mission?.title ?? '遭遇战'}, 难度 ${widget.difficulty.label}, '
@@ -78,8 +73,7 @@ class _BattlePageState extends State<BattlePage> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.hidden) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
       _controller.setPaused(true);
       _game.pauseEngine();
     } else if (state == AppLifecycleState.resumed) {
@@ -129,10 +123,7 @@ class _BattlePageState extends State<BattlePage> with WidgetsBindingObserver {
     navigator.popUntil((route) => route.isFirst);
     navigator.push(
       MaterialPageRoute<void>(
-        builder: (_) => BattlePage(
-          difficulty: widget.difficulty,
-          mission: widget.mission,
-        ),
+        builder: (_) => BattlePage(difficulty: widget.difficulty, mission: widget.mission),
       ),
     );
   }
@@ -142,8 +133,7 @@ class _BattlePageState extends State<BattlePage> with WidgetsBindingObserver {
   }
 
   void _openGuide() {
-    Navigator.of(context)
-        .push(MaterialPageRoute<void>(builder: (_) => const GuidePage()));
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const GuidePage()));
   }
 
   Future<void> _openPauseMenu() async {
@@ -185,14 +175,11 @@ class _BattlePageState extends State<BattlePage> with WidgetsBindingObserver {
     var dy = 0.0;
     if (key == LogicalKeyboardKey.keyA || key == LogicalKeyboardKey.arrowLeft) {
       dx = -1;
-    } else if (key == LogicalKeyboardKey.keyD ||
-        key == LogicalKeyboardKey.arrowRight) {
+    } else if (key == LogicalKeyboardKey.keyD || key == LogicalKeyboardKey.arrowRight) {
       dx = 1;
-    } else if (key == LogicalKeyboardKey.keyW ||
-        key == LogicalKeyboardKey.arrowUp) {
+    } else if (key == LogicalKeyboardKey.keyW || key == LogicalKeyboardKey.arrowUp) {
       dy = -1;
-    } else if (key == LogicalKeyboardKey.keyS ||
-        key == LogicalKeyboardKey.arrowDown) {
+    } else if (key == LogicalKeyboardKey.keyS || key == LogicalKeyboardKey.arrowDown) {
       dy = 1;
     }
     if (dx == 0 && dy == 0) return KeyEventResult.ignored;

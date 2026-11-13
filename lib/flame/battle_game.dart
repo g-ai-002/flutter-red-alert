@@ -123,12 +123,7 @@ class BattleGame extends FlameGame {
   void render(Canvas canvas) {
     final camera = controller.camera;
     if (camera.viewport.isEmpty || camera.tileSize <= 0) return;
-    final viewport = Rect.fromLTWH(
-      0,
-      0,
-      camera.viewport.width,
-      camera.viewport.height,
-    );
+    final viewport = Rect.fromLTWH(0, 0, camera.viewport.width, camera.viewport.height);
     canvas.drawRect(viewport, _background);
 
     final origin = camera.worldToScreen(Offset.zero);
@@ -157,12 +152,7 @@ class BattleGame extends FlameGame {
       _edgePaint.shader = ui.Gradient.linear(
         Offset.zero,
         Offset(0, size.height),
-        const [
-          Color(0x88000000),
-          Color(0x00000000),
-          Color(0x00000000),
-          Color(0x99000000),
-        ],
+        const [Color(0x88000000), Color(0x00000000), Color(0x00000000), Color(0x99000000)],
         const [0.0, 0.16, 0.78, 1.0],
       );
       _edgeShaderSize = size;

@@ -75,8 +75,7 @@ class GuidePage extends StatelessWidget {
             icon: Icons.groups,
             title: '兵种与克制',
             children: [
-              for (final (kind, role) in _unitRoles)
-                _UnitRow(kind: kind, role: role),
+              for (final (kind, role) in _unitRoles) _UnitRow(kind: kind, role: role),
               const _Paragraph(
                 '哨戒炮塔自动攻击射程内目标，适合放在矿区与基地入口；'
                 '但它耗电，电力不足时射速会下降。',
@@ -117,11 +116,7 @@ class GuidePage extends StatelessWidget {
 }
 
 class _Section extends StatelessWidget {
-  const _Section({
-    required this.icon,
-    required this.title,
-    required this.children,
-  });
+  const _Section({required this.icon, required this.title, required this.children});
 
   final IconData icon;
   final String title;
@@ -141,13 +136,7 @@ class _Section extends StatelessWidget {
                 children: [
                   Icon(icon, size: 18, color: appRed),
                   const SizedBox(width: 8),
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+                  Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                 ],
               ),
               const SizedBox(height: 8),
@@ -169,10 +158,7 @@ class _Paragraph extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: Text(
-        text,
-        style: const TextStyle(fontSize: 12.5, height: 1.75),
-      ),
+      child: Text(text, style: const TextStyle(fontSize: 12.5, height: 1.75)),
     );
   }
 }
@@ -195,19 +181,11 @@ class _Bullet extends StatelessWidget {
               width: 4,
               height: 4,
               child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: appGold,
-                  shape: BoxShape.circle,
-                ),
+                decoration: BoxDecoration(color: appGold, shape: BoxShape.circle),
               ),
             ),
           ),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 12.5, height: 1.7),
-            ),
-          ),
+          Expanded(child: Text(text, style: const TextStyle(fontSize: 12.5, height: 1.7))),
         ],
       ),
     );
@@ -240,17 +218,9 @@ class _UnitRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              role,
-              style: const TextStyle(fontSize: 12, height: 1.6),
-            ),
-          ),
+          Expanded(child: Text(role, style: const TextStyle(fontSize: 12, height: 1.6))),
           const SizedBox(width: 6),
-          Text(
-            '¥${spec.cost}',
-            style: const TextStyle(fontSize: 11, color: Color(0xFF8B8172)),
-          ),
+          Text('¥${spec.cost}', style: const TextStyle(fontSize: 11, color: Color(0xFF8B8172))),
         ],
       ),
     );

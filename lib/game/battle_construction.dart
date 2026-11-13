@@ -98,6 +98,7 @@ extension BattleConstruction on BattleState {
     actors.add(building);
     _byId[building.id] = building;
     buildingsOf(team).add(building);
+    _trackBuilding(building, 1);
     for (var y = tileY; y < tileY + building.spec.height; y++) {
       for (var x = tileX; x < tileX + building.spec.width; x++) {
         if (!map.inBounds(x, y)) continue;

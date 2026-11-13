@@ -34,6 +34,32 @@ void main() {
       );
       expect(state.powerFactor(Team.red), 1);
     });
+
+    test('建筑数量与电力在生成、阵亡时增量维护', () {
+      final state = BattleState.create();
+      final produced = state.powerProduced(Team.red);
+      final used = state.powerUsed(Team.red);
+      expect(state.countBuildings(Team.red, BuildingKind.tower), 0);
+
+      final tower = state.spawnBuildingForTest(
+        Team.red,
+        BuildingKind.tower,
+        12,
+        32,
+      );
+      expect(state.countBuildings(Team.red, BuildingKind.tower), 1);
+      expect(state.powerUsed(Team.red), used + 15);
+
+      final power = state
+          .buildingsOf(Team.red)
+          .firstWhere((b) => b.spec.kind == BuildingKind.power);
+      power.applyDamage(999999);
+      tower.applyDamage(999999);
+      state.update(0.016);
+      expect(state.countBuildings(Team.red, BuildingKind.tower), 0);
+      expect(state.powerUsed(Team.red), used);
+      expect(state.powerProduced(Team.red), produced - 120);
+    });
   });
 
   group('生产与建造', () {

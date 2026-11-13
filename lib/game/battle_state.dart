@@ -127,6 +127,11 @@ class BattleState {
   late final math.Random _random;
   late final List<Building?> _occupancy;
   final Map<int, Actor> _byId = {};
+  final Map<Team, Map<BuildingKind, int>> _buildingCounts = {
+    for (final team in Team.values) team: <BuildingKind, int>{},
+  };
+  final Map<Team, int> _powerOutput = {for (final team in Team.values) team: 0};
+  final Map<Team, int> _powerDraw = {for (final team in Team.values) team: 0};
   final Map<Team, Map<ProductionCategory, ProductionJob?>> _queues = {
     for (final team in Team.values)
       team: {for (final category in ProductionCategory.values) category: null},
@@ -161,20 +166,27 @@ class BattleState {
   bool isBlocked(int x, int y) => map.blocked(x, y) || buildingAt(x, y) != null;
 
   int countBuildings(Team team, BuildingKind kind) =>
-      buildingsOf(team).where((b) => b.spec.kind == kind).length;
+      _buildingCounts[team]![kind] ?? 0;
 
   bool hasBuilding(Team team, BuildingKind kind) =>
       countBuildings(team, kind) > 0;
 
-  int powerProduced(Team team) =>
-      buildingsOf(team)
-          .where((b) => b.spec.power > 0)
-          .fold(0, (sum, b) => sum + b.spec.power);
+  int powerProduced(Team team) => _powerOutput[team]!;
 
-  int powerUsed(Team team) =>
-      buildingsOf(team)
-          .where((b) => b.spec.power < 0)
-          .fold(0, (sum, b) => sum - b.spec.power);
+  int powerUsed(Team team) => _powerDraw[team]!;
+
+  void _trackBuilding(Building building, int delta) {
+    final counts = _buildingCounts[building.team]!;
+    final kind = building.spec.kind;
+    counts[kind] = (counts[kind] ?? 0) + delta;
+    final power = building.spec.power;
+    if (power >= 0) {
+      _powerOutput[building.team] =
+          _powerOutput[building.team]! + power * delta;
+    } else {
+      _powerDraw[building.team] = _powerDraw[building.team]! - power * delta;
+    }
+  }
 
   /// 电力充足时为 1，不足时生产与防御效率减半。
   double powerFactor(Team team) =>
@@ -317,6 +329,7 @@ class BattleState {
         unitsOf(actor.team).remove(actor);
       } else if (actor is Building) {
         buildingsOf(actor.team).remove(actor);
+        _trackBuilding(actor, -1);
         for (var y = actor.tileY; y < actor.tileY + actor.spec.height; y++) {
           for (var x = actor.tileX; x < actor.tileX + actor.spec.width; x++) {
             if (!map.inBounds(x, y)) continue;

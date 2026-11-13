@@ -29,34 +29,15 @@ extension BattleConstruction on BattleState {
     return false;
   }
 
-  double _rectGap(Offset point, Rect rect) {
-    final dx = math.max(
-      math.max(rect.left - point.dx, 0.0),
-      point.dx - rect.right,
-    );
-    final dy = math.max(
-      math.max(rect.top - point.dy, 0.0),
-      point.dy - rect.bottom,
-    );
-    return math.max(dx, dy);
-  }
-
   /// 找到离己方基地最近的可放置位置，供 AI 与「自动选址」使用。
   TilePoint? findPlacement(BuildingSpec spec, Team team, {int maxRadius = 12}) {
     final base = map.baseOf(team);
-    for (var radius = 0; radius <= maxRadius; radius++) {
-      for (var dy = -radius; dy <= radius; dy++) {
-        for (var dx = -radius; dx <= radius; dx++) {
-          if (math.max(dx.abs(), dy.abs()) != radius) continue;
-          final tileX = (base.dx + dx).floor();
-          final tileY = (base.dy + dy).floor();
-          if (canPlaceBuilding(spec, tileX, tileY, team: team)) {
-            return TilePoint(tileX, tileY);
-          }
-        }
-      }
-    }
-    return null;
+    return searchTile(
+      centerX: base.dx.floor(),
+      centerY: base.dy.floor(),
+      maxRadius: maxRadius,
+      accept: (x, y) => canPlaceBuilding(spec, x, y, team: team),
+    );
   }
 
   Building? placeReadyStructure(Team team, BuildingKind kind) {
@@ -145,22 +126,23 @@ extension BattleConstruction on BattleState {
   }
 
   /// 在建筑周围寻找空位，优先朝基地外侧（地图中心方向）。
-  TilePoint? findSpawnTile(Building building) {
-    final center = Offset(
-      building.tileX + building.spec.width / 2,
-      building.tileY + building.spec.height / 2,
-    );
-    for (var radius = 1; radius <= 6; radius++) {
-      for (var dy = -radius; dy <= radius; dy++) {
-        for (var dx = -radius; dx <= radius; dx++) {
-          if (math.max(dx.abs(), dy.abs()) != radius) continue;
-          final x = (center.dx + dx).floor();
-          final y = (center.dy + dy).floor();
-          if (!map.inBounds(x, y) || isBlocked(x, y)) continue;
-          return TilePoint(x, y);
-        }
-      }
-    }
-    return null;
-  }
+  TilePoint? findSpawnTile(Building building) => searchTile(
+    centerX: (building.tileX + building.spec.width / 2).floor(),
+    centerY: (building.tileY + building.spec.height / 2).floor(),
+    maxRadius: 6,
+    accept: (x, y) => map.inBounds(x, y) && !isBlocked(x, y),
+  );
+}
+
+/// 点到矩形的轴向间距，建筑选址与贴近判定共用。
+double _rectGap(Offset point, Rect rect) {
+  final dx = math.max(
+    math.max(rect.left - point.dx, 0.0),
+    point.dx - rect.right,
+  );
+  final dy = math.max(
+    math.max(rect.top - point.dy, 0.0),
+    point.dy - rect.bottom,
+  );
+  return math.max(dx, dy);
 }

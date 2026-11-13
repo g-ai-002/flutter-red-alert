@@ -302,39 +302,24 @@ extension BattleMovement on BattleState {
     if (target is! Building) {
       return TilePoint(target.x.floor(), target.y.floor());
     }
-    for (var radius = 1; radius <= 5; radius++) {
-      for (var dy = -radius; dy <= radius; dy++) {
-        for (var dx = -radius; dx <= radius; dx++) {
-          if (math.max(dx.abs(), dy.abs()) != radius) continue;
-          final x = (target.x + dx).floor();
-          final y = (target.y + dy).floor();
-          if (x < 0 || y < 0 || x >= map.width || y >= map.height) continue;
-          if (isBlocked(x, y)) continue;
-          if (_rectGap(Offset(x + 0.5, y + 0.5), target.bounds) <= 0.6) {
-            return TilePoint(x, y);
-          }
-        }
-      }
-    }
-    return null;
+    return searchTile(
+      centerX: target.x.floor(),
+      centerY: target.y.floor(),
+      maxRadius: 5,
+      accept: (x, y) {
+        if (x < 0 || y < 0 || x >= map.width || y >= map.height) return false;
+        if (isBlocked(x, y)) return false;
+        return _rectGap(Offset(x + 0.5, y + 0.5), target.bounds) <= 0.6;
+      },
+    );
   }
 
-  TilePoint? _nearestFreeTile(Offset point, {int radius = 4}) {
-    final cx = point.dx.floor();
-    final cy = point.dy.floor();
-    for (var r = 0; r <= radius; r++) {
-      for (var dy = -r; dy <= r; dy++) {
-        for (var dx = -r; dx <= r; dx++) {
-          if (r > 0 && math.max(dx.abs(), dy.abs()) != r) continue;
-          final x = cx + dx;
-          final y = cy + dy;
-          if (!map.inBounds(x, y) || isBlocked(x, y)) continue;
-          return TilePoint(x, y);
-        }
-      }
-    }
-    return null;
-  }
+  TilePoint? _nearestFreeTile(Offset point, {int radius = 4}) => searchTile(
+    centerX: point.dx.floor(),
+    centerY: point.dy.floor(),
+    maxRadius: radius,
+    accept: (x, y) => map.inBounds(x, y) && !isBlocked(x, y),
+  );
 
   TilePoint? nearestOre(Offset from, {int maxDistance = 80}) {
     TilePoint? best;

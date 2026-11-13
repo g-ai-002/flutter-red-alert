@@ -15,6 +15,18 @@ void main() {
     );
   });
 
+  test('生产项分类必须与队列分类一致', () {
+    final state = BattleState.create();
+    expect(
+      state.productionBlocker(Team.red, ProductionCategory.infantry, 'power'),
+      '分类不匹配',
+    );
+    expect(
+      state.startProduction(Team.red, ProductionCategory.armor, 'rifle'),
+      isFalse,
+    );
+  });
+
   test('缺少生产建筑与前置建筑时给出对应提示', () {
     final state = BattleState.create();
     expect(

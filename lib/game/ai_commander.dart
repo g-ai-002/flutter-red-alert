@@ -15,6 +15,17 @@ class AiCommander {
   final Team team;
   final BattleDifficulty difficulty;
 
+  /// 建筑补齐顺序：每种建筑的目标数量，按表顺序逐项检查。
+  static const List<(BuildingKind, int)> _buildPlan = [
+    (BuildingKind.refinery, 2),
+    (BuildingKind.barracks, 1),
+    (BuildingKind.factory, 1),
+    (BuildingKind.tower, 3),
+    (BuildingKind.power, 3),
+    (BuildingKind.refinery, 3),
+    (BuildingKind.tower, 6),
+  ];
+
   double _think = 0.5;
   double _waveTimer = 0;
   bool _sentFirstWave = false;
@@ -39,39 +50,14 @@ class AiCommander {
   }
 
   void _manageStructures(BattleState state) {
-    final queue = state.queuesOf(team)[ProductionCategory.structure];
-    if (queue != null) return;
+    if (state.queuesOf(team)[ProductionCategory.structure] != null) return;
     if (state.readyStructuresOf(team).length >= 2) return;
-    final credits = state.creditsOf(team);
-    final powerProduced = state.powerProduced(team);
-    final powerUsed = state.powerUsed(team);
-
-    BuildingKind? want;
-    if (!state.hasBuilding(team, BuildingKind.hq)) {
-      want = BuildingKind.hq;
-    } else if (powerUsed + 30 > powerProduced) {
-      want = BuildingKind.power;
-    } else if (state.countBuildings(team, BuildingKind.refinery) < 2) {
-      want = BuildingKind.refinery;
-    } else if (state.countBuildings(team, BuildingKind.barracks) < 1) {
-      want = BuildingKind.barracks;
-    } else if (state.countBuildings(team, BuildingKind.factory) < 1) {
-      want = BuildingKind.factory;
-    } else if (state.countBuildings(team, BuildingKind.tower) < 3) {
-      want = BuildingKind.tower;
-    } else if (state.countBuildings(team, BuildingKind.power) < 3) {
-      want = BuildingKind.power;
-    } else if (state.countBuildings(team, BuildingKind.refinery) < 3) {
-      want = BuildingKind.refinery;
-    } else if (state.countBuildings(team, BuildingKind.tower) < 6) {
-      want = BuildingKind.tower;
-    }
-
+    final want = _nextBuilding(state);
     if (want == null) return;
     final cost = buildingSpecs[want]!.cost;
     // 留出生产资金，避免把收入全部砸进建筑导致断兵。
     final reserve = state.armySize(team) < difficulty.waveSize ? 700 : 250;
-    if (credits < cost + reserve) return;
+    if (state.creditsOf(team) < cost + reserve) return;
     if (!state.canProduce(team, ProductionCategory.structure, want.name)) return;
     state.startProduction(
       team,
@@ -81,50 +67,64 @@ class AiCommander {
     );
   }
 
+  /// 先补齐指挥中心与电力，再按计划表补建筑。
+  BuildingKind? _nextBuilding(BattleState state) {
+    if (!state.hasBuilding(team, BuildingKind.hq)) return BuildingKind.hq;
+    if (state.powerUsed(team) + 30 > state.powerProduced(team)) {
+      return BuildingKind.power;
+    }
+    for (final (kind, target) in _buildPlan) {
+      if (state.countBuildings(team, kind) < target) return kind;
+    }
+    return null;
+  }
+
   void _manageProduction(BattleState state) {
     final credits = state.creditsOf(team);
-    final armorJob = state.jobOf(team, ProductionCategory.armor);
-    if (armorJob == null && state.canProduce(team, ProductionCategory.armor, UnitKind.lightTank.name)) {
-      final harvesters = state
-          .unitsOf(team)
-          .where((u) => u.isHarvester)
-          .length;
-      if (harvesters < 3 && credits >= 1100) {
-        state.startProduction(
-          team,
-          ProductionCategory.armor,
-          UnitKind.harvester.name,
-          announce: false,
-        );
-      } else if (credits >= 1700) {
-        state.startProduction(
-          team,
-          ProductionCategory.armor,
-          UnitKind.heavyTank.name,
-          announce: false,
-        );
-      } else if (credits >= 800) {
-        state.startProduction(
+    if (state.jobOf(team, ProductionCategory.armor) == null &&
+        state.canProduce(
           team,
           ProductionCategory.armor,
           UnitKind.lightTank.name,
-          announce: false,
-        );
-      }
+        )) {
+      _startArmor(state, credits);
     }
-
-    final infantryJob = state.jobOf(team, ProductionCategory.infantry);
-    if (infantryJob == null &&
-        state.canProduce(team, ProductionCategory.infantry, UnitKind.rifle.name) &&
+    if (state.jobOf(team, ProductionCategory.infantry) == null &&
+        state.canProduce(
+          team,
+          ProductionCategory.infantry,
+          UnitKind.rifle.name,
+        ) &&
         credits >= 500) {
-      final rocketRatio = state.armySize(team) % 3 == 2;
+      final wantRocket = state.armySize(team) % 3 == 2;
       state.startProduction(
         team,
         ProductionCategory.infantry,
-        rocketRatio ? UnitKind.rocket.name : UnitKind.rifle.name,
+        (wantRocket ? UnitKind.rocket : UnitKind.rifle).name,
         announce: false,
       );
     }
+  }
+
+  void _startArmor(BattleState state, int credits) {
+    final harvesters = state.unitsOf(team).where((u) => u.isHarvester).length;
+    final UnitKind? want;
+    if (harvesters < 3 && credits >= 1100) {
+      want = UnitKind.harvester;
+    } else if (credits >= 1700) {
+      want = UnitKind.heavyTank;
+    } else if (credits >= 800) {
+      want = UnitKind.lightTank;
+    } else {
+      want = null;
+    }
+    if (want == null) return;
+    state.startProduction(
+      team,
+      ProductionCategory.armor,
+      want.name,
+      announce: false,
+    );
   }
 
   void _manageArmy(BattleState state, double dt) {
@@ -143,23 +143,21 @@ class AiCommander {
           .where((u) => u.order != UnitOrder.attack)
           .toList();
       if (defenders.isNotEmpty) {
-        final target = intruder.first;
-        state.issueAttack(defenders, target.id);
+        state.issueAttack(defenders, intruder.first.id);
       }
       return;
     }
 
     final readyToAttack = state.armySize(team) >= difficulty.waveSize;
     if (!readyToAttack && _waveTimer > 0) return;
-    if (readyToAttack || _sentFirstWave) {
-      _waveTimer = difficulty.waveSeconds;
-      final idle = units.where((u) => u.order != UnitOrder.attack).toList();
-      if (idle.isEmpty) return;
-      final target = _pickAttackTarget(state);
-      if (target == null) return;
-      state.issueAttack(idle, target.id);
-      _sentFirstWave = true;
-    }
+    if (!readyToAttack && !_sentFirstWave) return;
+    _waveTimer = difficulty.waveSeconds;
+    final idle = units.where((u) => u.order != UnitOrder.attack).toList();
+    if (idle.isEmpty) return;
+    final target = _pickAttackTarget(state);
+    if (target == null) return;
+    state.issueAttack(idle, target.id);
+    _sentFirstWave = true;
   }
 
   /// 优先打指挥中心，其次打离己方基地最近的建筑。

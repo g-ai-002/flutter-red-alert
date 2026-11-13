@@ -12,6 +12,7 @@ import 'battle_types.dart';
 import 'entity.dart';
 import 'logic_rate.dart';
 import 'placement_state.dart';
+import 'selection_state.dart';
 import 'terrain.dart';
 
 /// 一条浮动提示，带剩余显示时间。
@@ -42,6 +43,7 @@ class BattleController extends ChangeNotifier {
     _ai = AiCommander(team: Team.blue, difficulty: state.difficulty);
     state.onAiTick = _ai.update;
     _placement = PlacementState(state: state, team: playerTeam);
+    _selection = SelectionState(state: state, team: playerTeam);
     camera.focusOn(GameMap.redBase);
   }
 
@@ -50,8 +52,9 @@ class BattleController extends ChangeNotifier {
   final BattleCamera camera;
   late final AiCommander _ai;
   late final PlacementState _placement;
+  late final SelectionState _selection;
 
-  final Set<int> selectedIds = {};
+  Set<int> get selectedIds => _selection.ids;
   final List<BattleToast> toasts = [];
 
   bool paused = false;
@@ -76,51 +79,14 @@ class BattleController extends ChangeNotifier {
 
   bool get ghostValid => _placement.valid;
 
-  List<Unit> get selectedUnits =>
-      state.selectableUnits(playerTeam, selectedIds);
+  List<Unit> get selectedUnits => _selection.units;
 
-  List<Actor> get selectedActors => selectedIds
-      .map(state.actorById)
-      .whereType<Actor>()
-      .where((actor) => actor.alive)
-      .toList();
+  List<Actor> get selectedActors => _selection.actors;
 
   /// 当前选中的指挥官信息；多选时汇总生命值。
-  SelectionInfo? get selection {
-    final actors = selectedActors;
-    if (actors.isEmpty) return null;
-    if (actors.length == 1) {
-      final actor = actors.first;
-      return SelectionInfo(
-        name: actor.displayName,
-        icon: actor is Unit ? actor.spec.icon : (actor as Building).spec.icon,
-        hp: actor.hp,
-        maxHp: actor.maxHp,
-        team: actor.team,
-        isBuilding: actor.isBuilding,
-        count: 1,
-      );
-    }
-    final first = actors.first;
-    final sameName = actors.every((a) => a.displayName == first.displayName);
-    final hp = actors.fold<int>(0, (sum, a) => sum + a.hp);
-    final maxHp = actors.fold<int>(0, (sum, a) => sum + a.maxHp);
-    return SelectionInfo(
-      name: sameName ? first.displayName : '混编部队',
-      icon: sameName
-          ? (first is Unit ? first.spec.icon : (first as Building).spec.icon)
-          : '编',
-      hp: hp,
-      maxHp: maxHp,
-      team: first.team,
-      isBuilding: false,
-      count: actors.length,
-    );
-  }
+  SelectionInfo? get selection => _selection.summary;
 
-  bool get canCommandSelection =>
-      selectedIds.isNotEmpty &&
-      selectedActors.every((actor) => actor is Unit && actor.team == playerTeam);
+  bool get canCommandSelection => _selection.canCommand;
 
   // ===== 主循环 =====
 
@@ -190,29 +156,15 @@ class BattleController extends ChangeNotifier {
     final hit = state.actorAt(world);
     final actor = hit != null && state.isVisibleToPlayer(hit) ? hit : null;
 
-    if (actor != null && actor.team == playerTeam) {
-      if (additive) {
-        if (!selectedIds.add(actor.id)) selectedIds.remove(actor.id);
-      } else {
-        selectedIds
-          ..clear()
-          ..add(actor.id);
-      }
-      SoundService.play(BattleFeedback.select);
+    if (actor != null && actor.team != playerTeam && canCommandSelection) {
+      state.issueAttack(selectedUnits, actor.id);
+      SoundService.play(BattleFeedback.command);
       notifyListeners();
       return;
     }
 
-    if (actor != null && actor.team != playerTeam) {
-      if (canCommandSelection) {
-        state.issueAttack(selectedUnits, actor.id);
-        SoundService.play(BattleFeedback.command);
-        notifyListeners();
-        return;
-      }
-      selectedIds
-        ..clear()
-        ..add(actor.id);
+    if (actor != null) {
+      _selection.selectActor(actor, additive: additive);
       SoundService.play(BattleFeedback.select);
       notifyListeners();
       return;
@@ -225,7 +177,7 @@ class BattleController extends ChangeNotifier {
       return;
     }
     if (selectedIds.isNotEmpty) {
-      selectedIds.clear();
+      _selection.clear();
       notifyListeners();
     }
   }
@@ -249,35 +201,15 @@ class BattleController extends ChangeNotifier {
   void selectRect(Rect screenRect, {bool additive = false}) {
     final a = camera.screenToWorld(screenRect.topLeft);
     final b = camera.screenToWorld(screenRect.bottomRight);
-    final worldRect = Rect.fromPoints(a, b);
-    if (!additive) selectedIds.clear();
-    for (final unit in state.unitsOf(playerTeam)) {
-      if (!unit.alive) continue;
-      if (worldRect.contains(unit.position)) selectedIds.add(unit.id);
-    }
+    _selection.selectRect(Rect.fromPoints(a, b), additive: additive);
     if (selectedIds.isNotEmpty) SoundService.play(BattleFeedback.select);
     notifyListeners();
   }
 
   /// 全选同类：单选时选中全部同型单位，否则选中全部战斗单位。
   void selectAllSameKind() {
-    final actors = selectedActors;
-    if (actors.isEmpty) return;
-    final first = actors.first;
-    selectedIds.clear();
-    if (first is Unit && !first.isHarvester) {
-      for (final unit in state.unitsOf(playerTeam)) {
-        if (unit.spec.kind == first.spec.kind) selectedIds.add(unit.id);
-      }
-    } else if (first is Unit) {
-      for (final unit in state.unitsOf(playerTeam)) {
-        if (unit.isHarvester) selectedIds.add(unit.id);
-      }
-    } else {
-      for (final unit in state.unitsOf(playerTeam)) {
-        selectedIds.add(unit.id);
-      }
-    }
+    if (selectedActors.isEmpty) return;
+    _selection.selectAllSameKind();
     SoundService.play(BattleFeedback.select);
     notifyListeners();
   }

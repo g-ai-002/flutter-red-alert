@@ -20,6 +20,28 @@ class TilePoint {
   int get hashCode => x * 100003 + y;
 }
 
+/// 以 [centerX]/[centerY] 格为中心、按半径由内向外环形扫描，返回第一个通过
+/// [accept] 的格子。同一圈内先扫上边、再扫左右、最后扫下边，结果稳定可复现。
+TilePoint? searchTile({
+  required int centerX,
+  required int centerY,
+  required int maxRadius,
+  required bool Function(int x, int y) accept,
+}) {
+  if (accept(centerX, centerY)) return TilePoint(centerX, centerY);
+  for (var radius = 1; radius <= maxRadius; radius++) {
+    for (var dy = -radius; dy <= radius; dy++) {
+      for (var dx = -radius; dx <= radius; dx++) {
+        if (math.max(dx.abs(), dy.abs()) != radius) continue;
+        final x = centerX + dx;
+        final y = centerY + dy;
+        if (accept(x, y)) return TilePoint(x, y);
+      }
+    }
+  }
+  return null;
+}
+
 /// 单位指令。
 enum UnitOrder { idle, move, attack }
 

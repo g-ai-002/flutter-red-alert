@@ -36,12 +36,20 @@ class GameMap {
   final List<TerrainKind> _terrain;
   final List<int> _ore;
   final List<int> _oreIndices = [];
+  final List<int> _dirtyTiles = [];
 
   /// 仍有矿石的格子索引，采矿车索矿与迷你地图共用，避免每次全图扫描。
   Iterable<int> get oreIndices => _oreIndices;
 
   /// 地形变化计数，渲染层据此判断是否需要重绘地形缓存。
   int version = 0;
+
+  List<int> takeDirtyTiles() {
+    if (_dirtyTiles.isEmpty) return const [];
+    final drained = List<int>.of(_dirtyTiles);
+    _dirtyTiles.clear();
+    return drained;
+  }
 
   /// 赤军基地中心（格）。
   static const Offset redBase = Offset(8, 35);
@@ -60,9 +68,10 @@ class GameMap {
 
   void setTerrain(int x, int y, TerrainKind kind) {
     if (!inBounds(x, y)) return;
-    if (_terrain[y * width + x] == kind) return;
-    _terrain[y * width + x] = kind;
-    version++;
+    final index = y * width + x;
+    if (_terrain[index] == kind) return;
+    _terrain[index] = kind;
+    _markDirty(index);
   }
 
   int oreAt(int x, int y) {
@@ -81,9 +90,14 @@ class GameMap {
       _ore[index] = 0;
       _terrain[index] = TerrainKind.dirt;
       _oreIndices.remove(index);
-      version++;
+      _markDirty(index);
     }
     return mined;
+  }
+
+  void _markDirty(int index) {
+    _dirtyTiles.add(index);
+    version++;
   }
 
   void _indexOre() {

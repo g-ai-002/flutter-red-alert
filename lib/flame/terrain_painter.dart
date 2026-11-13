@@ -7,10 +7,8 @@ import '../game/terrain.dart';
 import '../theme/palette.dart';
 import 'paint_utils.dart';
 
-/// 地形图层：按地图版本把 44×44 格切成若干区块缓存 [ui.Picture]。
-///
-/// 只有矿石被采空导致地形变化时地图版本才会递增，正常对局中每帧只回放
-/// 摄像机视野覆盖的区块，缩放到局部时不再重放整张地图的绘制指令。
+/// 地形图层：把地图切成区块缓存 [ui.Picture]，首次进入视野时才录制；
+/// 矿石采空时只重录变化的区块。
 class TerrainPainter {
   TerrainPainter(this.map) {
     _columns = (map.width + _chunkTiles - 1) ~/ _chunkTiles;
@@ -27,21 +25,42 @@ class TerrainPainter {
   late final List<ui.Picture?> _pictures;
   int _version = -1;
 
+  @visibleForTesting
+  int builtChunks = 0;
+
   void paint(Canvas canvas, Rect visible) {
-    if (_version != map.version) _rebuild();
-    for (var row = 0; row < _rows; row++) {
-      for (var column = 0; column < _columns; column++) {
-        final picture = _pictures[row * _columns + column];
-        if (picture == null) continue;
-        final rect = Rect.fromLTWH(
-          column * _chunkTiles.toDouble(),
-          row * _chunkTiles.toDouble(),
-          _chunkTiles.toDouble(),
-          _chunkTiles.toDouble(),
-        );
-        if (rect.inflate(1).overlaps(visible)) canvas.drawPicture(picture);
+    if (_version != map.version) _applyChanges();
+    for (var index = 0; index < _pictures.length; index++) {
+      final column = index % _columns;
+      final row = index ~/ _columns;
+      // 区块向外扩一格，与录制时多画的一圈接缝范围对应。
+      if (!Rect.fromLTWH(
+        column * _chunkTiles - 1.0,
+        row * _chunkTiles - 1.0,
+        _chunkTiles + 2.0,
+        _chunkTiles + 2.0,
+      ).overlaps(visible)) {
+        continue;
+      }
+      canvas.drawPicture(_pictures[index] ??= _buildChunk(column, row));
+    }
+  }
+
+  /// 只让变化格所在的区块失效；没有具体格子时退回整表重建。
+  void _applyChanges() {
+    final dirty = map.takeDirtyTiles();
+    if (dirty.isEmpty) {
+      dispose();
+    } else {
+      for (final tile in dirty) {
+        final chunk =
+            (tile ~/ map.width ~/ _chunkTiles) * _columns +
+            (tile % map.width ~/ _chunkTiles);
+        _pictures[chunk]?.dispose();
+        _pictures[chunk] = null;
       }
     }
+    _version = map.version;
   }
 
   void dispose() {
@@ -52,17 +71,8 @@ class TerrainPainter {
     _version = -1;
   }
 
-  void _rebuild() {
-    dispose();
-    for (var row = 0; row < _rows; row++) {
-      for (var column = 0; column < _columns; column++) {
-        _pictures[row * _columns + column] = _buildChunk(column, row);
-      }
-    }
-    _version = map.version;
-  }
-
   ui.Picture _buildChunk(int column, int row) {
+    builtChunks++;
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
     final gridPaint = Paint()

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../game/battle_types.dart';
 import '../game/logic_rate.dart';
+import '../game/mission.dart';
 import '../services/music_service.dart';
 import '../services/sound_service.dart';
 import '../services/storage_service.dart';
@@ -51,6 +52,23 @@ class SettingsProvider extends ChangeNotifier {
 
   Future<void> recordResult(BattleResult result, int seconds) =>
       _update(() => _storage.recordResult(result, seconds));
+
+  Set<String> get completedMissions => _storage.completedMissions;
+
+  bool isMissionCompleted(String id) => completedMissions.contains(id);
+
+  /// 第一关直接开放，之后每关要求上一关已通关。
+  bool isMissionUnlocked(GameMission mission) {
+    final index = campaignMissions.indexWhere(
+      (item) => item.id == mission.id,
+    );
+    if (index <= 0) return index == 0;
+    final previous = campaignMissions[index - 1];
+    return completedMissions.contains(previous.id);
+  }
+
+  Future<void> completeMission(String missionId) =>
+      _update(() => _storage.completeMission(missionId));
 
   void _syncFeedback() =>
       SoundService.configure(sound: soundEnabled, haptics: hapticsEnabled);

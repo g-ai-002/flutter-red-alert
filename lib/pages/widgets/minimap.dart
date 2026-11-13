@@ -1,8 +1,11 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
 import '../../game/battle_controller.dart';
+import '../../game/battle_state.dart';
+import '../../game/battle_types.dart';
 import '../../game/entity.dart';
 import '../../game/terrain.dart';
 import '../../theme/palette.dart';
@@ -25,6 +28,7 @@ class _BattleMinimapState extends State<BattleMinimap> {
   ui.Picture? _terrain;
   Size _terrainSize = Size.zero;
   int _terrainVersion = -1;
+  int _visionVersion = -1;
 
   @override
   void dispose() {
@@ -42,9 +46,11 @@ class _BattleMinimapState extends State<BattleMinimap> {
   }
 
   void _ensureTerrain(GameMap map, Size size) {
+    final vision = widget.controller.state.vision;
     if (_terrain != null &&
         _terrainSize == size &&
-        _terrainVersion == map.version) {
+        _terrainVersion == map.version &&
+        _visionVersion == vision.version) {
       return;
     }
     _terrain?.dispose();
@@ -67,11 +73,17 @@ class _BattleMinimapState extends State<BattleMinimap> {
         if (map.oreAt(x, y) > 0) {
           canvas.drawCircle(rect.center, sx * 0.9, fill..color = _oreColor);
         }
+        if (!vision.isExplored(x, y)) {
+          canvas.drawRect(rect, fill..color = const Color(0xF20B0A08));
+        } else if (!vision.isVisible(x, y)) {
+          canvas.drawRect(rect, fill..color = const Color(0x800B0A08));
+        }
       }
     }
     _terrain = recorder.endRecording();
     _terrainSize = size;
     _terrainVersion = map.version;
+    _visionVersion = vision.version;
   }
 
   @override
@@ -132,6 +144,8 @@ class _MinimapPainter extends CustomPainter {
 
     if (terrain != null) canvas.drawPicture(terrain!);
 
+    final radar = state.radarActive;
+    final vision = state.vision;
     for (final building in state.redBuildings) {
       if (!building.alive) continue;
       canvas.drawRect(
@@ -146,6 +160,7 @@ class _MinimapPainter extends CustomPainter {
     }
     for (final building in state.blueBuildings) {
       if (!building.alive) continue;
+      if (!radar && !vision.sees(building)) continue;
       canvas.drawRect(
         Rect.fromLTWH(
           building.tileX * sx,
@@ -163,7 +178,21 @@ class _MinimapPainter extends CustomPainter {
     }
     for (final unit in state.blueUnits) {
       if (!unit.alive) continue;
+      if (!radar && !vision.sees(unit)) continue;
       _drawUnit(canvas, unit, sx, sy);
+    }
+
+    if (radar) {
+      final center = state.map.baseOf(Team.red);
+      final progress =
+          1 - state.radarRemaining / BattleState.radarScanSeconds;
+      canvas.drawCircle(
+        Offset(center.dx * sx, center.dy * sy),
+        math.max(map.width, map.height) * sx * progress,
+        _stroke
+          ..strokeWidth = 1.2
+          ..color = const Color(0xFFE8C271).withValues(alpha: 0.55),
+      );
     }
 
     final visible = controller.camera.visibleWorld.intersect(

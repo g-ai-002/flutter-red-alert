@@ -10,6 +10,7 @@ import '../game/logic_rate.dart';
 import '../services/sound_service.dart';
 import 'actor_painter.dart';
 import 'effects.dart';
+import 'fog_painter.dart';
 import 'terrain_painter.dart';
 
 /// Flame 渲染与逻辑入口：固定步长推进战场，按摄像机变换绘制地形、单位与特效。
@@ -20,6 +21,7 @@ class BattleGame extends FlameGame {
   BattleGame({required this.controller, required this.logicRate})
     : _clock = FixedStepClock(logicRate.step) {
     _terrain = TerrainPainter(controller.state.map);
+    _fog = FogPainter(controller.state.vision);
     _actors = ActorPainter(
       state: controller.state,
       selectedIds: controller.selectedIds,
@@ -33,6 +35,7 @@ class BattleGame extends FlameGame {
   final Effects effects = Effects();
   final FixedStepClock _clock;
   late final TerrainPainter _terrain;
+  late final FogPainter _fog;
   late final ActorPainter _actors;
 
   ui.Shader? _edgeShader;
@@ -100,6 +103,7 @@ class BattleGame extends FlameGame {
   void onDispose() {
     effects.clear();
     _terrain.dispose();
+    _fog.dispose();
     _actors.dispose();
     super.onDispose();
   }
@@ -137,8 +141,9 @@ class BattleGame extends FlameGame {
         ..color = const Color(0xFF3A3630),
     );
     _actors.drawActors(canvas, visible);
-    _actors.drawGhost(canvas);
     effects.render(canvas, camera.tileSize);
+    _fog.paint(canvas);
+    _actors.drawGhost(canvas);
     canvas.restore();
 
     _actors.drawBuildingLabels(canvas, camera);

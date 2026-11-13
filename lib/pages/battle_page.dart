@@ -8,6 +8,7 @@ import '../game/battle_controller.dart';
 import '../game/battle_state.dart';
 import '../game/battle_types.dart';
 import '../game/logic_rate.dart';
+import '../game/mission.dart';
 import '../providers/settings_provider.dart';
 import '../services/log_service.dart';
 import '../utils/battle_display_mode.dart';
@@ -18,9 +19,12 @@ import 'widgets/battle_input_layer.dart';
 
 /// 战场页面：组合 Flame 战场、手势层与悬浮 HUD，并管理对局生命周期。
 class BattlePage extends StatefulWidget {
-  const BattlePage({super.key, required this.difficulty});
+  const BattlePage({super.key, required this.difficulty, this.mission});
 
   final BattleDifficulty difficulty;
+
+  /// 战役关卡；为空表示自由遭遇战。
+  final GameMission? mission;
 
   @override
   State<BattlePage> createState() => _BattlePageState();
@@ -40,15 +44,22 @@ class _BattlePageState extends State<BattlePage> with WidgetsBindingObserver {
     super.initState();
     final settings = context.read<SettingsProvider>();
     _logicRate = settings.logicRate;
-    _state = BattleState.create(difficulty: widget.difficulty);
+    _state = BattleState.create(
+      difficulty: widget.difficulty,
+      mission: widget.mission,
+    );
     _controller = BattleController(state: _state, logicRate: _logicRate);
     _game = BattleGame(controller: _controller, logicRate: _logicRate);
     _controller.addListener(_onControllerChanged);
     WidgetsBinding.instance.addObserver(this);
-    _state.addNotice('战役目标：摧毁蓝军全部建筑');
+    _state.addNotice(
+      widget.mission == null
+          ? '战役目标：摧毁蓝军全部建筑'
+          : '战役目标：${widget.mission!.objectiveText}',
+    );
     LogService.info(
-      '开始战斗: 难度 ${widget.difficulty.label}, 逻辑 ${_logicRate.label}, '
-      '地图 ${_state.map.width}×${_state.map.height}',
+      '开始战斗: ${widget.mission?.title ?? '遭遇战'}, 难度 ${widget.difficulty.label}, '
+      '逻辑 ${_logicRate.label}, 地图 ${_state.map.width}×${_state.map.height}',
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _focus.requestFocus();
@@ -83,14 +94,30 @@ class _BattlePageState extends State<BattlePage> with WidgetsBindingObserver {
     _resultHandled = true;
     _game.pauseEngine();
     final seconds = _state.elapsed.round();
-    context.read<SettingsProvider>().recordResult(result, seconds);
+    final settings = context.read<SettingsProvider>();
+    if (result == BattleResult.victory && widget.mission != null) {
+      settings.completeMission(widget.mission!.id);
+      LogService.info('战役通关: ${widget.mission!.title}');
+    }
+    settings.recordResult(result, seconds);
+    String? note;
+    String? message;
+    if (result == BattleResult.victory && widget.mission != null) {
+      final next = nextMissionOf(widget.mission!);
+      note = next == null ? '全部战役关卡已通关' : '已解锁 ${next.title}';
+      if (widget.mission!.objective == MissionObjective.decapitate) {
+        message = '蓝军指挥中心已被摧毁，敌军群龙无首。';
+      }
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       showBattleResultDialog(
         context,
         result: result,
         elapsed: _controller.elapsedText,
-        difficulty: widget.difficulty.label,
+        mode: widget.mission?.title ?? widget.difficulty.label,
+        note: note,
+        message: message,
         onRestart: _restartBattle,
         onHome: _goHome,
       );
@@ -102,7 +129,10 @@ class _BattlePageState extends State<BattlePage> with WidgetsBindingObserver {
     navigator.popUntil((route) => route.isFirst);
     navigator.push(
       MaterialPageRoute<void>(
-        builder: (_) => BattlePage(difficulty: widget.difficulty),
+        builder: (_) => BattlePage(
+          difficulty: widget.difficulty,
+          mission: widget.mission,
+        ),
       ),
     );
   }

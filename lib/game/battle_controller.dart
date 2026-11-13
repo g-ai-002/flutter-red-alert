@@ -187,7 +187,8 @@ class BattleController extends ChangeNotifier {
     }
 
     final world = camera.screenToWorld(screenPosition);
-    final actor = state.actorAt(world);
+    final hit = state.actorAt(world);
+    final actor = hit != null && state.isVisibleToPlayer(hit) ? hit : null;
 
     if (actor != null && actor.team == playerTeam) {
       if (additive) {
@@ -233,7 +234,8 @@ class BattleController extends ChangeNotifier {
   void contextCommand(Offset screenPosition) {
     if (!canCommandSelection) return;
     final world = camera.screenToWorld(screenPosition);
-    final actor = state.actorAt(world);
+    final hit = state.actorAt(world);
+    final actor = hit != null && state.isVisibleToPlayer(hit) ? hit : null;
     if (actor != null && actor.team != playerTeam) {
       state.issueAttack(selectedUnits, actor.id);
     } else {
@@ -362,6 +364,22 @@ class BattleController extends ChangeNotifier {
 
   void cycleSpeed() {
     speed = speed >= 2 ? 1 : 2;
+    notifyListeners();
+  }
+
+  /// 雷达扫描：指挥中心在线且冷却结束时短暂标定全部敌军。
+  void triggerRadar() {
+    if (!state.triggerRadar()) {
+      state.addNotice(
+        state.hasBuilding(playerTeam, BuildingKind.hq)
+            ? '雷达冷却中，请稍后再扫描'
+            : '指挥中心已被摧毁，雷达离线',
+        level: NoticeLevel.warning,
+      );
+    } else {
+      SoundService.play(BattleFeedback.command);
+    }
+    _drainNotices();
     notifyListeners();
   }
 

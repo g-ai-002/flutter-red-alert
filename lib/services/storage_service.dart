@@ -111,4 +111,15 @@ class StorageService {
         }
         return true;
       });
+
+  /// 已通关的战役关卡 id 集合。
+  Set<String> get completedMissions =>
+      (_p.getStringList(AppConstants.prefKeyCampaign) ?? const <String>[])
+          .toSet();
+
+  Future<void> completeMission(String missionId) => _write((p) async {
+    final completed = completedMissions..add(missionId);
+    await p.setStringList(AppConstants.prefKeyCampaign, completed.toList());
+    return true;
+  });
 }

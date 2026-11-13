@@ -11,6 +11,7 @@ import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 import '../utils/formatters.dart';
 import 'battle_page.dart';
+import 'campaign_page.dart';
 import 'guide_page.dart';
 import 'settings_page.dart';
 
@@ -376,38 +377,87 @@ class _StartButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 54,
-      child: FilledButton(
-        onPressed: () {
-          SoundService.play(BattleFeedback.command);
-          Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => BattlePage(difficulty: difficulty),
-            ),
-          );
-        },
-        style: FilledButton.styleFrom(
-          backgroundColor: appRed,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          elevation: 0,
-        ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.play_arrow_rounded, size: 24),
-            SizedBox(width: 4),
-            Text(
-              '开始战役',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 4,
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: FilledButton(
+              onPressed: () {
+                SoundService.play(BattleFeedback.command);
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const CampaignPage(),
+                  ),
+                );
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: appRed,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                elevation: 0,
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.play_arrow_rounded, size: 24),
+                  SizedBox(width: 4),
+                  Text(
+                    '开始战役',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            flex: 2,
+            child: OutlinedButton(
+              onPressed: () {
+                SoundService.play(BattleFeedback.command);
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => BattlePage(difficulty: difficulty),
+                  ),
+                );
+              },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFFF0E2CA),
+                side: const BorderSide(color: Color(0x88D9A94B)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: EdgeInsets.zero,
+              ),
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '遭遇战',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  Text(
+                    '自由对战',
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: Color(0xFFB7AA97),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -4,8 +4,10 @@ import 'dart:ui';
 
 import 'battle_types.dart';
 import 'entity.dart';
+import 'mission.dart';
 import 'pathfinding.dart';
 import 'terrain.dart';
+import 'vision.dart';
 
 part 'battle_construction.dart';
 part 'battle_combat.dart';
@@ -53,8 +55,9 @@ class BattleState {
   BattleState({
     required this.map,
     this.difficulty = BattleDifficulty.normal,
+    this.mission,
     int seed = 7,
-  }) {
+  }) : vision = VisionMap(width: map.width, height: map.height) {
     _occupancy = List<Building?>.filled(map.width * map.height, null);
     _random = math.Random(seed);
     _finder = PathFinder(
@@ -64,23 +67,41 @@ class BattleState {
     );
   }
 
-  /// 创建一张新地图并布置双方初始基地。
+  /// 创建一张新地图并布置双方初始基地；传入战役时按关卡配置生成。
   factory BattleState.create({
     BattleDifficulty difficulty = BattleDifficulty.normal,
+    GameMission? mission,
     int mapSeed = 20261114,
     int setupSeed = 7,
   }) {
     final state = BattleState(
-      map: GameMap.generate(seed: mapSeed),
-      difficulty: difficulty,
+      map: GameMap.generate(
+        size: mission?.mapSize ?? 44,
+        seed: mission?.mapSeed ?? mapSeed,
+      ),
+      difficulty: mission?.difficulty ?? difficulty,
+      mission: mission,
       seed: setupSeed,
     );
     state._setupBases();
+    state._applyMission();
+    state._refreshVision();
     return state;
   }
 
   final GameMap map;
   final BattleDifficulty difficulty;
+  final GameMission? mission;
+
+  /// 玩家阵营的战争迷雾；蓝军 AI 不受迷雾限制。
+  final VisionMap vision;
+
+  /// 雷达扫描剩余时间与冷却，单位秒。
+  double radarRemaining = 0;
+  double radarCooldown = 0;
+
+  static const double radarScanSeconds = 4;
+  static const double radarCooldownSeconds = 45;
 
   final List<Actor> actors = [];
   final List<Unit> redUnits = [];
@@ -206,6 +227,78 @@ class BattleState {
     addNotice('指挥中心已就位，先建兵营再图进取');
   }
 
+  /// 按战役配置拨付额外军费、部署初始部队与蓝军据点。
+  void _applyMission() {
+    final mission = this.mission;
+    if (mission == null) return;
+    creditsRed += mission.bonusCredits;
+    _deployArmy(Team.red, mission.startingArmy);
+    _deployArmy(Team.blue, mission.enemyArmy);
+    for (final kind in mission.enemyBuildings) {
+      final spot = findPlacement(buildingSpecs[kind]!, Team.blue);
+      if (spot != null) _spawnBuilding(Team.blue, kind, spot.x, spot.y);
+    }
+    addNotice('战役目标：${mission.objectiveText}');
+  }
+
+  /// 在基地外侧按三列阵型展开一支初始部队。
+  void _deployArmy(Team team, List<UnitKind> army) {
+    if (army.isEmpty) return;
+    final base = map.baseOf(team);
+    final facing = team == Team.red ? 1.0 : -1.0;
+    for (var i = 0; i < army.length; i++) {
+      final column = i % 3 - 1;
+      final row = 2.6 + (i ~/ 3) * 1.4;
+      _spawnUnit(team, army[i], base + Offset(column * 1.6, facing * row));
+    }
+  }
+
+  // ===== 视野与雷达 =====
+
+  /// 目标是否对玩家可见；己方目标恒为可见。
+  bool isVisibleToPlayer(Actor actor) =>
+      actor.team == Team.red || vision.sees(actor);
+
+  bool get radarActive => radarRemaining > 0;
+
+  bool get radarReady =>
+      radarCooldown <= 0 && hasBuilding(Team.red, BuildingKind.hq);
+
+  /// 启动一次雷达扫描：要求指挥中心在线且冷却结束。
+  bool triggerRadar() {
+    if (!radarReady) return false;
+    radarRemaining = radarScanSeconds;
+    radarCooldown = radarCooldownSeconds;
+    addNotice('雷达扫描启动，敌军位置已标定', level: NoticeLevel.success);
+    return true;
+  }
+
+  void _updateRadar(double dt) {
+    if (radarRemaining > 0) radarRemaining = math.max(0, radarRemaining - dt);
+    if (radarCooldown > 0) radarCooldown = math.max(0, radarCooldown - dt);
+  }
+
+  double _visionTimer = 0;
+
+  void _updateVision(double dt) {
+    _visionTimer += dt;
+    if (_visionTimer < 0.2) return;
+    _visionTimer = 0;
+    _refreshVision();
+  }
+
+  /// 用己方全部存活单位与建筑重建可见范围。
+  void _refreshVision() {
+    vision.beginFrame();
+    for (final unit in redUnits) {
+      if (unit.alive) vision.reveal(unit);
+    }
+    for (final building in redBuildings) {
+      if (building.alive) vision.reveal(building);
+    }
+    vision.commit();
+  }
+
   // ===== 提示与事件 =====
 
   void addNotice(String text, {NoticeLevel level = NoticeLevel.info}) {
@@ -237,6 +330,8 @@ class BattleState {
   void update(double dt) {
     if (result != null) return;
     elapsed += dt;
+    _updateVision(dt);
+    _updateRadar(dt);
     _updateProduction(dt);
     for (final unit in redUnits) {
       if (unit.alive) _updateUnit(unit, dt);
@@ -285,9 +380,16 @@ class BattleState {
 
   void _checkVictory() {
     if (result != null) return;
-    if (blueBuildings.isEmpty) {
+    final decapitate = mission?.objective == MissionObjective.decapitate;
+    final blueLost = decapitate
+        ? !hasBuilding(Team.blue, BuildingKind.hq)
+        : blueBuildings.isEmpty;
+    if (blueLost) {
       result = BattleResult.victory;
-      addNotice('蓝军基地已被摧毁，战斗胜利', level: NoticeLevel.success);
+      addNotice(
+        decapitate ? '蓝军指挥中心被摧毁，战斗胜利' : '蓝军基地已被摧毁，战斗胜利',
+        level: NoticeLevel.success,
+      );
     } else if (redBuildings.isEmpty) {
       result = BattleResult.defeat;
       addNotice('赤军基地失守，战斗失败', level: NoticeLevel.warning);

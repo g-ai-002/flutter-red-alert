@@ -9,9 +9,11 @@ Future<void> showBattleResultDialog(
   BuildContext context, {
   required BattleResult result,
   required String elapsed,
-  required String difficulty,
+  required String mode,
   required VoidCallback onRestart,
   required VoidCallback onHome,
+  String? note,
+  String? message,
 }) {
   final victory = result == BattleResult.victory;
   return showDialog<void>(
@@ -58,14 +60,29 @@ Future<void> showBattleResultDialog(
               ),
               const SizedBox(height: 6),
               Text(
-                victory ? '蓝军基地已被彻底摧毁，黎明属于赤军。' : '赤军基地失守，整顿旗鼓再来一次。',
+                message ??
+                    (victory
+                        ? '蓝军基地已被彻底摧毁，黎明属于赤军。'
+                        : '赤军基地失守，整顿旗鼓再来一次。'),
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 12, color: Color(0xFFB7AA97)),
               ),
+              if (note != null) ...[
+                const SizedBox(height: 6),
+                Text(
+                  note,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFE8C271),
+                  ),
+                ),
+              ],
               const SizedBox(height: 16),
               Row(
                 children: [
-                  _ResultStat(label: '难度', value: difficulty),
+                  _ResultStat(label: '模式', value: mode),
                   _ResultStat(label: '用时', value: elapsed),
                 ],
               ),
@@ -181,6 +198,16 @@ Future<void> showPauseDialog(
                 ' · 资金 ${state.creditsOf(playerTeam)}',
                 style: const TextStyle(fontSize: 11, color: Color(0xFFAFA393)),
               ),
+              if (state.mission != null) ...[
+                const SizedBox(height: 3),
+                Text(
+                  '目标：${state.mission!.objectiveText}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFFC8A97A),
+                  ),
+                ),
+              ],
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,

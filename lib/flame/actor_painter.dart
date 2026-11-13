@@ -48,6 +48,7 @@ class ActorPainter {
     _visible.clear();
     for (final actor in state.actors) {
       if (!actor.alive) continue;
+      if (!state.isVisibleToPlayer(actor)) continue;
       if (actor is Building) {
         if (!view.overlaps(actor.bounds)) continue;
       } else if (actor.x + actor.radius < view.left ||
@@ -529,6 +530,7 @@ class ActorPainter {
     Building building,
   ) {
     if (!building.alive) return;
+    if (!state.isVisibleToPlayer(building)) return;
     final screen = camera.worldToScreen(Offset(building.x, building.y));
     if (!viewport.contains(screen)) return;
     final painter = _labelPainter(building.spec.icon, fontSize);

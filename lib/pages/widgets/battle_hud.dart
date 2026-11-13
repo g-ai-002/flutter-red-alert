@@ -73,6 +73,8 @@ class BattleStatusBar extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
+            _RadarButton(controller: controller),
+            const SizedBox(width: 4),
             _HudButton(
               icon: Icons.speed,
               label: controller.speed >= 2 ? '×2' : '×1',
@@ -148,6 +150,32 @@ class _StatChip extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+/// 雷达按钮：显示扫描中 / 可扫描 / 冷却秒数三种状态。
+class _RadarButton extends StatelessWidget {
+  const _RadarButton({required this.controller});
+
+  final BattleController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final state = controller.state;
+    final online = state.hasBuilding(playerTeam, BuildingKind.hq);
+    final label = !online
+        ? '离线'
+        : state.radarActive
+        ? '扫描中'
+        : state.radarReady
+        ? '雷达'
+        : '${state.radarCooldown.ceil()}s';
+    return _HudButton(
+      icon: Icons.radar,
+      label: label,
+      highlight: online && (state.radarActive || state.radarReady),
+      onTap: controller.triggerRadar,
     );
   }
 }

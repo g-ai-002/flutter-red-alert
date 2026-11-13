@@ -67,8 +67,12 @@ class _BattlePageState extends State<BattlePage> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
       _controller.setPaused(true);
+      _game.pauseEngine();
+    } else if (state == AppLifecycleState.resumed) {
+      _game.resumeEngine();
     }
   }
 
@@ -77,6 +81,7 @@ class _BattlePageState extends State<BattlePage> with WidgetsBindingObserver {
     final result = _controller.result;
     if (result == null) return;
     _resultHandled = true;
+    _game.pauseEngine();
     final seconds = _state.elapsed.round();
     context.read<SettingsProvider>().recordResult(result, seconds);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -107,13 +112,13 @@ class _BattlePageState extends State<BattlePage> with WidgetsBindingObserver {
   }
 
   void _openGuide() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const GuidePage()),
-    );
+    Navigator.of(context)
+        .push(MaterialPageRoute<void>(builder: (_) => const GuidePage()));
   }
 
   Future<void> _openPauseMenu() async {
     _controller.setPaused(true);
+    _game.pauseEngine();
     await showPauseDialog(
       context,
       controller: _controller,
@@ -124,7 +129,9 @@ class _BattlePageState extends State<BattlePage> with WidgetsBindingObserver {
         _openGuide();
       },
     );
-    if (mounted) _controller.setPaused(false);
+    if (!mounted) return;
+    _controller.setPaused(false);
+    _game.resumeEngine();
   }
 
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
@@ -175,11 +182,11 @@ class _BattlePageState extends State<BattlePage> with WidgetsBindingObserver {
           child: Stack(
             children: [
               Positioned.fill(
-                child: IgnorePointer(child: GameWidget(game: _game)),
+                child: IgnorePointer(
+                  child: RepaintBoundary(child: GameWidget(game: _game)),
+                ),
               ),
-              Positioned.fill(
-                child: BattleInputLayer(controller: _controller),
-              ),
+              Positioned.fill(child: BattleInputLayer(controller: _controller)),
               Positioned.fill(
                 child: SafeArea(
                   minimum: const EdgeInsets.all(6),

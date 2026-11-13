@@ -23,14 +23,14 @@ class BattleHudLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, _) => LayoutBuilder(
-        builder: (context, constraints) {
-          final compact =
-              constraints.maxWidth < 760 || constraints.maxHeight < 420;
-          final bottomHeight = compact ? 124.0 : 150.0;
-          return Stack(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact =
+            constraints.maxWidth < 760 || constraints.maxHeight < 420;
+        final bottomHeight = compact ? 124.0 : 150.0;
+        return AnimatedBuilder(
+          animation: controller,
+          builder: (context, _) => Stack(
             children: [
               Positioned(
                 top: 0,
@@ -81,9 +81,9 @@ class BattleHudLayout extends StatelessWidget {
                 ),
               ),
             ],
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

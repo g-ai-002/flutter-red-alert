@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../game/battle_controller.dart';
-import '../../game/battle_types.dart';
 import '../../game/entity.dart';
 import '../../theme/palette.dart';
 
@@ -99,14 +98,8 @@ class _MinimapPainter extends CustomPainter {
       );
     }
 
-    for (final unit in state.unitsOf(Team.red)) {
-      canvas.drawCircle(
-        Offset(unit.x * sx, unit.y * sy),
-        1.6,
-        Paint()..color = unit.team.color,
-      );
-    }
-    for (final unit in state.unitsOf(Team.blue)) {
+    for (final unit in state.actors.whereType<Unit>()) {
+      if (!unit.alive) continue;
       canvas.drawCircle(
         Offset(unit.x * sx, unit.y * sy),
         1.6,

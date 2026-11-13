@@ -51,36 +51,40 @@ class SettingsPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          _Group(
-            title: '战场逻辑刷新率',
-            children: [
-              for (final rate in LogicRate.values)
-                RadioListTile<LogicRate>(
-                  title: Text(rate.label),
-                  subtitle: Text(_rateHint(rate)),
-                  value: rate,
-                  groupValue: settings.logicRate,
-                  onChanged: (value) {
-                    if (value != null) settings.setLogicRate(value);
-                  },
-                ),
-            ],
+          RadioGroup<LogicRate>(
+            groupValue: settings.logicRate,
+            onChanged: (value) {
+              if (value != null) settings.setLogicRate(value);
+            },
+            child: _Group(
+              title: '战场逻辑刷新率',
+              children: [
+                for (final rate in LogicRate.values)
+                  RadioListTile<LogicRate>(
+                    title: Text(rate.label),
+                    subtitle: Text(_rateHint(rate)),
+                    value: rate,
+                  ),
+              ],
+            ),
           ),
           const SizedBox(height: 12),
-          _Group(
-            title: '默认战役难度',
-            children: [
-              for (final difficulty in BattleDifficulty.values)
-                RadioListTile<BattleDifficulty>(
-                  title: Text(difficulty.label),
-                  subtitle: Text(difficulty.description),
-                  value: difficulty,
-                  groupValue: settings.difficulty,
-                  onChanged: (value) {
-                    if (value != null) settings.setDifficulty(value);
-                  },
-                ),
-            ],
+          RadioGroup<BattleDifficulty>(
+            groupValue: settings.difficulty,
+            onChanged: (value) {
+              if (value != null) settings.setDifficulty(value);
+            },
+            child: _Group(
+              title: '默认战役难度',
+              children: [
+                for (final difficulty in BattleDifficulty.values)
+                  RadioListTile<BattleDifficulty>(
+                    title: Text(difficulty.label),
+                    subtitle: Text(difficulty.description),
+                    value: difficulty,
+                  ),
+              ],
+            ),
           ),
           const SizedBox(height: 12),
           _Group(
@@ -112,10 +116,10 @@ class SettingsPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Text(
+          const Text(
             '${AppConstants.appName} v${AppConstants.version} · 本地单机',
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 11, color: Color(0xFF8B8172)),
+            style: TextStyle(fontSize: 11, color: Color(0xFF8B8172)),
           ),
         ],
       ),

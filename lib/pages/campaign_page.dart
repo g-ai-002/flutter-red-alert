@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../game/mission.dart';
 import '../providers/settings_provider.dart';
 import '../services/sound_service.dart';
+import '../utils/navigation.dart';
 import 'battle_page.dart';
 
 /// 战役列表：按顺序解锁五关，展示目标、难度与通关状态。
@@ -176,11 +177,7 @@ class _MissionCard extends StatelessWidget {
 
   void _start(BuildContext context) {
     SoundService.play(BattleFeedback.command);
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => BattlePage(difficulty: mission.difficulty, mission: mission),
-      ),
-    );
+    pushPage(context, BattlePage(difficulty: mission.difficulty, mission: mission));
   }
 }
 

@@ -12,6 +12,7 @@ import '../game/mission.dart';
 import '../providers/settings_provider.dart';
 import '../services/log_service.dart';
 import '../utils/battle_display_mode.dart';
+import '../utils/navigation.dart';
 import 'guide_page.dart';
 import 'widgets/battle_dialogs.dart';
 import 'widgets/battle_hud_layout.dart';
@@ -119,13 +120,8 @@ class _BattlePageState extends State<BattlePage> with WidgetsBindingObserver {
   }
 
   void _restartBattle() {
-    final navigator = Navigator.of(context);
-    navigator.popUntil((route) => route.isFirst);
-    navigator.push(
-      MaterialPageRoute<void>(
-        builder: (_) => BattlePage(difficulty: widget.difficulty, mission: widget.mission),
-      ),
-    );
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    pushPage(context, BattlePage(difficulty: widget.difficulty, mission: widget.mission));
   }
 
   void _goHome() {
@@ -133,7 +129,7 @@ class _BattlePageState extends State<BattlePage> with WidgetsBindingObserver {
   }
 
   void _openGuide() {
-    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const GuidePage()));
+    pushPage(context, const GuidePage());
   }
 
   Future<void> _openPauseMenu() async {

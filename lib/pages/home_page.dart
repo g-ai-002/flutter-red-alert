@@ -8,6 +8,7 @@ import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/constants.dart';
 import '../utils/formatters.dart';
+import '../utils/navigation.dart';
 import 'battle_page.dart';
 import 'campaign_page.dart';
 import 'guide_page.dart';
@@ -229,9 +230,7 @@ class _CommandPanel extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () =>
-                      Navigator.of(context)
-                          .push(MaterialPageRoute<void>(builder: (_) => const GuidePage())),
+                  onPressed: () => pushPage(context, const GuidePage()),
                   icon: const Icon(Icons.menu_book, size: 16),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFD9CBB4),
@@ -246,9 +245,7 @@ class _CommandPanel extends StatelessWidget {
                 width: 46,
                 height: 40,
                 child: OutlinedButton(
-                  onPressed: () =>
-                      Navigator.of(context)
-                          .push(MaterialPageRoute<void>(builder: (_) => const SettingsPage())),
+                  onPressed: () => pushPage(context, const SettingsPage()),
                   style: OutlinedButton.styleFrom(
                     padding: EdgeInsets.zero,
                     foregroundColor: const Color(0xFFD9CBB4),
@@ -335,8 +332,7 @@ class _StartButton extends StatelessWidget {
             child: FilledButton(
               onPressed: () {
                 SoundService.play(BattleFeedback.command);
-                Navigator.of(context)
-                    .push(MaterialPageRoute<void>(builder: (_) => const CampaignPage()));
+                pushPage(context, const CampaignPage());
               },
               style: FilledButton.styleFrom(
                 backgroundColor: appRed,
@@ -363,9 +359,7 @@ class _StartButton extends StatelessWidget {
             child: OutlinedButton(
               onPressed: () {
                 SoundService.play(BattleFeedback.command);
-                Navigator.of(
-                  context,
-                ).push(MaterialPageRoute<void>(builder: (_) => BattlePage(difficulty: difficulty)));
+                pushPage(context, BattlePage(difficulty: difficulty));
               },
               style: OutlinedButton.styleFrom(
                 foregroundColor: const Color(0xFFF0E2CA),

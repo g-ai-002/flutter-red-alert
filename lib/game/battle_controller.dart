@@ -56,6 +56,12 @@ class BattleController extends ChangeNotifier {
   double _notifyAccumulator = 0;
   bool _resultAnnounced = false;
 
+  /// 指令统一出口：按需播放反馈音，并通知 HUD 刷新。
+  void _commit([BattleFeedback? feedback]) {
+    if (feedback != null) SoundService.play(feedback);
+    notifyListeners();
+  }
+
   BattleResult? get result => state.result;
   BattleDifficulty get difficulty => state.difficulty;
   bool get isPlacing => _placement.active;
@@ -90,14 +96,13 @@ class BattleController extends ChangeNotifier {
 
     if (state.result != null && !_resultAnnounced) {
       _resultAnnounced = true;
-      SoundService.play(
-        state.result == BattleResult.victory ? BattleFeedback.victory : BattleFeedback.defeat,
-      );
       LogService.info(
         '对局结束: ${state.result == BattleResult.victory ? '胜利' : '失败'}, '
         '用时 ${state.elapsed.toStringAsFixed(0)} 秒',
       );
-      notifyListeners();
+      _commit(
+        state.result == BattleResult.victory ? BattleFeedback.victory : BattleFeedback.defeat,
+      );
       return;
     }
 
@@ -147,22 +152,19 @@ class BattleController extends ChangeNotifier {
 
     if (actor != null && actor.team != playerTeam && canCommandSelection) {
       state.issueAttack(selectedUnits, actor.id);
-      SoundService.play(BattleFeedback.command);
-      notifyListeners();
+      _commit(BattleFeedback.command);
       return;
     }
 
     if (actor != null) {
       _selection.selectActor(actor, additive: additive);
-      SoundService.play(BattleFeedback.select);
-      notifyListeners();
+      _commit(BattleFeedback.select);
       return;
     }
 
     if (canCommandSelection) {
       state.issueMove(selectedUnits, world);
-      SoundService.play(BattleFeedback.command);
-      notifyListeners();
+      _commit(BattleFeedback.command);
       return;
     }
     if (selectedIds.isNotEmpty) {
@@ -182,8 +184,7 @@ class BattleController extends ChangeNotifier {
     } else {
       state.issueMove(selectedUnits, world);
     }
-    SoundService.play(BattleFeedback.command);
-    notifyListeners();
+    _commit(BattleFeedback.command);
   }
 
   /// 框选：屏幕矩形内的己方单位。
@@ -191,24 +192,21 @@ class BattleController extends ChangeNotifier {
     final a = camera.screenToWorld(screenRect.topLeft);
     final b = camera.screenToWorld(screenRect.bottomRight);
     _selection.selectRect(Rect.fromPoints(a, b), additive: additive);
-    if (selectedIds.isNotEmpty) SoundService.play(BattleFeedback.select);
-    notifyListeners();
+    _commit(selectedIds.isEmpty ? null : BattleFeedback.select);
   }
 
   /// 全选同类：单选时选中全部同型单位，否则选中全部战斗单位。
   void selectAllSameKind() {
     if (selectedActors.isEmpty) return;
     _selection.selectAllSameKind();
-    SoundService.play(BattleFeedback.select);
-    notifyListeners();
+    _commit(BattleFeedback.select);
   }
 
   void stopSelected() {
     final units = selectedUnits;
     if (units.isEmpty) return;
     state.stopUnits(units);
-    SoundService.play(BattleFeedback.command);
-    notifyListeners();
+    _commit(BattleFeedback.command);
   }
 
   void focusSelection() {
@@ -217,30 +215,29 @@ class BattleController extends ChangeNotifier {
     final center =
         actors.map((actor) => actor.position).reduce((a, b) => a + b) / actors.length.toDouble();
     camera.focusOn(center);
-    notifyListeners();
+    _commit();
   }
 
   // ===== 建造放置 =====
 
   void beginPlacement(String id) {
     final kind = buildingKindFromId(id);
-    if (kind == null) return;
-    if (!state.readyStructuresOf(playerTeam).contains(kind)) return;
+    if (kind == null || !state.hasReadyStructure(playerTeam, kind)) return;
     selectedIds.clear();
     _placement.begin(kind, camera.center);
-    notifyListeners();
+    _commit();
   }
 
   void updateGhost(Offset screenPosition) {
     if (!isPlacing) return;
     _placement.moveTo(camera.screenToWorld(screenPosition));
-    notifyListeners();
+    _commit();
   }
 
   void cancelPlacement() {
     if (!isPlacing) return;
     _placement.cancel();
-    notifyListeners();
+    _commit();
   }
 
   /// 返回 true 表示成功放置并退出放置模式。
@@ -248,18 +245,16 @@ class BattleController extends ChangeNotifier {
     final spec = placingSpec;
     if (spec == null) return false;
     if (!ghostValid) {
-      SoundService.play(BattleFeedback.command);
       state.addNotice('此处无法建造，请靠近己方建筑', level: NoticeLevel.warning);
       _drainNotices();
-      notifyListeners();
+      _commit(BattleFeedback.command);
       return false;
     }
     final tile = ghostTile!;
     final building = _placement.commit();
     if (building == null) return false;
-    SoundService.play(BattleFeedback.build);
     LogService.info('放置建筑: ${spec.kind.label} @(${tile.x},${tile.y})');
-    notifyListeners();
+    _commit(BattleFeedback.build);
     return true;
   }
 
@@ -267,60 +262,56 @@ class BattleController extends ChangeNotifier {
 
   void focusWorld(Offset tile) {
     camera.focusOn(tile);
-    notifyListeners();
+    _commit();
   }
 
   void togglePause() {
     paused = !paused;
-    notifyListeners();
+    _commit();
   }
 
   void setPaused(bool value) {
     if (paused == value) return;
     paused = value;
-    notifyListeners();
+    _commit();
   }
 
   void cycleSpeed() {
     speed = speed >= 2 ? 1 : 2;
-    notifyListeners();
+    _commit();
   }
 
   /// 雷达扫描：指挥中心在线且冷却结束时短暂标定全部敌军。
   void triggerRadar() {
-    if (!state.triggerRadar()) {
+    final scanned = state.triggerRadar();
+    if (!scanned) {
       state.addNotice(
         state.hasBuilding(playerTeam, BuildingKind.hq) ? '雷达冷却中，请稍后再扫描' : '指挥中心已被摧毁，雷达离线',
         level: NoticeLevel.warning,
       );
-    } else {
-      SoundService.play(BattleFeedback.command);
     }
     _drainNotices();
-    notifyListeners();
+    _commit(scanned ? BattleFeedback.command : null);
   }
 
   /// 生产入口：开始生产或进入放置。
   void requestProduction(ProductionCategory category, String id) {
     if (category == ProductionCategory.structure) {
       final kind = buildingKindFromId(id);
-      if (kind != null && state.readyStructuresOf(playerTeam).contains(kind)) {
+      if (kind != null && state.hasReadyStructure(playerTeam, kind)) {
         beginPlacement(id);
         return;
       }
     }
     final started = state.startProduction(playerTeam, category, id);
-    if (started) {
-      SoundService.play(BattleFeedback.command);
-      LogService.info('开始生产: ${state.nameOf(id)}');
-    }
+    if (started) LogService.info('开始生产: ${state.nameOf(id)}');
     _drainNotices();
-    notifyListeners();
+    _commit(started ? BattleFeedback.command : null);
   }
 
   void cancelProduction(ProductionCategory category) {
     state.cancelProduction(playerTeam, category);
-    notifyListeners();
+    _commit();
   }
 
   @override

@@ -105,7 +105,7 @@ class _BuildPanelState extends State<BuildPanel> {
   void _onTap(ProductionItem item) {
     final controller = widget.controller;
     final building = item.building;
-    if (building != null && _state.readyStructuresOf(playerTeam).contains(building)) {
+    if (building != null && _state.hasReadyStructure(playerTeam, building)) {
       controller.beginPlacement(item.id);
       return;
     }
@@ -221,7 +221,7 @@ class _BuildCard extends StatelessWidget {
     final state = controller.state;
     final building = item.building;
     final job = state.jobOf(playerTeam, item.category);
-    final ready = building != null && state.readyStructuresOf(playerTeam).contains(building);
+    final ready = building != null && state.hasReadyStructure(playerTeam, building);
     final lock = state.productionBlocker(playerTeam, item.category, item.id);
     final affordable = state.creditsOf(playerTeam) >= item.cost;
     final active = job != null && job.id == item.id;
@@ -339,37 +339,51 @@ class _BuildCard extends StatelessWidget {
                     left: 0,
                     right: 0,
                     bottom: 4,
-                    child: Container(
-                      color: const Color(0xCC1B1915),
-                      padding: const EdgeInsets.symmetric(vertical: 2),
-                      alignment: Alignment.center,
-                      child: Text(
-                        lock,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 9, color: Color(0xFFC9B79B)),
-                      ),
+                    child: _CardBadge(
+                      text: lock,
+                      background: const Color(0xCC1B1915),
+                      color: const Color(0xFFC9B79B),
                     ),
                   ),
                 if (!locked && !affordable && !ready)
-                  Positioned(
+                  const Positioned(
                     left: 0,
                     right: 0,
                     bottom: 4,
-                    child: Container(
-                      color: const Color(0xAA27120E),
-                      padding: const EdgeInsets.symmetric(vertical: 2),
-                      alignment: Alignment.center,
-                      child: const Text(
-                        '资金不足',
-                        style: TextStyle(fontSize: 9, color: Color(0xFFFFB4A2)),
-                      ),
+                    child: _CardBadge(
+                      text: '资金不足',
+                      background: Color(0xAA27120E),
+                      color: Color(0xFFFFB4A2),
                     ),
                   ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// 建造卡片底部的锁定 / 资金不足提示条。
+class _CardBadge extends StatelessWidget {
+  const _CardBadge({required this.text, required this.background, required this.color});
+
+  final String text;
+  final Color background;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: background,
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      alignment: Alignment.center,
+      child: Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(fontSize: 9, color: color),
       ),
     );
   }

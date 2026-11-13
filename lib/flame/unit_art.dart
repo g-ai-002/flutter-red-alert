@@ -13,40 +13,35 @@ class UnitArt {
   UnitArt(this.brush);
 
   final ArtBrush brush;
-  final Map<int, ui.Picture> _cache = {};
-
-  static const int _weaponKey = 32;
+  final Map<int, ui.Picture> _bodies = {};
+  final Map<int, ui.Picture> _weapons = {};
 
   @visibleForTesting
-  int get cachedPictures => _cache.length;
+  int get cachedPictures => _bodies.length + _weapons.length;
 
   void paint(Canvas canvas, Unit unit, Paint outline) {
     final spec = unit.spec;
-    final team = unit.team;
-    final key = spec.kind.index * 2 + team.index;
+    final key = spec.kind.index * 2 + unit.team.index;
     canvas.save();
     canvas.translate(unit.x, unit.y);
-    if (spec.kind == UnitKind.rifle || spec.kind == UnitKind.rocket) {
-      _drawBody(canvas, key, spec, team, outline);
+    if (spec.category == ProductionCategory.infantry) {
+      canvas.drawPicture(_bodies[key] ??= _recordBody(spec, unit.team, outline));
       canvas.rotate(unit.facing);
-      canvas.drawPicture(_cache[key + _weaponKey] ??= _recordWeapon(spec, team));
+      canvas.drawPicture(_weapons[key] ??= _recordWeapon(spec, unit.team));
     } else {
       canvas.rotate(unit.facing);
-      _drawBody(canvas, key, spec, team, outline);
+      canvas.drawPicture(_bodies[key] ??= _recordBody(spec, unit.team, outline));
       if (spec.isHarvester) _harvesterCargo(canvas, unit.cargoRatio);
     }
     canvas.restore();
   }
 
-  void _drawBody(Canvas canvas, int key, UnitSpec spec, Team team, Paint outline) {
-    canvas.drawPicture(_cache[key] ??= _recordBody(spec, team, outline));
-  }
-
   void dispose() {
-    for (final picture in _cache.values) {
+    for (final picture in [..._bodies.values, ..._weapons.values]) {
       picture.dispose();
     }
-    _cache.clear();
+    _bodies.clear();
+    _weapons.clear();
   }
 
   ui.Picture _recordBody(UnitSpec spec, Team team, Paint outline) {
@@ -56,12 +51,18 @@ class UnitArt {
         case UnitKind.rocket:
           _infantryBody(canvas, team.color, outline);
           break;
+        case UnitKind.engineer:
+          _engineerBody(canvas, team.color, outline);
+          break;
         case UnitKind.harvester:
           _harvesterBody(canvas, team.color, outline);
           break;
         case UnitKind.lightTank:
         case UnitKind.heavyTank:
           _tankBody(canvas, spec, team.color, outline);
+          break;
+        case UnitKind.artillery:
+          _artilleryBody(canvas, team.color, outline);
           break;
       }
     });
@@ -88,7 +89,37 @@ class UnitArt {
     );
   }
 
+  void _engineerBody(Canvas canvas, Color teamColor, Paint outline) {
+    canvas.drawCircle(Offset.zero, 0.28, brush.solid(teamColor));
+    canvas.drawCircle(Offset.zero, 0.28, outline);
+    // 黄色安全帽，便于在步兵群里一眼认出工兵。
+    canvas.drawArc(
+      const Rect.fromLTRB(-0.24, -0.24, 0.24, 0.24),
+      math.pi,
+      math.pi,
+      true,
+      brush.solid(const Color(0xFFE8C36A)),
+    );
+    canvas.drawRect(
+      const Rect.fromLTWH(-0.06, 0.02, 0.12, 0.2),
+      brush.solid(const Color(0xFF8C8C86)),
+    );
+  }
+
   void _infantryWeapon(Canvas canvas, UnitSpec spec, Color teamColor) {
+    if (spec.kind == UnitKind.engineer) {
+      // 扳手：短柄加开口环。
+      canvas.drawRect(
+        const Rect.fromLTWH(0.1, -0.03, 0.24, 0.06),
+        brush.solid(const Color(0xFF9A9A92)),
+      );
+      canvas.drawCircle(
+        const Offset(0.38, 0),
+        0.08,
+        brush.outlined(const Color(0xFFC6C6BC), 0.035),
+      );
+      return;
+    }
     final rocket = spec.kind == UnitKind.rocket;
     canvas.drawRRect(
       RRect.fromRectAndRadius(
@@ -126,6 +157,37 @@ class UnitArt {
     canvas.drawRect(
       Rect.fromLTWH(0, -0.05, heavy ? 0.5 : 0.42, 0.1),
       brush.solid(const Color(0xFF35342F)),
+    );
+  }
+
+  void _artilleryBody(Canvas canvas, Color teamColor, Paint outline) {
+    const width = 0.82;
+    const height = 0.6;
+    final body = Rect.fromCenter(center: Offset.zero, width: width, height: height);
+    final track = brush.solid(const Color(0xFF24231F));
+    for (final top in [-height / 2, height / 2 - height * 0.22]) {
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(-width / 2, top, width, height * 0.22),
+          const Radius.circular(0.05),
+        ),
+        track,
+      );
+    }
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(body, const Radius.circular(0.07)),
+      brush.solid(teamColor),
+    );
+    canvas.drawRRect(RRect.fromRectAndRadius(body, const Radius.circular(0.07)), outline);
+    // 低矮炮塔与超长身管，是自行火炮最好认的轮廓。
+    canvas.drawCircle(const Offset(-0.04, 0), 0.17, brush.solid(shadeColor(teamColor, -0.2)));
+    canvas.drawRect(
+      const Rect.fromLTWH(-0.04, -0.05, 0.86, 0.1),
+      brush.solid(const Color(0xFF35342F)),
+    );
+    canvas.drawRect(
+      const Rect.fromLTWH(0.62, -0.08, 0.12, 0.16),
+      brush.solid(const Color(0xFF24231F)),
     );
   }
 

@@ -7,7 +7,7 @@ extension BattleCombat on BattleState {
     final target = actorById(targetId);
     if (target == null) return;
     for (final unit in units) {
-      if (!unit.alive || unit.isHarvester) continue;
+      if (!unit.alive || unit.isHarvester || unit.spec.isEngineer) continue;
       unit
         ..order = UnitOrder.attack
         ..targetId = targetId
@@ -28,6 +28,10 @@ extension BattleCombat on BattleState {
 
   void _engage(Unit unit, Actor target, double dt) {
     final distance = _distanceTo(unit, target);
+    if (distance < unit.spec.minRange) {
+      _retreat(unit, target, dt);
+      return;
+    }
     if (distance <= unit.spec.range) {
       unit.clearPath();
       _fireAt(unit, target);
@@ -46,9 +50,33 @@ extension BattleCombat on BattleState {
     }
   }
 
+  /// 目标进入最近射程时向后拉开距离，给火炮留出开火空间。
+  void _retreat(Unit unit, Actor target, double dt) {
+    if (unit.repathTimer <= 0 || !unit.hasPath) {
+      final dx = unit.x - target.x;
+      final dy = unit.y - target.y;
+      final distance = math.sqrt(dx * dx + dy * dy);
+      if (distance > 0.01) {
+        final goal = _nearestFreeTile(
+          Offset(
+            unit.x + dx / distance * unit.spec.minRange,
+            unit.y + dy / distance * unit.spec.minRange,
+          ),
+        );
+        final path = goal == null
+            ? null
+            : _finder.find(TilePoint(unit.x.floor(), unit.y.floor()), goal);
+        if (path != null) unit.setPath(path);
+      }
+      unit.repathTimer = 0.8;
+    }
+    if (unit.hasPath) _followPath(unit, dt);
+  }
+
   void _fireAt(Unit unit, Actor target) {
     if (unit.fireCooldown > 0) return;
     final spec = unit.spec;
+    if (!_inFiringBand(unit, target)) return;
     unit.fireCooldown = spec.cooldown / powerFactor(unit.team);
     unit.facing = math.atan2(target.y - unit.y, target.x - unit.x);
     _applyDamage(
@@ -57,7 +85,14 @@ extension BattleCombat on BattleState {
       attack: spec.attack,
       multiplier: spec.multiplierAgainst(target.armor),
       shell: spec.armor == ArmorClass.vehicle,
+      splash: spec.splash,
     );
+  }
+
+  /// 射程区间判定：既要够得着，也不能贴得太近（火炮最小射程）。
+  bool _inFiringBand(Unit unit, Actor target) {
+    final distance = _distanceTo(unit, target);
+    return distance >= unit.spec.minRange && distance <= unit.spec.range;
   }
 
   void _applyDamage({
@@ -66,6 +101,7 @@ extension BattleCombat on BattleState {
     required int attack,
     required double multiplier,
     required bool shell,
+    double splash = 0,
   }) {
     final damage = math.max(1, (attack * multiplier).round());
     target.applyDamage(damage);
@@ -79,6 +115,20 @@ extension BattleCombat on BattleState {
         team: attacker.team,
       ),
     );
+    if (splash > 0) {
+      final area = splash + (target.isBuilding ? 0.6 : 0.2);
+      final spill = math.max(1, (damage * 0.5).round());
+      for (final victim in unitsOf(attacker.team.opponent)) {
+        if (victim == target || !victim.alive) continue;
+        if ((victim.position - target.position).distance > area) continue;
+        victim.applyDamage(spill);
+      }
+      for (final victim in buildingsOf(attacker.team.opponent)) {
+        if (victim == target || !victim.alive) continue;
+        if ((victim.position - target.position).distance > area) continue;
+        victim.applyDamage(spill);
+      }
+    }
     if (!target.alive) {
       _emit(
         BattleEvent(
@@ -86,7 +136,7 @@ extension BattleCombat on BattleState {
           target.x,
           target.y,
           team: attacker.team,
-          radius: target.isBuilding ? 1.5 : 0.8,
+          radius: math.max(splash, target.isBuilding ? 1.5 : 0.8),
         ),
       );
     }

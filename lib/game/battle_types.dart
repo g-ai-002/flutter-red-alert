@@ -42,9 +42,11 @@ enum ProductionCategory {
 enum UnitKind {
   rifle('步兵', '步', '廉价的步枪兵，适合早期占点与清理步兵'),
   rocket('火箭兵', '火', '携带反装甲火箭，对坦克与建筑效果显著'),
+  engineer('工程兵', '工', '维修受损的车辆与建筑，没有武器，需要部队护送'),
   harvester('采矿车', '矿', '自动往返矿区与精炼厂，为基地提供资金'),
   lightTank('轻型坦克', '轻', '机动灵活，压制步兵与轻型目标'),
-  heavyTank('重型坦克', '重', '装甲厚重的主战坦克，攻坚核心');
+  heavyTank('重型坦克', '重', '装甲厚重的主战坦克，攻坚核心'),
+  artillery('自行火炮', '炮', '远程压制火炮，射程极远但无法攻击近身目标');
 
   const UnitKind(this.label, this.icon, this.description);
   final String label;
@@ -84,6 +86,9 @@ class UnitSpec {
     this.vsStructure = 1,
     this.requires,
     this.capacity = 0,
+    this.minRange = 0,
+    this.splash = 0,
+    this.repair = 0,
     this.armor = ArmorClass.infantry,
     this.radius = 0.3,
   });
@@ -106,6 +111,16 @@ class UnitSpec {
 
   /// 采矿车载矿上限，非采矿车为 0。
   final int capacity;
+
+  /// 最近射程：目标贴得过近时火炮无法开火。
+  final double minRange;
+
+  /// 溅射半径（格），0 表示单体伤害。
+  final double splash;
+
+  /// 每秒维修量，0 表示没有维修能力。
+  final int repair;
+
   final ArmorClass armor;
   final double radius;
 
@@ -113,6 +128,7 @@ class UnitSpec {
   String get icon => kind.icon;
   String get description => kind.description;
   bool get isHarvester => kind == UnitKind.harvester;
+  bool get isEngineer => repair > 0;
 
   double multiplierAgainst(ArmorClass armor) => switch (armor) {
     ArmorClass.infantry => vsInfantry,
@@ -208,6 +224,18 @@ const Map<UnitKind, UnitSpec> unitSpecs = {
     requires: BuildingKind.barracks,
     radius: 0.28,
   ),
+  UnitKind.engineer: UnitSpec(
+    kind: UnitKind.engineer,
+    cost: 400,
+    maxHp: 120,
+    speed: 2.4,
+    buildSeconds: 8,
+    category: ProductionCategory.infantry,
+    range: 2,
+    repair: 36,
+    requires: BuildingKind.barracks,
+    radius: 0.28,
+  ),
   UnitKind.harvester: UnitSpec(
     kind: UnitKind.harvester,
     cost: 1000,
@@ -251,6 +279,25 @@ const Map<UnitKind, UnitSpec> unitSpecs = {
     requires: BuildingKind.factory,
     armor: ArmorClass.vehicle,
     radius: 0.48,
+  ),
+  UnitKind.artillery: UnitSpec(
+    kind: UnitKind.artillery,
+    cost: 1250,
+    maxHp: 360,
+    speed: 1.15,
+    buildSeconds: 18,
+    category: ProductionCategory.armor,
+    attack: 62,
+    range: 11.5,
+    minRange: 3,
+    cooldown: 3.4,
+    splash: 1.2,
+    vsInfantry: 1.15,
+    vsVehicle: 0.85,
+    vsStructure: 0.8,
+    requires: BuildingKind.factory,
+    armor: ArmorClass.vehicle,
+    radius: 0.44,
   ),
 };
 

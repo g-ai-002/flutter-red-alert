@@ -6,7 +6,7 @@ import '../providers/settings_provider.dart';
 import '../services/sound_service.dart';
 import 'battle_page.dart';
 
-/// 战役列表：按顺序解锁三关，展示目标、难度与通关状态。
+/// 战役列表：按顺序解锁五关，展示目标、难度与通关状态。
 class CampaignPage extends StatelessWidget {
   const CampaignPage({super.key});
 

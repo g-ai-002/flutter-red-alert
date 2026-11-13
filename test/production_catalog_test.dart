@@ -25,11 +25,16 @@ void main() {
       'tower',
       'hq',
     ]);
-    expect(ProductionCatalog.of(ProductionCategory.infantry).map((i) => i.id), ['rifle', 'rocket']);
+    expect(ProductionCatalog.of(ProductionCategory.infantry).map((i) => i.id), [
+      'rifle',
+      'rocket',
+      'engineer',
+    ]);
     expect(ProductionCatalog.of(ProductionCategory.armor).map((i) => i.id), [
       'harvester',
       'lightTank',
       'heavyTank',
+      'artillery',
     ]);
   });
 

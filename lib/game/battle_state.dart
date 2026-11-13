@@ -27,7 +27,7 @@ class BattleNotice {
 }
 
 /// 一次性视觉事件，由渲染层消费。
-enum BattleEventKind { bullet, shell, explosion, build, spawn, unload, move }
+enum BattleEventKind { bullet, shell, explosion, build, spawn, unload, move, repair }
 
 class BattleEvent {
   const BattleEvent(this.kind, this.x, this.y, {this.tx, this.ty, this.team, this.radius = 0.5});
@@ -174,8 +174,9 @@ class BattleState {
   /// 电力充足时为 1，不足时生产与防御效率减半。
   double powerFactor(Team team) => powerUsed(team) > powerProduced(team) ? 0.5 : 1.0;
 
-  /// 战斗单位数量（不含采矿车）。
-  int armySize(Team team) => unitsOf(team).where((u) => !u.isHarvester).length;
+  /// 战斗单位数量（不含采矿车与工程兵）。
+  int armySize(Team team) =>
+      unitsOf(team).where((u) => !u.isHarvester && !u.spec.isEngineer).length;
 
   List<Unit> selectableUnits(Team team, Iterable<int> ids) =>
       unitsOf(team).where((u) => ids.contains(u.id) && u.alive).toList();

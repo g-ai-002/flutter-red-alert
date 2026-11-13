@@ -57,7 +57,7 @@ class GameMission {
   int get startingCredits => difficulty.playerCredits + bonusCredits;
 }
 
-/// 三关战役，按顺序解锁。
+/// 五关战役，按顺序解锁。
 const List<GameMission> campaignMissions = [
   GameMission(
     id: 'outpost',
@@ -103,6 +103,55 @@ const List<GameMission> campaignMissions = [
     startingArmy: [UnitKind.rocket, UnitKind.rocket, UnitKind.heavyTank, UnitKind.lightTank],
     enemyArmy: [UnitKind.heavyTank, UnitKind.rifle, UnitKind.rifle],
     enemyBuildings: [BuildingKind.tower, BuildingKind.tower],
+  ),
+  GameMission(
+    id: 'ironflood',
+    title: '第四关 · 铁流',
+    subtitle: '钢铁与火焰',
+    brief:
+        '蓝军把火炮推上了高地，正面冲锋会被远程火力撕碎。'
+        '用工程兵维持装甲，再以火炮反制炮群，把他们的战车工厂碾平。',
+    objective: MissionObjective.eradicate,
+    difficulty: BattleDifficulty.normal,
+    mapSeed: 20261125,
+    bonusCredits: 2400,
+    startingArmy: [
+      UnitKind.engineer,
+      UnitKind.rifle,
+      UnitKind.rocket,
+      UnitKind.artillery,
+      UnitKind.lightTank,
+    ],
+    enemyArmy: [UnitKind.lightTank, UnitKind.artillery, UnitKind.rifle],
+    enemyBuildings: [BuildingKind.factory, BuildingKind.tower],
+  ),
+  GameMission(
+    id: 'dawn',
+    title: '第五关 · 黎明总攻',
+    subtitle: '最后的总攻',
+    brief:
+        '蓝军把最后的精锐与指挥中心一起缩进核心阵地。'
+        '带上工程兵与重炮，顶住反扑，把旗帜插上他们的指挥中心。',
+    objective: MissionObjective.decapitate,
+    difficulty: BattleDifficulty.hard,
+    mapSeed: 20261128,
+    bonusCredits: 3200,
+    startingArmy: [
+      UnitKind.engineer,
+      UnitKind.engineer,
+      UnitKind.heavyTank,
+      UnitKind.heavyTank,
+      UnitKind.artillery,
+      UnitKind.rocket,
+    ],
+    enemyArmy: [
+      UnitKind.heavyTank,
+      UnitKind.heavyTank,
+      UnitKind.rocket,
+      UnitKind.artillery,
+      UnitKind.rifle,
+    ],
+    enemyBuildings: [BuildingKind.tower, BuildingKind.tower, BuildingKind.barracks],
   ),
 ];
 

@@ -105,6 +105,7 @@ class BattleGame extends FlameGame {
           SoundService.play(BattleFeedback.harvest);
           break;
         case BattleEventKind.move:
+        case BattleEventKind.repair:
           break;
       }
     }

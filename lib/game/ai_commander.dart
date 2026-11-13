@@ -83,21 +83,26 @@ class AiCommander {
     if (state.jobOf(team, ProductionCategory.infantry) == null &&
         state.canProduce(team, ProductionCategory.infantry, UnitKind.rifle.name) &&
         credits >= 500) {
+      final needsEngineer =
+          state.armySize(team) >= 5 && !state.unitsOf(team).any((u) => u.spec.isEngineer);
       final wantRocket = state.armySize(team) % 3 == 2;
-      state.startProduction(
-        team,
-        ProductionCategory.infantry,
-        (wantRocket ? UnitKind.rocket : UnitKind.rifle).name,
-        announce: false,
-      );
+      final kind = needsEngineer
+          ? UnitKind.engineer
+          : wantRocket
+          ? UnitKind.rocket
+          : UnitKind.rifle;
+      state.startProduction(team, ProductionCategory.infantry, kind.name, announce: false);
     }
   }
 
   void _startArmor(BattleState state, int credits) {
     final harvesters = state.unitsOf(team).where((u) => u.isHarvester).length;
+    final artillery = state.unitsOf(team).where((u) => u.spec.kind == UnitKind.artillery).length;
     final UnitKind? want;
     if (harvesters < 3 && credits >= 1100) {
       want = UnitKind.harvester;
+    } else if (artillery < 2 && state.armySize(team) >= 8 && credits >= 2000) {
+      want = UnitKind.artillery;
     } else if (credits >= 1700) {
       want = UnitKind.heavyTank;
     } else if (credits >= 800) {
@@ -111,7 +116,7 @@ class AiCommander {
 
   void _manageArmy(BattleState state, double dt) {
     _waveTimer -= dt;
-    final units = state.unitsOf(team).where((u) => !u.isHarvester).toList();
+    final units = state.unitsOf(team).where((u) => !u.isHarvester && !u.spec.isEngineer).toList();
     if (units.isEmpty) return;
 
     // 基地附近出现敌军时优先回防。

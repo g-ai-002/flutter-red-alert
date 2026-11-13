@@ -167,6 +167,9 @@ class Unit extends Actor {
   /// 采集余量：把每秒产量按逻辑步累计，保证 30/60/120Hz 下收益一致。
   double miningCarry = 0;
 
+  /// 工程兵的维修余量，按整数生命值结算。
+  double workCarry = 0;
+
   @override
   String get displayName => spec.name;
 

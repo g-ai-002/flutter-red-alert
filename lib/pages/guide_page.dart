@@ -23,8 +23,8 @@ class GuidePage extends StatelessWidget {
                 '蓝军会不断扩军并成波进攻，稳住经济、及时补防线是关键。',
               ),
               _Paragraph(
-                '战役模式共三关：前两关为歼灭战，最后一关为斩首行动，'
-                '只需摧毁蓝军指挥中心即可获胜。通关后自动解锁下一关。',
+                '战役模式共五关：以歼灭战开局，中段穿插斩首行动，'
+                '最后一关直取指挥中心。通关后自动解锁下一关。',
               ),
             ],
           ),
@@ -78,7 +78,8 @@ class GuidePage extends StatelessWidget {
               for (final (kind, role) in _unitRoles) _UnitRow(kind: kind, role: role),
               const _Paragraph(
                 '哨戒炮塔自动攻击射程内目标，适合放在矿区与基地入口；'
-                '但它耗电，电力不足时射速会下降。',
+                '但它耗电，电力不足时射速会下降。工程兵会自动维修附近'
+                '受损的车辆与建筑；自行火炮射程 11.5 格，但 3 格内无法开火。',
               ),
             ],
           ),
@@ -230,7 +231,9 @@ class _UnitRow extends StatelessWidget {
 const List<(UnitKind, String)> _unitRoles = [
   (UnitKind.rifle, '廉价主力，清理步兵效果好，对装甲伤害很低。'),
   (UnitKind.rocket, '反装甲核心，射程远，对坦克与建筑效果显著。'),
+  (UnitKind.engineer, '无武器，自动维修附近的车辆与建筑，需要部队护送。'),
   (UnitKind.harvester, '自动采矿，无武装。被袭击时尽快派兵驱赶敌军。'),
   (UnitKind.lightTank, '机动快，适合骚扰矿区与追击步兵。'),
   (UnitKind.heavyTank, '高血量高火力，攻坚与正面决战的主力。'),
+  (UnitKind.artillery, '远程拆建筑与炮群，贴脸无法开火，靠队友掩护。'),
 ];

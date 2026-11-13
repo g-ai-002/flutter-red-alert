@@ -72,6 +72,10 @@ extension BattleMovement on BattleState {
       _updateHarvester(unit, dt);
       return;
     }
+    if (unit.spec.isEngineer) {
+      _updateEngineer(unit, dt);
+      return;
+    }
     final target = unit.targetId == null ? null : actorById(unit.targetId!);
     if (unit.order == UnitOrder.attack) {
       if (target == null) {
@@ -89,7 +93,7 @@ extension BattleMovement on BattleState {
         unit.destination = null;
       }
       // 行军途中只打射程内的临时目标，不为它停下脚步。
-      if (target != null && _distanceTo(unit, target) <= unit.spec.range) {
+      if (target != null && _inFiringBand(unit, target)) {
         _fireAt(unit, target);
       } else {
         unit.targetId = null;
@@ -97,16 +101,81 @@ extension BattleMovement on BattleState {
       _acquireIfIdle(unit);
       return;
     }
-    // 待命：有目标就原地开火，目标消失在射程外则清空。
+    // 待命：有目标就原地开火；贴得太近的火炮先拉开距离。
     if (target != null) {
       final distance = _distanceTo(unit, target);
-      if (distance <= unit.spec.range) {
+      if (distance < unit.spec.minRange) {
+        _retreat(unit, target, dt);
+      } else if (distance <= unit.spec.range) {
         _fireAt(unit, target);
       } else {
         unit.targetId = null;
       }
     }
     _acquireIfIdle(unit);
+  }
+
+  /// 工程兵：玩家指定的移动优先，空闲时自动维修附近受损的己方单位与建筑。
+  void _updateEngineer(Unit unit, double dt) {
+    if (unit.order == UnitOrder.move) {
+      if (unit.hasPath) {
+        _followPath(unit, dt);
+        return;
+      }
+      unit
+        ..order = UnitOrder.idle
+        ..destination = null;
+    }
+    // 沿用仍在受损的目标，避免每个逻辑步都全表扫描。
+    final current = unit.targetId == null ? null : actorById(unit.targetId!);
+    final target = current != null && current.hp < current.maxHp ? current : _repairTarget(unit);
+    if (target == null) {
+      unit
+        ..targetId = null
+        ..clearPath();
+      return;
+    }
+    unit.targetId = target.id;
+    final gap = _distanceTo(unit, target);
+    if (gap > unit.spec.range) {
+      if (unit.repathTimer <= 0 || !unit.hasPath) {
+        final goal = _approachTile(target);
+        final path = goal == null
+            ? null
+            : _finder.find(TilePoint(unit.x.floor(), unit.y.floor()), goal);
+        if (path != null) unit.setPath(path);
+        unit.repathTimer = 0.8;
+      }
+      if (unit.hasPath) _followPath(unit, dt);
+      return;
+    }
+    unit.clearPath();
+    unit.facing = math.atan2(target.y - unit.y, target.x - unit.x);
+    unit.workCarry += unit.spec.repair * dt;
+    final healed = unit.workCarry.floor();
+    if (healed <= 0) return;
+    unit.workCarry -= healed;
+    target.hp = math.min(target.maxHp, target.hp + healed);
+    unit.miningTimer -= dt;
+    if (unit.miningTimer <= 0) {
+      unit.miningTimer = 0.5;
+      _emit(BattleEvent(BattleEventKind.repair, target.x, target.y, team: unit.team));
+    }
+  }
+
+  /// 最近的待修目标：优先距离近的，建筑与车辆一视同仁。
+  Actor? _repairTarget(Unit unit) {
+    Actor? best;
+    var bestDistance = double.infinity;
+    for (final actor in actors) {
+      if (actor.team != unit.team || !actor.alive || actor == unit) continue;
+      if (actor.hp >= actor.maxHp) continue;
+      final distance = (actor.position - unit.position).distance;
+      if (distance > 16 || distance >= bestDistance) continue;
+      bestDistance = distance;
+      best = actor;
+    }
+    return best;
   }
 
   void _followPath(Unit unit, double dt) {

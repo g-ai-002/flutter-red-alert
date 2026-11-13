@@ -20,7 +20,7 @@ Future<Widget> buildShell(Widget home) async {
 }
 
 void main() {
-  testWidgets('战役列表展示三关与解锁状态', (tester) async {
+  testWidgets('战役列表展示五关与解锁状态', (tester) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
     await tester.pumpWidget(await buildShell(const CampaignPage()));
     await tester.pumpAndSettle();
@@ -30,8 +30,8 @@ void main() {
       expect(find.text(mission.title), findsOneWidget);
     }
     expect(find.text('点击出击'), findsOneWidget);
-    expect(find.text('通关上一关后解锁'), findsNWidgets(2));
-    expect(find.text('已通关 0/3'), findsOneWidget);
+    expect(find.text('通关上一关后解锁'), findsNWidgets(campaignMissions.length - 1));
+    expect(find.text('已通关 0/5'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

@@ -74,6 +74,7 @@ class Effects {
         radius: 0.6,
         team: event.team,
       ),
+      BattleEventKind.repair => _Fx(kind: _FxKind.repair, x: event.x, y: event.y, duration: 0.5),
     };
     _items.add(fx);
   }
@@ -111,6 +112,9 @@ class Effects {
           break;
         case _FxKind.spark:
           _drawSpark(canvas, item, t);
+          break;
+        case _FxKind.repair:
+          _drawRepair(canvas, item, t);
           break;
       }
     }
@@ -223,9 +227,20 @@ class Effects {
       );
     }
   }
+
+  /// 维修火花：目标上方浮起一个绿色十字。
+  void _drawRepair(Canvas canvas, _Fx fx, double t) {
+    final paint = _stroke
+      ..color = const Color(0xFF8AD694).withValues(alpha: 1 - t)
+      ..strokeWidth = 0.05;
+    final y = fx.y - 0.5 - t * 0.35;
+    const size = 0.09;
+    canvas.drawLine(Offset(fx.x - size, y), Offset(fx.x + size, y), paint);
+    canvas.drawLine(Offset(fx.x, y - size), Offset(fx.x, y + size), paint);
+  }
 }
 
-enum _FxKind { tracer, shell, explosion, ring, ping, spark }
+enum _FxKind { tracer, shell, explosion, ring, ping, spark, repair }
 
 class _Fx {
   _Fx({

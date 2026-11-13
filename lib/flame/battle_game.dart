@@ -27,6 +27,12 @@ class BattleGame extends FlameGame {
       selectedIds: controller.selectedIds,
       placement: controller.placement,
     );
+    _mapRect = Rect.fromLTWH(
+      0,
+      0,
+      controller.state.map.width.toDouble(),
+      controller.state.map.height.toDouble(),
+    );
   }
 
   final BattleController controller;
@@ -38,7 +44,12 @@ class BattleGame extends FlameGame {
   late final FogPainter _fog;
   late final ActorPainter _actors;
 
-  ui.Shader? _edgeShader;
+  final Paint _background = Paint()..color = const Color(0xFF0E0F0E);
+  final Paint _border = Paint()
+    ..style = PaintingStyle.stroke
+    ..color = const Color(0xFF3A3630);
+  final Paint _edgePaint = Paint();
+  late final Rect _mapRect;
   Size _edgeShaderSize = Size.zero;
   double _fireSoundGap = 0;
 
@@ -118,28 +129,16 @@ class BattleGame extends FlameGame {
       camera.viewport.width,
       camera.viewport.height,
     );
-    canvas.drawRect(viewport, Paint()..color = const Color(0xFF0E0F0E));
+    canvas.drawRect(viewport, _background);
 
     final origin = camera.worldToScreen(Offset.zero);
     canvas.save();
     canvas.translate(origin.dx, origin.dy);
     canvas.scale(camera.tileSize);
-    final mapRect = Rect.fromLTWH(
-      0,
-      0,
-      state.map.width.toDouble(),
-      state.map.height.toDouble(),
-    );
-    canvas.clipRect(mapRect);
+    canvas.clipRect(_mapRect);
     final visible = camera.visibleWorld.inflate(2);
     _terrain.paint(canvas, visible);
-    canvas.drawRect(
-      mapRect,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.4 / camera.tileSize
-        ..color = const Color(0xFF3A3630),
-    );
+    canvas.drawRect(_mapRect, _border..strokeWidth = 2.4 / camera.tileSize);
     _actors.drawActors(canvas, visible);
     effects.render(canvas, camera.tileSize);
     _fog.paint(canvas);
@@ -154,8 +153,8 @@ class BattleGame extends FlameGame {
   void _drawEdgeFade(Canvas canvas, BattleCamera camera) {
     final size = camera.viewport;
     if (size.isEmpty) return;
-    if (_edgeShader == null || _edgeShaderSize != size) {
-      _edgeShader = ui.Gradient.linear(
+    if (_edgeShaderSize != size) {
+      _edgePaint.shader = ui.Gradient.linear(
         Offset.zero,
         Offset(0, size.height),
         const [
@@ -168,9 +167,6 @@ class BattleGame extends FlameGame {
       );
       _edgeShaderSize = size;
     }
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      Paint()..shader = _edgeShader,
-    );
+    canvas.drawRect(Offset.zero & size, _edgePaint);
   }
 }

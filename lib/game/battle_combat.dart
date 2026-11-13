@@ -97,10 +97,10 @@ extension BattleCombat on BattleState {
   }
 
   void _updateBuildings(double dt) {
-    for (final building in List<Building>.of(redBuildings)) {
+    for (final building in redBuildings) {
       if (building.alive) _updateDefense(building, dt);
     }
-    for (final building in List<Building>.of(blueBuildings)) {
+    for (final building in blueBuildings) {
       if (building.alive) _updateDefense(building, dt);
     }
   }
@@ -147,14 +147,26 @@ extension BattleCombat on BattleState {
   }) {
     Actor? best;
     var bestScore = double.infinity;
-    final enemies = actors.where((actor) => actor.team != team && actor.alive);
-    for (final actor in enemies) {
+    for (final actor in unitsOf(team.opponent)) {
+      if (!actor.alive) continue;
+      final distance = building == null
+          ? (actor.position - from).distance - actor.radius * 0.5
+          : _distanceTo(building, actor);
+      if (maxDistance != null && distance > maxDistance) continue;
+      final score = distance;
+      if (score < bestScore) {
+        bestScore = score;
+        best = actor;
+      }
+    }
+    for (final actor in buildingsOf(team.opponent)) {
+      if (!actor.alive) continue;
       final distance = building == null
           ? (actor.position - from).distance - actor.radius * 0.5
           : _distanceTo(building, actor);
       if (maxDistance != null && distance > maxDistance) continue;
       // 优先攻击单位，其次建筑。
-      final score = actor.isBuilding ? distance + 2.5 : distance;
+      final score = distance + 2.5;
       if (score < bestScore) {
         bestScore = score;
         best = actor;

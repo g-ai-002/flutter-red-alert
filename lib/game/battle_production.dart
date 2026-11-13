@@ -38,18 +38,13 @@ extension BattleProduction on BattleState {
   ProductionJob? jobOf(Team team, ProductionCategory category) =>
       _queues[team]![category];
 
-  List<BuildingKind> readyStructuresOf(Team team) =>
-      List.unmodifiable(_readyStructures[team]!);
+  List<BuildingKind> readyStructuresOf(Team team) => _readyViews[team]!;
 
   bool canProduce(Team team, ProductionCategory category, String id) =>
       productionBlocker(team, category, id) == null;
 
   /// 返回无法生产的原因，null 表示条件满足；供建造栏角标与生产入口共用。
-  String? productionBlocker(
-    Team team,
-    ProductionCategory category,
-    String id,
-  ) {
+  String? productionBlocker(Team team, ProductionCategory category, String id) {
     if (category == ProductionCategory.structure) {
       final kind = buildingKindFromId(id);
       if (kind == null) return '未知建筑';
@@ -104,10 +99,7 @@ extension BattleProduction on BattleState {
     }
     if (!canProduce(team, category, id)) {
       if (announce) {
-        addNotice(
-          '缺少前置建筑，暂时无法生产${nameOf(id)}',
-          level: NoticeLevel.warning,
-        );
+        addNotice('缺少前置建筑，暂时无法生产${nameOf(id)}', level: NoticeLevel.warning);
       }
       return false;
     }
@@ -142,12 +134,14 @@ extension BattleProduction on BattleState {
   }
 
   void _updateProduction(double dt) {
+    final redPower = powerFactor(Team.red);
+    final bluePower = powerFactor(Team.blue);
     for (final team in Team.values) {
       for (final category in ProductionCategory.values) {
         final job = _queues[team]![category];
         if (job == null) continue;
         final speed =
-            powerFactor(team) *
+            (team == Team.red ? redPower : bluePower) *
             (team == Team.blue ? difficulty.aiBuildSpeed : 1.0);
         job.progress += dt * speed / job.totalSeconds;
         if (job.progress < 1) continue;
@@ -157,10 +151,7 @@ extension BattleProduction on BattleState {
           _readyStructures[team]!.add(kind);
           _queues[team]![category] = null;
           if (team == Team.red) {
-            addNotice(
-              '${kind.label}已就绪，点击建造栏放置',
-              level: NoticeLevel.success,
-            );
+            addNotice('${kind.label}已就绪，点击建造栏放置', level: NoticeLevel.success);
           }
         } else {
           if (!_trySpawnUnit(team, job.id)) {
@@ -186,9 +177,9 @@ extension BattleProduction on BattleState {
     if (kind == null) return true;
     final category = unitSpecs[kind]!.category;
     final producerKind = producerForCategory[category]!;
-    final producers = buildingsOf(
-      team,
-    ).where((b) => b.spec.kind == producerKind).toList();
+    final producers = buildingsOf(team)
+        .where((b) => b.spec.kind == producerKind)
+        .toList();
     if (producers.isEmpty) return false;
     for (final producer in producers) {
       final tile = findSpawnTile(producer);

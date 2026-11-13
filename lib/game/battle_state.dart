@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math' as math;
 import 'dart:ui';
 
@@ -102,12 +103,17 @@ class BattleState {
   late final PathFinder _finder;
   late final math.Random _random;
   late final List<Building?> _occupancy;
+  final Map<int, Actor> _byId = {};
   final Map<Team, Map<ProductionCategory, ProductionJob?>> _queues = {
     for (final team in Team.values)
       team: {for (final category in ProductionCategory.values) category: null},
   };
   final Map<Team, List<BuildingKind>> _readyStructures = {
     for (final team in Team.values) team: <BuildingKind>[],
+  };
+  late final Map<Team, UnmodifiableListView<BuildingKind>> _readyViews = {
+    for (final team in Team.values)
+      team: UnmodifiableListView(_readyStructures[team]!),
   };
 
   // ===== 查询 =====
@@ -120,10 +126,8 @@ class BattleState {
   int creditsOf(Team team) => team == Team.red ? creditsRed : creditsBlue;
 
   Actor? actorById(int id) {
-    for (final actor in actors) {
-      if (actor.id == id && actor.alive) return actor;
-    }
-    return null;
+    final actor = _byId[id];
+    return actor != null && actor.alive ? actor : null;
   }
 
   Building? buildingAt(int x, int y) {
@@ -131,8 +135,7 @@ class BattleState {
     return _occupancy[y * map.width + x];
   }
 
-  bool isBlocked(int x, int y) =>
-      map.blocked(x, y) || buildingAt(x, y) != null;
+  bool isBlocked(int x, int y) => map.blocked(x, y) || buildingAt(x, y) != null;
 
   int countBuildings(Team team, BuildingKind kind) =>
       buildingsOf(team).where((b) => b.spec.kind == kind).length;
@@ -140,25 +143,25 @@ class BattleState {
   bool hasBuilding(Team team, BuildingKind kind) =>
       countBuildings(team, kind) > 0;
 
-  int powerProduced(Team team) => buildingsOf(
-    team,
-  ).where((b) => b.spec.power > 0).fold(0, (sum, b) => sum + b.spec.power);
+  int powerProduced(Team team) =>
+      buildingsOf(team)
+          .where((b) => b.spec.power > 0)
+          .fold(0, (sum, b) => sum + b.spec.power);
 
-  int powerUsed(Team team) => buildingsOf(
-    team,
-  ).where((b) => b.spec.power < 0).fold(0, (sum, b) => sum - b.spec.power);
+  int powerUsed(Team team) =>
+      buildingsOf(team)
+          .where((b) => b.spec.power < 0)
+          .fold(0, (sum, b) => sum - b.spec.power);
 
   /// 电力充足时为 1，不足时生产与防御效率减半。
   double powerFactor(Team team) =>
       powerUsed(team) > powerProduced(team) ? 0.5 : 1.0;
 
   /// 战斗单位数量（不含采矿车）。
-  int armySize(Team team) =>
-      unitsOf(team).where((u) => !u.isHarvester).length;
+  int armySize(Team team) => unitsOf(team).where((u) => !u.isHarvester).length;
 
-  List<Unit> selectableUnits(Team team, Iterable<int> ids) => unitsOf(
-    team,
-  ).where((u) => ids.contains(u.id) && u.alive).toList();
+  List<Unit> selectableUnits(Team team, Iterable<int> ids) =>
+      unitsOf(team).where((u) => ids.contains(u.id) && u.alive).toList();
 
   Actor? actorAt(Offset tile, {bool preferUnits = true}) {
     if (preferUnits) {
@@ -248,9 +251,19 @@ class BattleState {
   }
 
   void _cleanupDead() {
-    for (final actor in List<Actor>.of(actors)) {
+    var hasDead = false;
+    for (final actor in actors) {
+      if (!actor.alive) {
+        hasDead = true;
+        break;
+      }
+    }
+    if (!hasDead) return;
+    for (var i = actors.length - 1; i >= 0; i--) {
+      final actor = actors[i];
       if (actor.alive) continue;
-      actors.remove(actor);
+      actors.removeAt(i);
+      _byId.remove(actor.id);
       if (actor is Unit) {
         unitsOf(actor.team).remove(actor);
       } else if (actor is Building) {

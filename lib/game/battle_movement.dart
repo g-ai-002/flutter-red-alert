@@ -98,12 +98,8 @@ extension BattleMovement on BattleState {
         unit.destination = null;
       }
       // 行军途中只打射程内的临时目标，不为它停下脚步。
-      final autoTarget = unit.targetId == null
-          ? null
-          : actorById(unit.targetId!);
-      if (autoTarget != null &&
-          _distanceTo(unit, autoTarget) <= unit.spec.range) {
-        _fireAt(unit, autoTarget);
+      if (target != null && _distanceTo(unit, target) <= unit.spec.range) {
+        _fireAt(unit, target);
       } else {
         unit.targetId = null;
       }
@@ -239,9 +235,7 @@ extension BattleMovement on BattleState {
         }
         final earned = unit.unload();
         if (earned > 0) {
-          final multiplier = unit.team == Team.blue
-              ? difficulty.aiIncome
-              : 1.0;
+          final multiplier = unit.team == Team.blue ? difficulty.aiIncome : 1.0;
           final income = (earned * multiplier).round();
           _addCredits(unit.team, income);
           _emit(
@@ -345,15 +339,17 @@ extension BattleMovement on BattleState {
   TilePoint? nearestOre(Offset from, {int maxDistance = 80}) {
     TilePoint? best;
     var bestDistance = double.infinity;
-    for (var y = 0; y < map.height; y++) {
-      for (var x = 0; x < map.width; x++) {
-        if (map.oreAt(x, y) <= 0) continue;
-        final distance = (Offset(x + 0.5, y + 0.5) - from).distance;
-        if (distance > maxDistance) continue;
-        if (distance < bestDistance) {
-          bestDistance = distance;
-          best = TilePoint(x, y);
-        }
+    final limit = maxDistance * maxDistance;
+    for (final index in map.oreIndices) {
+      final x = index % map.width;
+      final y = index ~/ map.width;
+      final dx = x + 0.5 - from.dx;
+      final dy = y + 0.5 - from.dy;
+      final distance = dx * dx + dy * dy;
+      if (distance > limit) continue;
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = TilePoint(x, y);
       }
     }
     return best;

@@ -42,11 +42,7 @@ extension BattleConstruction on BattleState {
   }
 
   /// 找到离己方基地最近的可放置位置，供 AI 与「自动选址」使用。
-  TilePoint? findPlacement(
-    BuildingSpec spec,
-    Team team, {
-    int maxRadius = 12,
-  }) {
+  TilePoint? findPlacement(BuildingSpec spec, Team team, {int maxRadius = 12}) {
     final base = map.baseOf(team);
     for (var radius = 0; radius <= maxRadius; radius++) {
       for (var dy = -radius; dy <= radius; dy++) {
@@ -119,6 +115,7 @@ extension BattleConstruction on BattleState {
       tileY: tileY,
     );
     actors.add(building);
+    _byId[building.id] = building;
     buildingsOf(team).add(building);
     for (var y = tileY; y < tileY + building.spec.height; y++) {
       for (var x = tileX; x < tileX + building.spec.width; x++) {
@@ -142,6 +139,7 @@ extension BattleConstruction on BattleState {
     );
     unit.facing = team == Team.red ? -math.pi / 4 : math.pi * 3 / 4;
     actors.add(unit);
+    _byId[unit.id] = unit;
     unitsOf(team).add(unit);
     return unit;
   }

@@ -16,16 +16,15 @@ class GameMap {
   }) : assert(terrain.length == width * height),
        assert(ore.length == width * height),
        _terrain = List<TerrainKind>.of(terrain),
-       _ore = List<int>.of(ore);
+       _ore = List<int>.of(ore) {
+    _indexOre();
+  }
 
   factory GameMap.generate({int size = 44, int seed = 20261114}) {
     final map = GameMap(
       width: size,
       height: size,
-      terrain: List<TerrainKind>.filled(
-        size * size,
-        TerrainKind.grass,
-      ),
+      terrain: List<TerrainKind>.filled(size * size, TerrainKind.grass),
       ore: List<int>.filled(size * size, 0),
     );
     map._decorate(seed);
@@ -36,6 +35,10 @@ class GameMap {
   final int height;
   final List<TerrainKind> _terrain;
   final List<int> _ore;
+  final List<int> _oreIndices = [];
+
+  /// 仍有矿石的格子索引，采矿车索矿与迷你地图共用，避免每次全图扫描。
+  Iterable<int> get oreIndices => _oreIndices;
 
   /// 地形变化计数，渲染层据此判断是否需要重绘地形缓存。
   int version = 0;
@@ -77,9 +80,17 @@ class GameMap {
     if (_ore[index] <= 0) {
       _ore[index] = 0;
       _terrain[index] = TerrainKind.dirt;
+      _oreIndices.remove(index);
       version++;
     }
     return mined;
+  }
+
+  void _indexOre() {
+    _oreIndices.clear();
+    for (var index = 0; index < _ore.length; index++) {
+      if (_ore[index] > 0) _oreIndices.add(index);
+    }
   }
 
   /// 该格是否适合建造：平地、泥地与公路可以，矿石、水域与岩石不行。
@@ -143,13 +154,18 @@ class GameMap {
     ], width: 1.6);
 
     _road(const [Offset(8, 35), Offset(4, 30), Offset(4.5, 27.5)], width: 1.2);
-    _road(const [Offset(35, 8), Offset(39, 13), Offset(38.5, 15.5)], width: 1.2);
+    _road(const [
+      Offset(35, 8),
+      Offset(39, 13),
+      Offset(38.5, 15.5),
+    ], width: 1.2);
     _road(const [Offset(19, 28), Offset(14, 24), Offset(13, 21)], width: 1.1);
     _road(const [Offset(27, 18), Offset(31, 22), Offset(32, 25)], width: 1.1);
 
     _flattenBase(redBase, 7.0);
     _flattenBase(blueBase, 7.0);
     _forceSymmetric();
+    _indexOre();
     version++;
   }
 

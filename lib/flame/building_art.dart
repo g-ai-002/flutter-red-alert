@@ -1,16 +1,60 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 
 import '../game/battle_types.dart';
 import '../game/entity.dart';
 import 'paint_utils.dart';
 
-/// 建筑造型：统一的底座、阵营色条与按类型区分的外观细节。
+/// 建筑造型：按「类型 + 阵营」录制成 [ui.Picture] 复用；
+/// 只有炮塔的炮管随朝向转动，仍逐帧绘制。
 class BuildingArt {
   BuildingArt(this.brush);
 
   final ArtBrush brush;
+  final Map<int, ui.Picture> _cache = {};
+
+  @visibleForTesting
+  int get cachedPictures => _cache.length;
 
   void paint(Canvas canvas, Building building, Paint outline) {
+    if (building.spec.kind == BuildingKind.tower) {
+      _draw(canvas, building, outline);
+      return;
+    }
+    final key = building.spec.kind.index * 2 + building.team.index;
+    final picture = _cache[key] ??= _record(building, outline);
+    canvas.save();
+    canvas.translate(building.tileX.toDouble(), building.tileY.toDouble());
+    canvas.drawPicture(picture);
+    canvas.restore();
+  }
+
+  void dispose() {
+    for (final picture in _cache.values) {
+      picture.dispose();
+    }
+    _cache.clear();
+  }
+
+  ui.Picture _record(Building building, Paint outline) {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    _draw(
+      canvas,
+      Building(
+        id: 0,
+        team: building.team,
+        spec: building.spec,
+        tileX: 0,
+        tileY: 0,
+      ),
+      outline,
+    );
+    return recorder.endRecording();
+  }
+
+  void _draw(Canvas canvas, Building building, Paint outline) {
     final rect = building.bounds.deflate(0.05);
     final body = RRect.fromRectAndRadius(rect, const Radius.circular(0.12));
     canvas.drawRRect(
@@ -46,10 +90,7 @@ class BuildingArt {
   void paintSelection(Canvas canvas, Building building) {
     final rect = building.bounds.deflate(0.05);
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        rect.inflate(0.08),
-        const Radius.circular(0.14),
-      ),
+      RRect.fromRectAndRadius(rect.inflate(0.08), const Radius.circular(0.14)),
       brush.outlined(const Color(0xFFF2D27A), 0.06),
     );
   }
@@ -88,11 +129,7 @@ class BuildingArt {
           rect.left + rect.width * 0.26,
           rect.right - rect.width * 0.26,
         ]) {
-          canvas.drawCircle(
-            Offset(dx, center.dy),
-            rect.height * 0.22,
-            dark,
-          );
+          canvas.drawCircle(Offset(dx, center.dy), rect.height * 0.22, dark);
           canvas.drawCircle(
             Offset(dx, center.dy),
             rect.height * 0.14,

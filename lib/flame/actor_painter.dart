@@ -42,7 +42,11 @@ class ActorPainter {
     ..strokeWidth = 0.055
     ..color = const Color(0xCC15130F);
 
-  void dispose() => _labels.clear();
+  void dispose() {
+    _labels.clear();
+    _unitArt.dispose();
+    _buildingArt.dispose();
+  }
 
   // ===== 单位与建筑 =====
 

@@ -5,46 +5,61 @@ import 'terrain.dart';
 
 /// A* 寻路：八方向移动，禁止斜穿障碍，返回不含起点的格子路径。
 ///
-/// 路径查找只在下达指令或目标移动时触发，单次搜索上限 6000 个节点，
+/// 距离表、来源表与关闭表在构造时分配一次，每次搜索用代次标记复用，
+/// 避免大兵团反复寻路时产生大量短命数组。单次搜索上限 6000 个节点，
 /// 超出后放弃并让单位直接朝目标移动，避免极端地图拖慢逻辑帧。
 class PathFinder {
-  PathFinder({required this.map, required this.isBlocked});
+  PathFinder({required GameMap map, required this.isBlocked})
+    : map = map,
+      _gScore = Float64List(map.width * map.height),
+      _cameFrom = Int32List(map.width * map.height),
+      _discovered = Int32List(map.width * map.height),
+      _closed = Int32List(map.width * map.height);
 
   final GameMap map;
   final bool Function(int x, int y) isBlocked;
 
   static const double _diagonal = 1.4142135623730951;
 
-  List<TilePoint>? find(TilePoint start, TilePoint goal, {int maxNodes = 6000}) {
+  final Float64List _gScore;
+  final Int32List _cameFrom;
+  final Int32List _discovered;
+  final Int32List _closed;
+  final _NodeHeap _open = _NodeHeap();
+  int _generation = 0;
+
+  List<TilePoint>? find(
+    TilePoint start,
+    TilePoint goal, {
+    int maxNodes = 6000,
+  }) {
     if (!map.inBounds(goal.x, goal.y)) return null;
     if (start == goal) return const [];
 
-    final size = map.width * map.height;
-    final gScore = Float64List(size)..fillRange(0, size, double.infinity);
-    final fScore = Float64List(size)..fillRange(0, size, double.infinity);
-    final cameFrom = Int32List(size)..fillRange(0, size, -1);
-    final closed = List<bool>.filled(size, false);
+    final generation = ++_generation;
+    final width = map.width;
+    final startIndex = start.y * width + start.x;
+    final goalIndex = goal.y * width + goal.x;
 
-    final startIndex = start.y * map.width + start.x;
-    final goalIndex = goal.y * map.width + goal.x;
-    gScore[startIndex] = 0;
-    fScore[startIndex] = _heuristic(start.x, start.y, goal.x, goal.y);
+    _gScore[startIndex] = 0;
+    _discovered[startIndex] = generation;
+    _cameFrom[startIndex] = -1;
+    _open
+      ..clear()
+      ..push(startIndex, _heuristic(start.x, start.y, goal.x, goal.y), 0);
 
-    final open = _NodeHeap();
-    open.push(startIndex, fScore[startIndex], 0);
     var visited = 0;
-
-    while (open.isNotEmpty) {
-      final current = open.pop();
+    while (_open.isNotEmpty) {
+      final current = _open.pop();
       if (current == goalIndex) {
-        return _reconstruct(cameFrom, startIndex, goalIndex);
+        return _reconstruct(startIndex, goalIndex);
       }
-      if (closed[current]) continue;
-      closed[current] = true;
+      if (_closed[current] == generation) continue;
+      _closed[current] = generation;
       if (++visited > maxNodes) return null;
 
-      final cx = current % map.width;
-      final cy = current ~/ map.width;
+      final cx = current % width;
+      final cy = current ~/ width;
       for (var dy = -1; dy <= 1; dy++) {
         for (var dx = -1; dx <= 1; dx++) {
           if (dx == 0 && dy == 0) continue;
@@ -56,15 +71,20 @@ class PathFinder {
             // 斜向移动不能贴着障碍拐角穿过去。
             if (isBlocked(cx + dx, cy) || isBlocked(cx, cy + dy)) continue;
           }
-          final nextIndex = ny * map.width + nx;
-          if (closed[nextIndex]) continue;
+          final nextIndex = ny * width + nx;
+          if (_closed[nextIndex] == generation) continue;
           final cost = dx != 0 && dy != 0 ? _diagonal : 1.0;
-          final tentative = gScore[current] + cost;
-          if (tentative >= gScore[nextIndex]) continue;
-          cameFrom[nextIndex] = current;
-          gScore[nextIndex] = tentative;
-          fScore[nextIndex] = tentative + _heuristic(nx, ny, goal.x, goal.y);
-          open.push(nextIndex, fScore[nextIndex], tentative);
+          final tentative = _gScore[current] + cost;
+          final known = _discovered[nextIndex] == generation;
+          if (known && tentative >= _gScore[nextIndex]) continue;
+          _discovered[nextIndex] = generation;
+          _cameFrom[nextIndex] = current;
+          _gScore[nextIndex] = tentative;
+          _open.push(
+            nextIndex,
+            tentative + _heuristic(nx, ny, goal.x, goal.y),
+            tentative,
+          );
         }
       }
     }
@@ -77,16 +97,13 @@ class PathFinder {
     return (dx + dy) + (_diagonal - 2) * (dx < dy ? dx : dy);
   }
 
-  List<TilePoint> _reconstruct(
-    Int32List cameFrom,
-    int startIndex,
-    int goalIndex,
-  ) {
+  List<TilePoint> _reconstruct(int startIndex, int goalIndex) {
+    final width = map.width;
     final path = <TilePoint>[];
     var current = goalIndex;
     while (current != startIndex && current >= 0) {
-      path.add(TilePoint(current % map.width, current ~/ map.width));
-      current = cameFrom[current];
+      path.add(TilePoint(current % width, current ~/ width));
+      current = _cameFrom[current];
     }
     return path.reversed.toList(growable: false);
   }
@@ -105,6 +122,8 @@ class _NodeHeap {
   final List<_HeapEntry> _items = [];
 
   bool get isNotEmpty => _items.isNotEmpty;
+
+  void clear() => _items.clear();
 
   void push(int index, double f, double g) {
     _items.add(_HeapEntry(index, f, g));

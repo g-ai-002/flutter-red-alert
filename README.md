@@ -27,31 +27,37 @@
 - 🌓 **深色优先**：默认深色战场主题，可切换浅色
 - 🧾 **日志系统**：按天写入用户目录，设置页可直接查看最近日志
 - 🤖 **CI 构建**：Gitea Actions / GitHub Actions 手动选择 Tag 构建 Android / Windows / Web 并发布 Release
-- ⚡ **流畅优化**：寻路缓冲复用、单位与矿点索引、视野裁剪、地形分块、迷你地图与迷雾缓存、暂停停帧
+- ⚡ **流畅优化**：地形区块懒构建与增量重录、建筑 / 单位造型缓存、特效画笔复用、建筑与电力 O(1) 查询、HUD 布局只算一次
 - 🧩 **结构清晰**：生产项目录、选中状态、环形网格搜索、单位 / 建筑造型与 HUD 组件分层，便于扩展兵种与界面
 - 🧹 **退出即停**：离开战场页面立即释放模拟与渲染循环，不残留后台任务
 
 ## 下载
 
-v0.2.1 为重构版本，玩法与数值不变；测试、Android 与 Web 构建已通过，Web 可直接试玩；
-Windows Runner 上线后会自动补齐安装包并创建 Release
-（[构建记录](http://192.168.31.120:3020/GTech/flutter-red-alert/actions/runs/3109)）。
-Web 试玩：[v0.2.1](http://192.168.31.120:3020/GTech/flutter-red-alert/src/branch/tea-pages/v0.2.1/index.html)。
+v0.2.2 为性能与流畅度优化版本，玩法与数值不变：矿格采空不再整表重绘地形，
+建筑与单位造型改为缓存回放，274 个单位的战场绘制开销从 344µs 降到 212µs（调试模式实测）。
+构建产物由 CI 生成，Windows Runner 离线时 Release 会排队等待。
+Web 试玩：[v0.2.2](http://192.168.31.120:3020/GTech/flutter-red-alert/src/branch/tea-pages/v0.2.2/index.html)。
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-red-alert-0.2.1-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-red-alert-0.2.1-windows-x86_64.zip` |
-| Web | `flutter-red-alert-0.2.1-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-red-alert-0.2.2-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-red-alert-0.2.2-windows-x86_64.zip` |
+| Web | `flutter-red-alert-0.2.2-web.zip`（解压后起静态服务器） |
 
 ## 版本
 
 | 版本 | 说明 |
 | --- | --- |
+| v0.2.2 | 性能与流畅度优化：地形区块懒构建与增量重录、造型缓存、特效画笔复用、建筑与电力 O(1) 查询 |
 | v0.2.1 | 重构优化：生产项目录、选中状态、网格搜索、造型绘制与 HUD 组件分层 |
 | v0.2.0 | 三关战役、战争迷雾、雷达扫描与战役进度解锁 |
 | v0.1.2 | 性能与流畅度优化：寻路复用、单位 / 矿点索引、视野裁剪、地形分块与迷你地图缓存 |
 | v0.1.1 | 重构模拟 / 渲染 / 输入分层，统一生产校验，清理告警与死代码 |
+
+早期版本：
+
+| 版本 | 说明 |
+| --- | --- |
 | v0.1.0 | 首个可玩版本：地图、建造、经济、战斗、AI、HUD、音效与三端发布 |
 
 ## 操作

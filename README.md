@@ -28,7 +28,7 @@
 
 ## 下载
 
-v0.1.0（最新发布）：[Gitea Release](http://192.168.31.120:3020/GTech/flutter-red-alert/releases/tag/v0.1.0)
+v0.1.0（构建发布已触发，产物见 [Gitea Release](http://192.168.31.120:3020/GTech/flutter-red-alert/releases/tag/v0.1.0)）：Android 与 Web 已通过，Windows 构建在 Runner 上线后自动补齐。
 
 | 平台 | 产物 |
 | --- | --- |

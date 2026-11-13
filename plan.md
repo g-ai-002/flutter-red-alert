@@ -42,7 +42,7 @@
 
 ### v0.1.0 (MINOR) — 2026-11-14
 
-- **状态**: 已发布 ✅（[Gitea Release](http://192.168.31.120:3020/GTech/flutter-red-alert/releases/tag/v0.1.0)）
+- **状态**: 构建发布已触发（Android / Web 已完成，Windows 排队；[Gitea Release](http://192.168.31.120:3020/GTech/flutter-red-alert/releases/tag/v0.1.0)）
 - **目标**: 交付首个可玩的单机即时战略版本，打通经济、建造、战斗、AI、
   三端构建与发布全链路，搭建可长期迭代的工程骨架。
 - **任务**:

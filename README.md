@@ -33,16 +33,16 @@
 
 ## 下载
 
-v0.2.0 为战役与迷雾版本，测试、Android 与 Web 构建已通过，Web 可直接试玩；
+v0.2.1 为重构版本，玩法与数值不变；测试、Android 与 Web 构建已通过，Web 可直接试玩；
 Windows Runner 上线后会自动补齐安装包并创建 Release
-（[构建记录](http://192.168.31.120:3020/GTech/flutter-red-alert/actions/runs/3099)）。
-Web 试玩：[v0.2.0](http://192.168.31.120:3020/GTech/flutter-red-alert/src/branch/tea-pages/v0.2.0/index.html)。
+（[构建记录](http://192.168.31.120:3020/GTech/flutter-red-alert/actions/runs/3109)）。
+Web 试玩：[v0.2.1](http://192.168.31.120:3020/GTech/flutter-red-alert/src/branch/tea-pages/v0.2.1/index.html)。
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-red-alert-0.2.0-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-red-alert-0.2.0-windows-x86_64.zip` |
-| Web | `flutter-red-alert-0.2.0-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-red-alert-0.2.1-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-red-alert-0.2.1-windows-x86_64.zip` |
+| Web | `flutter-red-alert-0.2.1-web.zip`（解压后起静态服务器） |
 
 ## 版本
 

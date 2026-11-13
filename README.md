@@ -28,8 +28,9 @@
 
 ## 下载
 
-v0.1.1（构建发布已触发，产物见 [Gitea Release](http://192.168.31.120:3020/GTech/flutter-red-alert/releases/tag/v0.1.1)）：
-重构版本，玩法与 v0.1.0 一致；Windows 产物在 Runner 上线后自动补齐。
+v0.1.1 已通过测试、Android 与 Web 构建，Release 待 Windows Runner 上线后自动创建
+（[构建记录](http://192.168.31.120:3020/GTech/flutter-red-alert/actions/runs/3088)）。
+重构版本，玩法与 v0.1.0 一致；也可直接试玩 Web 最新版。
 
 | 平台 | 产物 |
 | --- | --- |

@@ -11,6 +11,7 @@ import 'battle_state.dart';
 import 'battle_types.dart';
 import 'entity.dart';
 import 'logic_rate.dart';
+import 'placement_state.dart';
 import 'terrain.dart';
 
 /// 一条浮动提示，带剩余显示时间。
@@ -40,6 +41,7 @@ class BattleController extends ChangeNotifier {
            ) {
     _ai = AiCommander(team: Team.blue, difficulty: state.difficulty);
     state.onAiTick = _ai.update;
+    _placement = PlacementState(state: state, team: playerTeam);
     camera.focusOn(GameMap.redBase);
   }
 
@@ -47,6 +49,7 @@ class BattleController extends ChangeNotifier {
   final LogicRate logicRate;
   final BattleCamera camera;
   late final AiCommander _ai;
+  late final PlacementState _placement;
 
   final Set<int> selectedIds = {};
   final List<BattleToast> toasts = [];
@@ -56,23 +59,22 @@ class BattleController extends ChangeNotifier {
   /// 游戏速度倍率，仅 1x 与 2x 两档。
   double speed = 1;
 
-  String? _placingId;
-  Offset? ghostCenter;
-
   double _notifyAccumulator = 0;
   bool _resultAnnounced = false;
 
   BattleDifficulty get difficulty => state.difficulty;
   BattleResult? get result => state.result;
-  bool get isPlacing => _placingId != null;
-  String? get placingId => _placingId;
+  bool get isPlacing => _placement.active;
 
-  BuildingSpec? get placingSpec {
-    final id = _placingId;
-    if (id == null) return null;
-    final kind = buildingKindFromId(id);
-    return kind == null ? null : buildingSpecs[kind];
-  }
+  /// 放置预览状态，供渲染层直接读取。
+  PlacementState get placement => _placement;
+
+  BuildingSpec? get placingSpec => _placement.spec;
+
+  /// 当前放置位置（左上角格）。
+  TilePoint? get ghostTile => _placement.tile;
+
+  bool get ghostValid => _placement.valid;
 
   List<Unit> get selectedUnits =>
       state.selectableUnits(playerTeam, selectedIds);
@@ -303,55 +305,27 @@ class BattleController extends ChangeNotifier {
     final kind = buildingKindFromId(id);
     if (kind == null) return;
     if (!state.readyStructuresOf(playerTeam).contains(kind)) return;
-    _placingId = id;
     selectedIds.clear();
-    final spec = buildingSpecs[kind]!;
-    _setGhost(camera.center);
-    _ensureGhostSpan(spec);
+    _placement.begin(kind, camera.center);
     notifyListeners();
   }
 
   void updateGhost(Offset screenPosition) {
     if (!isPlacing) return;
-    _setGhost(camera.screenToWorld(screenPosition));
+    _placement.moveTo(camera.screenToWorld(screenPosition));
     notifyListeners();
   }
 
   void cancelPlacement() {
     if (!isPlacing) return;
-    _placingId = null;
-    ghostCenter = null;
+    _placement.cancel();
     notifyListeners();
-  }
-
-  /// 当前放置位置（左上角格）。
-  TilePoint? get ghostTile {
-    final spec = placingSpec;
-    final center = ghostCenter;
-    if (spec == null || center == null) return null;
-    final x = (center.dx - spec.width / 2).round();
-    final y = (center.dy - spec.height / 2).round();
-    return TilePoint(x, y);
-  }
-
-  bool get ghostValid {
-    final spec = placingSpec;
-    final tile = ghostTile;
-    if (spec == null || tile == null) return false;
-    return state.canPlaceBuilding(
-      spec,
-      tile.x,
-      tile.y,
-      team: playerTeam,
-    );
   }
 
   /// 返回 true 表示成功放置并退出放置模式。
   bool _tryPlaceGhost() {
     final spec = placingSpec;
-    final tile = ghostTile;
-    final id = _placingId;
-    if (spec == null || tile == null || id == null) return false;
+    if (spec == null) return false;
     if (!ghostValid) {
       SoundService.play(BattleFeedback.command);
       state.addNotice('此处无法建造，请靠近己方建筑', level: NoticeLevel.warning);
@@ -359,50 +333,13 @@ class BattleController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
-    final building = state.placeStructureAt(
-      playerTeam,
-      spec.kind,
-      tile.x,
-      tile.y,
-    );
+    final tile = ghostTile!;
+    final building = _placement.commit();
     if (building == null) return false;
     SoundService.play(BattleFeedback.build);
-    LogService.info(
-      '放置建筑: ${spec.kind.label} @(${tile.x},${tile.y})',
-    );
-    _placingId = null;
-    ghostCenter = null;
+    LogService.info('放置建筑: ${spec.kind.label} @(${tile.x},${tile.y})');
     notifyListeners();
     return true;
-  }
-
-  void _setGhost(Offset world) {
-    ghostCenter = Offset(
-      world.dx.clamp(0, state.map.width.toDouble()),
-      world.dy.clamp(0, state.map.height.toDouble()),
-    );
-  }
-
-  void _ensureGhostSpan(BuildingSpec spec) {
-    final center = ghostCenter;
-    if (center == null) return;
-    final tileX = (center.dx - spec.width / 2).round();
-    final tileY = (center.dy - spec.height / 2).round();
-    if (state.canPlaceBuilding(
-      spec,
-      tileX,
-      tileY,
-      team: playerTeam,
-    )) {
-      return;
-    }
-    final spot = state.findPlacement(spec, playerTeam, maxRadius: 10);
-    if (spot != null) {
-      ghostCenter = Offset(
-        spot.x + spec.width / 2,
-        spot.y + spec.height / 2,
-      );
-    }
   }
 
   // ===== 视角与暂停 =====

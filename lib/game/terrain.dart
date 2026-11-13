@@ -25,9 +25,8 @@ class GameMap {
       terrain: List<TerrainKind>.filled(
         size * size,
         TerrainKind.grass,
-        growable: false,
       ),
-      ore: List<int>.filled(size * size, 0, growable: false),
+      ore: List<int>.filled(size * size, 0),
     );
     map._decorate(seed);
     return map;
@@ -55,9 +54,6 @@ class GameMap {
     if (!inBounds(x, y)) return TerrainKind.rock;
     return _terrain[y * width + x];
   }
-
-  TerrainKind terrainAtOffset(Offset tile) =>
-      terrainAt(tile.dx.floor(), tile.dy.floor());
 
   void setTerrain(int x, int y, TerrainKind kind) {
     if (!inBounds(x, y)) return;
@@ -144,7 +140,7 @@ class GameMap {
       Offset(27, 18),
       Offset(32, 14),
       Offset(35, 8),
-    ], width: 1.6, kind: TerrainKind.road);
+    ], width: 1.6);
 
     _road(const [Offset(8, 35), Offset(4, 30), Offset(4.5, 27.5)], width: 1.2);
     _road(const [Offset(35, 8), Offset(39, 13), Offset(38.5, 15.5)], width: 1.2);

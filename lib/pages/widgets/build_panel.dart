@@ -256,8 +256,9 @@ class _BuildCard extends StatelessWidget {
         : unitSpecs[unit!]!.cost;
 
     final job = state.jobOf(playerTeam, category);
-    final ready = kind != null && state.readyStructuresOf(playerTeam).contains(kind);
-    final lock = _lockReason(kind, unit);
+    final ready =
+        kind != null && state.readyStructuresOf(playerTeam).contains(kind);
+    final lock = state.productionBlocker(playerTeam, category, id);
     final affordable = state.creditsOf(playerTeam) >= cost;
     final active = job != null && job.id == id;
     final locked = lock != null;
@@ -425,37 +426,5 @@ class _BuildCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String? _lockReason(BuildingKind? kind, UnitKind? unit) {
-    final state = controller.state;
-    if (kind != null) {
-      if (!state.hasBuilding(playerTeam, BuildingKind.hq)) {
-        if (kind == BuildingKind.hq) {
-          return state.buildingsOf(playerTeam).isEmpty ? '基地已失守' : null;
-        }
-        return '需要指挥中心';
-      }
-      final requires = buildingSpecs[kind]!.requires;
-      if (requires != null &&
-          !state.hasBuilding(playerTeam, requires)) {
-        return '需要${requires.label}';
-      }
-      return null;
-    }
-    if (unit != null) {
-      final producer = producerForCategory[unitSpecs[unit]!.category]!;
-      if (!state.hasBuilding(playerTeam, producer)) {
-        return '需要${producer.label}';
-      }
-      final requires = unitSpecs[unit]!.requires;
-      if (requires != null &&
-          requires != producer &&
-          !state.hasBuilding(playerTeam, requires)) {
-        return '需要${requires.label}';
-      }
-      return null;
-    }
-    return null;
   }
 }

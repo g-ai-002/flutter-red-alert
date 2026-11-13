@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('GameMap', () {
     test('固定尺寸与基础地形分布', () {
-      final map = GameMap.generate(seed: 20261114);
+      final map = GameMap.generate();
       expect(map.width, 44);
       expect(map.height, 44);
       expect(map.countOf(TerrainKind.water), greaterThan(10));
@@ -14,7 +14,7 @@ void main() {
     });
 
     test('双方基地核心区域平坦可建造', () {
-      final map = GameMap.generate(seed: 20261114);
+      final map = GameMap.generate();
       for (final base in [GameMap.redBase, GameMap.blueBase]) {
         for (var dy = -2; dy <= 2; dy++) {
           for (var dx = -2; dx <= 2; dx++) {
@@ -28,7 +28,7 @@ void main() {
     });
 
     test('矿区关于地图中心对称', () {
-      final map = GameMap.generate(seed: 20261114);
+      final map = GameMap.generate();
       for (var y = 0; y < map.height; y++) {
         for (var x = 0; x < map.width; x++) {
           final mx = map.width - 1 - x;
@@ -43,7 +43,7 @@ void main() {
     });
 
     test('矿石采空后变为泥地并递增版本号', () {
-      final map = GameMap.generate(seed: 20261114);
+      final map = GameMap.generate();
       var oreTile = const (0, 0);
       outer:
       for (var y = 0; y < map.height; y++) {
@@ -64,7 +64,7 @@ void main() {
     });
 
     test('道路提升移动速度', () {
-      final map = GameMap.generate(seed: 20261114);
+      final map = GameMap.generate();
       var roadFound = false;
       var grassFound = false;
       for (var y = 0; y < map.height && !(roadFound && grassFound); y++) {

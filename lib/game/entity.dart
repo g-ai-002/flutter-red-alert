@@ -90,9 +90,6 @@ class Building extends Actor {
   final int tileX;
   final int tileY;
 
-  /// 建造完成标记；AI 与玩家放置的建筑均为 true，保留字段供后续建造动画使用。
-  bool ready = true;
-
   /// 防御建筑的开火冷却。
   double fireCooldown = 0;
 
@@ -107,25 +104,12 @@ class Building extends Actor {
   @override
   ArmorClass get armor => ArmorClass.structure;
 
-  int get right => tileX + spec.width - 1;
-  int get bottom => tileY + spec.height - 1;
-
-  Rect get tileRect =>
-      Rect.fromLTWH(tileX.toDouble(), tileY.toDouble(), spec.width.toDouble(), spec.height.toDouble());
-
   Rect get bounds => Rect.fromLTRB(
     tileX.toDouble(),
     tileY.toDouble(),
     tileX + spec.width.toDouble(),
     tileY + spec.height.toDouble(),
   );
-
-  bool covers(int x, int y) =>
-      x >= tileX && x <= right && y >= tileY && y <= bottom;
-
-  /// 建筑中心的格子（用于瞄准与出兵）。
-  TilePoint get centerTile =>
-      TilePoint(tileX + spec.width ~/ 2, tileY + spec.height ~/ 2);
 }
 
 /// 作战单位：持续朝路径点移动，进入射程后开火。

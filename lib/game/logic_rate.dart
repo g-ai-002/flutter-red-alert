@@ -19,26 +19,31 @@ enum LogicRate {
 
 /// 固定步长累加器：把不稳定的渲染帧间隔折算成固定数量的逻辑步。
 class FixedStepClock {
-  FixedStepClock(this.step, {this.maxSteps = 4});
+  FixedStepClock(this.step, {this.maxSteps = 4})
+    : assert(step > 0),
+      assert(maxSteps > 0);
 
   final double step;
   final int maxSteps;
   double _remainder = 0;
 
   /// 消费 [dt] 并回调一次合并后的逻辑步长，返回本帧推进的步数。
-  /// 切后台或严重卡顿后积压的大量时间合并成一次大步推进，避免模拟被拖慢。
+  ///
+  /// 单帧最多推进 [maxSteps] 步；切后台或严重卡顿后积压的时间合并成一次
+  /// 大步推进，避免模拟被永久拖慢。不足一步的余量留到下一帧。
   int advance(double dt, void Function(double span) onStep) {
     if (dt <= 0) return 0;
     _remainder += dt;
-    var steps = 0;
-    while (_remainder + 1e-9 >= step && steps < maxSteps) {
-      _remainder -= step;
-      steps++;
+    if (_remainder + 1e-9 < step) return 0;
+    final span = _remainder;
+    final steps = (span / step).floor();
+    if (steps > maxSteps) {
+      _remainder = 0;
+      onStep(span);
+      return maxSteps;
     }
-    if (steps == 0) return 0;
-    final overflow = _remainder >= step ? _remainder : 0.0;
-    _remainder = overflow > 0 ? 0 : _remainder;
-    onStep(steps * step + overflow);
+    _remainder = span - steps * step;
+    onStep(steps * step);
     return steps;
   }
 }

@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// 让双方都由 AI 指挥，验证战斗能在合理时间内分出胜负。
 void main() {
   test('双方 AI 对战可在 20 分钟内结束', () {
-    final state = BattleState.create(difficulty: BattleDifficulty.normal);
+    final state = BattleState.create();
     final red = AiCommander(team: Team.red, difficulty: BattleDifficulty.normal);
     final blue = AiCommander(
       team: Team.blue,

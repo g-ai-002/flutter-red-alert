@@ -54,7 +54,7 @@ enum UnitKind {
 
 /// 建筑类型。
 enum BuildingKind {
-  hq('指挥中心', '指', '基地核心，建造建筑与训练采矿车的起点'),
+  hq('指挥中心', '指', '基地核心，所有建筑的排产起点，被摧毁后可用残存建筑重建'),
   power('电厂', '电', '为基地提供电力，电力不足会拖慢生产'),
   refinery('矿石精炼厂', '炼', '接收采矿车卸矿，并作为后续科技的跳板'),
   barracks('兵营', '兵', '训练步兵与火箭兵'),
@@ -188,7 +188,6 @@ const Map<UnitKind, UnitSpec> unitSpecs = {
     attack: 15,
     range: 4.5,
     cooldown: 0.8,
-    vsInfantry: 1,
     vsVehicle: 0.35,
     vsStructure: 0.25,
     requires: BuildingKind.barracks,
@@ -205,7 +204,6 @@ const Map<UnitKind, UnitSpec> unitSpecs = {
     range: 6,
     cooldown: 1.7,
     vsInfantry: 0.5,
-    vsVehicle: 1,
     vsStructure: 0.9,
     requires: BuildingKind.barracks,
     radius: 0.28,
@@ -233,7 +231,6 @@ const Map<UnitKind, UnitSpec> unitSpecs = {
     range: 5.5,
     cooldown: 1.1,
     vsInfantry: 0.55,
-    vsVehicle: 1,
     vsStructure: 0.8,
     requires: BuildingKind.factory,
     armor: ArmorClass.vehicle,
@@ -250,7 +247,6 @@ const Map<UnitKind, UnitSpec> unitSpecs = {
     range: 6.5,
     cooldown: 1.9,
     vsInfantry: 0.6,
-    vsVehicle: 1,
     vsStructure: 1.1,
     requires: BuildingKind.factory,
     armor: ArmorClass.vehicle,
@@ -322,7 +318,6 @@ const Map<BuildingKind, BuildingSpec> buildingSpecs = {
     requires: BuildingKind.barracks,
     attack: 30,
     range: 7,
-    cooldown: 1.0,
     vsInfantry: 0.9,
     vsVehicle: 0.8,
     vsStructure: 0.2,
@@ -335,6 +330,22 @@ const Map<ProductionCategory, BuildingKind> producerForCategory = {
   ProductionCategory.infantry: BuildingKind.barracks,
   ProductionCategory.armor: BuildingKind.factory,
 };
+
+/// 由存档或界面字符串还原建筑类型，未知 id 返回 null。
+BuildingKind? buildingKindFromId(String id) {
+  for (final kind in BuildingKind.values) {
+    if (kind.name == id) return kind;
+  }
+  return null;
+}
+
+/// 由存档或界面字符串还原单位类型，未知 id 返回 null。
+UnitKind? unitKindFromId(String id) {
+  for (final kind in UnitKind.values) {
+    if (kind.name == id) return kind;
+  }
+  return null;
+}
 
 /// 难度：影响经济、AI 出兵规模与初始资金。
 enum BattleDifficulty {

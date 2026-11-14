@@ -117,7 +117,7 @@ void main() {
   test('暂停与倍速切换', () {
     final controller = makeController();
     expect(controller.paused, isFalse);
-    controller.togglePause();
+    controller.setPaused(true);
     expect(controller.paused, isTrue);
     controller.setPaused(false);
     expect(controller.speed, 1);

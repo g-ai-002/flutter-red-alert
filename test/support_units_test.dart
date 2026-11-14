@@ -42,6 +42,20 @@ void main() {
       expect(enemy.hp, damaged);
     });
 
+    test('空闲扫描节流后仍能发现新出现的损伤', () {
+      final state = BattleState.create();
+      final hq = state.redBuildings.firstWhere((building) => building.spec.kind == BuildingKind.hq);
+      state.spawnUnitForTest(Team.red, UnitKind.engineer, const Offset(9.5, 34.5));
+      // 先空转一段时间，让扫描节拍处于等待状态，再制造新的损伤。
+      simulate(state, 1);
+      hq.applyDamage(300);
+      final damaged = hq.hp;
+
+      simulate(state, 3);
+
+      expect(hq.hp, greaterThan(damaged));
+    });
+
     test('没有武器，攻击指令不会让它开火', () {
       final state = BattleState.create();
       final target = state.spawnUnitForTest(Team.blue, UnitKind.rifle, const Offset(12.5, 34.5));
@@ -127,7 +141,7 @@ void main() {
         expect(state.mission?.id, mission.id);
         expect(state.redUnits.length, 2 + mission.startingArmy.length);
         expect(state.blueUnits.length, 2 + mission.enemyArmy.length);
-        expect(state.creditsRed, mission.startingCredits);
+        expect(state.creditsRed, mission.difficulty.playerCredits + mission.bonusCredits);
         expect(state.blueBuildings.length, greaterThanOrEqualTo(3 + mission.enemyBuildings.length));
       }
     });

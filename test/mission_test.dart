@@ -23,7 +23,7 @@ void main() {
 
     expect(state.mission?.id, mission.id);
     expect(state.map.width, mission.mapSize);
-    expect(state.creditsRed, mission.startingCredits);
+    expect(state.creditsRed, mission.difficulty.playerCredits + mission.bonusCredits);
     expect(state.redUnits.length, 2 + mission.startingArmy.length);
     expect(state.blueUnits.length, 2 + mission.enemyArmy.length);
     expect(

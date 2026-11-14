@@ -91,6 +91,29 @@ void main() {
     expect(controller.state.buildingsOf(Team.red).length, before + 1);
   });
 
+  test('移动放置预览只在落点合法性变化时刷新界面', () {
+    final controller = makeController();
+    controller.requestProduction(ProductionCategory.structure, 'barracks');
+    simulate(controller, 13);
+    controller.beginPlacement('barracks');
+    expect(controller.isPlacing, isTrue);
+    final tile = controller.ghostTile!;
+    expect(controller.ghostValid, isTrue);
+
+    var notifications = 0;
+    controller.addListener(() => notifications++);
+    // 同一格内微调，合法性不变，预览框由渲染层逐帧读取即可。
+    controller.updateGhost(controller.camera.worldToScreen(Offset(tile.x + 1.05, tile.y + 1.05)));
+    expect(notifications, 0);
+    expect(controller.ghostTile, tile);
+
+    // 移出基地范围后合法性翻转为 false，需要刷新提示条。
+    controller.updateGhost(controller.camera.worldToScreen(const Offset(1.5, 1.5)));
+    expect(notifications, 1);
+    expect(controller.ghostValid, isFalse);
+    expect(controller.ghostTile, isNot(tile));
+  });
+
   test('暂停与倍速切换', () {
     final controller = makeController();
     expect(controller.paused, isFalse);

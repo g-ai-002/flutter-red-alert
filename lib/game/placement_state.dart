@@ -15,6 +15,7 @@ class PlacementState {
 
   BuildingKind? _kind;
   Offset? _center;
+  bool _valid = false;
 
   bool get active => _kind != null;
 
@@ -30,12 +31,8 @@ class PlacementState {
     return TilePoint((center.dx - spec.width / 2).round(), (center.dy - spec.height / 2).round());
   }
 
-  bool get valid {
-    final spec = this.spec;
-    final tile = this.tile;
-    if (spec == null || tile == null) return false;
-    return state.canPlaceBuilding(spec, tile.x, tile.y, team: team);
-  }
+  /// 落点合法性：只在预览移动时重算，渲染层每帧读取不会重复校验整块地基。
+  bool get valid => _valid;
 
   /// 开始放置：预览落在 [focus]，不可建时在基地附近就近选址。
   void begin(BuildingKind kind, Offset focus) {
@@ -46,6 +43,7 @@ class PlacementState {
     final spot = state.findPlacement(spec, team, maxRadius: 10);
     if (spot == null) return;
     _center = Offset(spot.x + spec.width / 2, spot.y + spec.height / 2);
+    _valid = state.canPlaceBuilding(spec, spot.x, spot.y, team: team);
   }
 
   void moveTo(Offset world) {
@@ -56,6 +54,7 @@ class PlacementState {
   void cancel() {
     _kind = null;
     _center = null;
+    _valid = false;
   }
 
   /// 提交放置；不合法时返回 null，成功后自动退出放置模式。
@@ -73,5 +72,10 @@ class PlacementState {
       world.dx.clamp(0, state.map.width.toDouble()),
       world.dy.clamp(0, state.map.height.toDouble()),
     );
+    final spec = this.spec;
+    final tile = this.tile;
+    _valid = spec != null && tile != null
+        ? state.canPlaceBuilding(spec, tile.x, tile.y, team: team)
+        : false;
   }
 }

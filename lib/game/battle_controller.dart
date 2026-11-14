@@ -230,8 +230,11 @@ class BattleController extends ChangeNotifier {
 
   void updateGhost(Offset screenPosition) {
     if (!isPlacing) return;
+    final wasValid = ghostValid;
     _placement.moveTo(camera.screenToWorld(screenPosition));
-    _commit();
+    // 预览框由渲染层逐帧读取，只有落点合法性变化才需要刷新 HUD，
+    // 否则鼠标每次移动都会重建整块悬浮界面。
+    if (ghostValid != wasValid) notifyListeners();
   }
 
   void cancelPlacement() {

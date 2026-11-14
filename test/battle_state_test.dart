@@ -52,6 +52,21 @@ void main() {
       expect(state.powerUsed(Team.red), used);
       expect(state.powerProduced(Team.red), produced - 120);
     });
+
+    test('部队数量在生成与阵亡时增量维护，只统计战斗单位', () {
+      final state = BattleState.create();
+      final before = state.armySize(Team.red);
+      expect(before, 0, reason: '开局只有采矿车，没有战斗单位');
+
+      final rifle = state.spawnUnitForTest(Team.red, UnitKind.rifle, const Offset(11.5, 32.5));
+      state.spawnUnitForTest(Team.red, UnitKind.harvester, const Offset(12.5, 32.5));
+      state.spawnUnitForTest(Team.red, UnitKind.engineer, const Offset(13.5, 32.5));
+      expect(state.armySize(Team.red), before + 1, reason: '采矿车与工程兵不计入部队');
+
+      rifle.applyDamage(999999);
+      state.update(0.016);
+      expect(state.armySize(Team.red), before);
+    });
   });
 
   group('生产与建造', () {

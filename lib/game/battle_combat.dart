@@ -115,12 +115,12 @@ extension BattleCombat on BattleState {
       final spill = math.max(1, (damage * 0.5).round());
       for (final victim in unitsOf(attacker.team.opponent)) {
         if (victim == target || !victim.alive) continue;
-        if ((victim.position - target.position).distance > area) continue;
+        if (victim.distanceToActor(target) > area) continue;
         victim.applyDamage(spill);
       }
       for (final victim in buildingsOf(attacker.team.opponent)) {
         if (victim == target || !victim.alive) continue;
-        if ((victim.position - target.position).distance > area) continue;
+        if (victim.distanceToActor(target) > area) continue;
         victim.applyDamage(spill);
       }
     }
@@ -138,7 +138,10 @@ extension BattleCombat on BattleState {
   }
 
   void _updateBuildings(double dt) {
-    for (final building in allBuildings) {
+    for (final building in redBuildings) {
+      if (building.alive) _updateDefense(building, dt);
+    }
+    for (final building in blueBuildings) {
       if (building.alive) _updateDefense(building, dt);
     }
   }
@@ -160,7 +163,7 @@ extension BattleCombat on BattleState {
   /// 射程判定：对建筑按外沿矩形计算，对单位按圆形半径略微放宽。
   double _distanceTo(Actor from, Actor to) {
     if (to is Building) return distanceToRect(from.position, to.bounds) - 0.25;
-    return (from.position - to.position).distance - to.radius * 0.4;
+    return from.distanceToActor(to) - to.radius * 0.4;
   }
 
   Actor? nearestEnemy(Team team, Offset from, {double? maxDistance, Building? building}) {
@@ -169,7 +172,7 @@ extension BattleCombat on BattleState {
     for (final actor in unitsOf(team.opponent)) {
       if (!actor.alive) continue;
       final distance = building == null
-          ? (actor.position - from).distance - actor.radius * 0.5
+          ? actor.distanceToPoint(from) - actor.radius * 0.5
           : _distanceTo(building, actor);
       if (maxDistance != null && distance > maxDistance) continue;
       final score = distance;
@@ -181,7 +184,7 @@ extension BattleCombat on BattleState {
     for (final actor in buildingsOf(team.opponent)) {
       if (!actor.alive) continue;
       final distance = building == null
-          ? (actor.position - from).distance - actor.radius * 0.5
+          ? actor.distanceToPoint(from) - actor.radius * 0.5
           : _distanceTo(building, actor);
       if (maxDistance != null && distance > maxDistance) continue;
       // 优先攻击单位，其次建筑。

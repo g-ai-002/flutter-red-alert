@@ -104,6 +104,9 @@ class BattleState {
   double elapsed = 0;
   BattleResult? result;
 
+  /// 建筑增删计数：占位表变化后，缓存过的寻路结果不再复用。
+  int structureVersion = 0;
+
   final List<BattleNotice> notices = [];
   final List<BattleEvent> events = [];
 
@@ -120,6 +123,7 @@ class BattleState {
   };
   final Map<Team, int> _powerOutput = {for (final team in Team.values) team: 0};
   final Map<Team, int> _powerDraw = {for (final team in Team.values) team: 0};
+  final Map<Team, int> _armyCount = {for (final team in Team.values) team: 0};
   final Map<Team, Map<ProductionCategory, ProductionJob?>> _queues = {
     for (final team in Team.values)
       team: {for (final category in ProductionCategory.values) category: null},
@@ -186,9 +190,13 @@ class BattleState {
   /// 电力充足时为 1，不足时生产与防御效率减半。
   double powerFactor(Team team) => powerUsed(team) > powerProduced(team) ? 0.5 : 1.0;
 
-  /// 战斗单位数量（不含采矿车与工程兵）。
-  int armySize(Team team) =>
-      unitsOf(team).where((u) => !u.isHarvester && !u.spec.isEngineer).length;
+  /// 战斗单位数量（不含采矿车与工程兵），生成与阵亡时增量维护。
+  int armySize(Team team) => _armyCount[team]!;
+
+  void _trackArmy(Unit unit, int delta) {
+    if (unit.isHarvester || unit.spec.isEngineer) return;
+    _armyCount[unit.team] = _armyCount[unit.team]! + delta;
+  }
 
   List<Unit> selectableUnits(Team team, Iterable<int> ids) =>
       unitsOf(team).where((u) => ids.contains(u.id) && u.alive).toList();
@@ -199,7 +207,7 @@ class BattleState {
       var bestDistance = double.infinity;
       for (final actor in actors) {
         if (!actor.alive || actor.isBuilding) continue;
-        final distance = (actor.position - tile).distance;
+        final distance = actor.distanceToPoint(tile);
         if (distance <= actor.radius + 0.35 && distance < bestDistance) {
           bestDistance = distance;
           best = actor;
@@ -292,7 +300,11 @@ class BattleState {
     _updateVision(dt);
     _updateRadar(dt);
     _updateProduction(dt);
-    for (final unit in allUnits) {
+    // 主循环直接遍历两方列表，避免每步都为 sync* 生成器分配迭代器。
+    for (final unit in redUnits) {
+      if (unit.alive) _updateUnit(unit, dt);
+    }
+    for (final unit in blueUnits) {
       if (unit.alive) _updateUnit(unit, dt);
     }
     _updateBuildings(dt);
@@ -317,9 +329,11 @@ class BattleState {
       _byId.remove(actor.id);
       if (actor is Unit) {
         unitsOf(actor.team).remove(actor);
+        _trackArmy(actor, -1);
       } else if (actor is Building) {
         buildingsOf(actor.team).remove(actor);
         _trackBuilding(actor, -1);
+        structureVersion++;
         for (var y = actor.tileY; y < actor.tileY + actor.spec.height; y++) {
           for (var x = actor.tileX; x < actor.tileX + actor.spec.width; x++) {
             if (!map.inBounds(x, y)) continue;

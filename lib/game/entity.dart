@@ -92,6 +92,20 @@ abstract class Actor {
 
   Offset get position => Offset(x, y);
 
+  /// 与给定点的距离；用标量计算避免索敌与维修扫描为每个候选创建 [Offset]。
+  double distanceToPoint(Offset point) {
+    final dx = x - point.dx;
+    final dy = y - point.dy;
+    return math.sqrt(dx * dx + dy * dy);
+  }
+
+  /// 与另一个目标的距离，同样走标量路径。
+  double distanceToActor(Actor other) {
+    final dx = x - other.x;
+    final dy = y - other.y;
+    return math.sqrt(dx * dx + dy * dy);
+  }
+
   void applyDamage(int amount) {
     if (amount <= 0) return;
     hp = math.max(0, hp - amount);
@@ -130,7 +144,8 @@ class Building extends Actor {
   @override
   ArmorClass get armor => ArmorClass.structure;
 
-  Rect get bounds => Rect.fromLTRB(
+  /// 占据的格子矩形，建筑落地后不再变化，缓存一份供裁剪、射程与迷你地图复用。
+  late final Rect bounds = Rect.fromLTRB(
     tileX.toDouble(),
     tileY.toDouble(),
     tileX + spec.width.toDouble(),
@@ -153,6 +168,11 @@ class Unit extends Actor {
   /// 当前移动路径（不含起点），[pathIndex] 指向下一个目标点。
   List<TilePoint> path = const [];
   int pathIndex = 0;
+
+  /// 上次寻路的目标与地形 / 建筑版本，用于跳过重复计算。
+  TilePoint? pathGoal;
+  int pathMapVersion = -1;
+  int pathStructureVersion = -1;
 
   UnitOrder order = UnitOrder.idle;
 
@@ -200,11 +220,13 @@ class Unit extends Actor {
   void setPath(List<TilePoint> next) {
     path = next;
     pathIndex = 0;
+    pathGoal = null;
   }
 
   void clearPath() {
     path = const [];
     pathIndex = 0;
+    pathGoal = null;
   }
 
   void clearOrders() {

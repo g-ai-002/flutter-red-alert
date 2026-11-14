@@ -87,6 +87,7 @@ extension BattleConstruction on BattleState {
     _byId[building.id] = building;
     buildingsOf(team).add(building);
     _trackBuilding(building, 1);
+    structureVersion++;
     for (var y = tileY; y < tileY + building.spec.height; y++) {
       for (var x = tileX; x < tileX + building.spec.width; x++) {
         if (!map.inBounds(x, y)) continue;
@@ -109,6 +110,7 @@ extension BattleConstruction on BattleState {
     actors.add(unit);
     _byId[unit.id] = unit;
     unitsOf(team).add(unit);
+    _trackArmy(unit, 1);
     return unit;
   }
 

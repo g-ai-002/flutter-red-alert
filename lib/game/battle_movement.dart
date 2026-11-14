@@ -161,7 +161,7 @@ extension BattleMovement on BattleState {
     for (final actor in actors) {
       if (actor.team != unit.team || !actor.alive || actor == unit) continue;
       if (actor.hp >= actor.maxHp) continue;
-      final distance = (actor.position - unit.position).distance;
+      final distance = unit.distanceToActor(actor);
       if (distance > 16 || distance >= bestDistance) continue;
       bestDistance = distance;
       best = actor;
@@ -172,9 +172,26 @@ extension BattleMovement on BattleState {
   TilePoint _tileOf(Unit unit) => TilePoint(unit.x.floor(), unit.y.floor());
 
   /// 重算到 [goal] 的路径；[goal] 为空表示无法抵达，仅重置计时避免每步重算。
+  ///
+  /// 追击与后撤会周期性重算，但目标格、地形与建筑占位都没变时路径依旧有效，
+  /// 此时只重置计时器，跳过整次 A* 搜索与路径数组分配。
   void _repath(Unit unit, TilePoint? goal, {required double repath}) {
-    final path = goal == null ? null : _finder.find(_tileOf(unit), goal);
-    if (path != null) unit.setPath(path);
+    final reusable =
+        goal != null &&
+        unit.hasPath &&
+        unit.pathGoal == goal &&
+        unit.pathMapVersion == map.version &&
+        unit.pathStructureVersion == structureVersion;
+    if (!reusable) {
+      final path = goal == null ? null : _finder.find(_tileOf(unit), goal);
+      if (path != null) {
+        unit
+          ..setPath(path)
+          ..pathGoal = goal
+          ..pathMapVersion = map.version
+          ..pathStructureVersion = structureVersion;
+      }
+    }
     unit.repathTimer = repath;
   }
 

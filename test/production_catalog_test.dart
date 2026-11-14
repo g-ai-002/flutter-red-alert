@@ -23,6 +23,7 @@ void main() {
       'barracks',
       'factory',
       'tower',
+      'airDefense',
       'hq',
     ]);
     expect(ProductionCatalog.of(ProductionCategory.infantry).map((i) => i.id), [
@@ -35,6 +36,7 @@ void main() {
       'lightTank',
       'heavyTank',
       'artillery',
+      'gunship',
     ]);
   });
 

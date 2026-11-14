@@ -53,7 +53,10 @@ class MusicService {
     try {
       final soloud = SoLoud.instance;
       if (!soloud.isInitialized) await soloud.init();
-      _source ??= await soloud.loadMem('redalert-bgm.wav', synthesizeMusicWav());
+      _source ??= await soloud.loadMem(
+        'redalert-bgm.wav',
+        await compute(_renderMusic, kMusicSampleRate),
+      );
     } catch (error) {
       _failed = true;
       debugPrint('[MusicService] 背景音乐加载失败: $error');
@@ -143,3 +146,6 @@ class MusicService {
     _suspended = false;
   }
 }
+
+/// 在后台 isolate 渲染 16 秒循环，避免首帧被上百毫秒的合成阻塞。
+Uint8List _renderMusic(int sampleRate) => synthesizeMusicWav(sampleRate: sampleRate);

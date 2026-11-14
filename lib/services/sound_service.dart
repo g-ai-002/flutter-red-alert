@@ -123,7 +123,7 @@ class SoundService {
       for (final feedback in BattleFeedback.values) {
         _sources[feedback] = await soloud.loadMem(
           'redalert-${feedback.name}.wav',
-          clipOf(feedback),
+          await compute(_renderClip, feedback.index),
         );
       }
     } catch (error) {
@@ -203,3 +203,7 @@ class SoundService {
     hapticsEnabled = true;
   }
 }
+
+/// 在后台 isolate 渲染单个音效，避免启动时在主线程一次性合成全部音频。
+Uint8List _renderClip(int index) =>
+    synthesizeWav(SoundService._presets[BattleFeedback.values[index]]!);

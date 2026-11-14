@@ -136,9 +136,12 @@ extension BattleMovement on BattleState {
         ..order = UnitOrder.idle
         ..destination = null;
     }
-    // 沿用仍在受损的目标，避免每个逻辑步都全表扫描。
+    // 沿用仍在受损的目标；没有可沿用目标时隔 0.4 秒再扫一次，避免每个逻辑步全表扫描。
     final current = unit.targetId == null ? null : actorById(unit.targetId!);
-    final target = current != null && current.hp < current.maxHp ? current : _repairTarget(unit);
+    final damaged = current != null && current.hp < current.maxHp;
+    if (!damaged && unit.repathTimer > 0) return;
+    if (!damaged) unit.repathTimer = 0.4;
+    final target = damaged ? current : _repairTarget(unit);
     if (target == null) {
       unit
         ..targetId = null
@@ -166,17 +169,22 @@ extension BattleMovement on BattleState {
   }
 
   /// 最近的待修目标：优先距离近的，建筑与车辆一视同仁。
+  /// 只扫己方名单，敌方单位与建筑不需要参与维修判定。
   Actor? _repairTarget(Unit unit) {
     Actor? best;
     var bestDistance = double.infinity;
-    for (final actor in actors) {
-      if (actor.team != unit.team || !actor.alive || actor == unit) continue;
-      if (actor.hp >= actor.maxHp) continue;
-      final distance = unit.distanceToActor(actor);
-      if (distance > 16 || distance >= bestDistance) continue;
-      bestDistance = distance;
-      best = actor;
+    void consider(Iterable<Actor> candidates) {
+      for (final actor in candidates) {
+        if (!actor.alive || actor == unit || actor.hp >= actor.maxHp) continue;
+        final distance = unit.distanceToActor(actor);
+        if (distance > 16 || distance >= bestDistance) continue;
+        bestDistance = distance;
+        best = actor;
+      }
     }
+
+    consider(unitsOf(unit.team));
+    consider(buildingsOf(unit.team));
     return best;
   }
 

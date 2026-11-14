@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../game/battle_controller.dart';
 import '../../game/battle_state.dart';
 import '../../game/battle_types.dart';
+import '../../game/entity.dart';
 import '../../theme/palette.dart';
 import 'minimap_terrain.dart';
 
@@ -95,9 +96,10 @@ class _MinimapPainter extends CustomPainter {
 
     final radar = state.radarActive;
     final vision = state.vision;
+    // 雷达扫描期间显示全部敌军，其余时刻只显示视野内的蓝军。
+    bool hidden(Actor actor) => actor.team == Team.blue && !radar && !vision.sees(actor);
     for (final building in state.allBuildings) {
-      if (!building.alive) continue;
-      if (building.team == Team.blue && !radar && !vision.sees(building)) continue;
+      if (!building.alive || hidden(building)) continue;
       canvas.drawRect(
         Rect.fromLTWH(
           building.tileX * sx,
@@ -109,8 +111,7 @@ class _MinimapPainter extends CustomPainter {
       );
     }
     for (final unit in state.allUnits) {
-      if (!unit.alive) continue;
-      if (unit.team == Team.blue && !radar && !vision.sees(unit)) continue;
+      if (!unit.alive || hidden(unit)) continue;
       canvas.drawCircle(Offset(unit.x * sx, unit.y * sy), 1.6, _fill..color = unit.team.color);
     }
 

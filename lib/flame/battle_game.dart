@@ -61,6 +61,8 @@ class BattleGame extends FlameGame {
   @override
   Future<void> onLoad() async {
     controller.camera.updateViewport(Size(size.x, size.y));
+    // 在首帧之前把地形区块与整图录制完，之后平移不再为新区块付出整帧卡顿。
+    _terrain.warmUp();
   }
 
   @override
@@ -126,12 +128,13 @@ class BattleGame extends FlameGame {
     canvas.save();
     canvas.translate(origin.dx, origin.dy);
     canvas.scale(camera.tileSize);
-    canvas.clipRect(_mapRect);
     final visible = camera.visibleWorld.inflate(2);
+    // 只保留视口覆盖的地图区域，落到栅格化阶段时视口外的地形与迷雾可直接裁掉。
+    canvas.clipRect(visible.intersect(_mapRect));
     _terrain.paint(canvas, visible);
     canvas.drawRect(_mapRect, _border..strokeWidth = 2.4 / camera.tileSize);
     _actors.drawActors(canvas, visible);
-    effects.render(canvas, camera.tileSize);
+    effects.render(canvas, camera.tileSize, view: visible);
     _fog.paint(canvas);
     _actors.drawGhost(canvas);
     canvas.restore();

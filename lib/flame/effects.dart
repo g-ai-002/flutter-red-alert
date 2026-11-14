@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
+
 import '../game/battle_state.dart';
 import '../game/battle_types.dart';
 
@@ -9,6 +11,7 @@ class Effects {
   Effects();
 
   final List<_Fx> _items = [];
+  int _drawn = 0;
 
   static const Color _hot = Color(0xFFFFB04A);
   static const Color _core = Color(0xFFFFE7B0);
@@ -58,9 +61,14 @@ class Effects {
     }
   }
 
-  void render(Canvas canvas, double tileSize) {
+  /// 绘制全部存活特效；传入 [view] 时跳过视野外的条目，
+  /// 大兵团在其他区域交火时不再为看不见的弹道与爆炸录制指令。
+  void render(Canvas canvas, double tileSize, {Rect? view}) {
+    _drawn = 0;
     if (_items.isEmpty) return;
     for (final item in _items) {
+      if (view != null && !_inView(item, view)) continue;
+      _drawn++;
       final t = (item.elapsed / item.duration).clamp(0.0, 1.0);
       switch (item.kind) {
         case _FxKind.tracer:
@@ -91,10 +99,23 @@ class Effects {
     }
   }
 
+  /// 弹道类特效横跨起点与落点，按两者的包围盒（含半径与飞散余量）裁剪。
+  bool _inView(_Fx fx, Rect view) {
+    final left = math.min(fx.x, fx.tx ?? fx.x) - fx.radius - 1;
+    final right = math.max(fx.x, fx.tx ?? fx.x) + fx.radius + 1;
+    final top = math.min(fx.y, fx.ty ?? fx.y) - fx.radius - 1;
+    final bottom = math.max(fx.y, fx.ty ?? fx.y) + fx.radius + 1;
+    return right >= view.left && left <= view.right && bottom >= view.top && top <= view.bottom;
+  }
+
   void clear() => _items.clear();
 
   /// 当前存活的特效数量，供渲染调试与测试断言。
   int get activeCount => _items.length;
+
+  /// 上一帧实际绘制的特效数量，用于验证视野裁剪。
+  @visibleForTesting
+  int get drawnCount => _drawn;
 
   void _drawTracer(Canvas canvas, _Fx fx, double t, double tileSize) {
     canvas.drawLine(

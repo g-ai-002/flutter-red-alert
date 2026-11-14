@@ -29,6 +29,32 @@ void main() {
     painter.dispose();
   });
 
+  test('预热后任意视野都不再录制新区块', () {
+    final map = GameMap.generate();
+    final painter = TerrainPainter(map);
+    painter.warmUp();
+    expect(painter.builtChunks, 16);
+    painter.paint(_recorder(), const Rect.fromLTWH(0, 0, 11, 11));
+    painter.paint(_recorder(), const Rect.fromLTWH(30, 30, 14, 14));
+    expect(painter.builtChunks, 16, reason: '预热已覆盖整张地图，平移不应再触发录制');
+    painter.dispose();
+  });
+
+  test('地形更新后合成图跟随重建', () {
+    final map = GameMap.generate();
+    final painter = TerrainPainter(map);
+    const full = Rect.fromLTWH(0, 0, 44, 44);
+    painter.warmUp();
+    final built = painter.builtChunks;
+
+    final oreIndex = map.oreIndices.first;
+    expect(map.mine(oreIndex % map.width, oreIndex ~/ map.width, 999999), greaterThan(0));
+
+    painter.paint(_recorder(), full);
+    expect(painter.builtChunks, built + 1);
+    painter.dispose();
+  });
+
   test('矿格采空只重建所在区块', () {
     final map = GameMap.generate();
     final painter = TerrainPainter(map);

@@ -38,4 +38,22 @@ void main() {
     effects.render(Canvas(recorder), 24);
     recorder.endRecording().dispose();
   });
+
+  test('视野外的特效不参与绘制', () {
+    final effects = Effects();
+    effects.addEvent(const BattleEvent(BattleEventKind.explosion, 4, 30, radius: 1.2));
+    effects.addEvent(const BattleEvent(BattleEventKind.bullet, 40, 4, tx: 42, ty: 6));
+    effects.addEvent(const BattleEvent(BattleEventKind.bullet, 33, 2, tx: 40, ty: 2));
+
+    final recorder = ui.PictureRecorder();
+    effects.render(Canvas(recorder), 24, view: const Rect.fromLTWH(0, 25, 20, 15));
+    recorder.endRecording().dispose();
+    expect(effects.drawnCount, 1, reason: '只保留落在视口内的爆炸');
+    expect(effects.activeCount, 3);
+
+    final full = ui.PictureRecorder();
+    effects.render(Canvas(full), 24);
+    full.endRecording().dispose();
+    expect(effects.drawnCount, 3, reason: '不传视野时保持原有全量绘制行为');
+  });
 }

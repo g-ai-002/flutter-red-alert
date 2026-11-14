@@ -57,7 +57,9 @@
 - **状态**: 开发与测试完成（153 个用例通过，静态分析 0 告警，非测试代码 9992 行）；
   Gitea Actions main 全流程（测试 / Android / Windows / Web）成功，
   [构建记录](http://192.168.31.120:3020/GTech/flutter-red-alert/actions/runs/3176)；
-  v0.5.1 Tag 构建与发布待验证
+  v0.5.1 Tag 构建测试 / Android / Windows / Web 全部成功并发布三端产物，
+  [Tag 构建](http://192.168.31.120:3020/GTech/flutter-red-alert/actions/runs/3179)、
+  [Release](http://192.168.31.120:3020/GTech/flutter-red-alert/releases/tag/v0.5.1)
 - **目标**: 不改变玩法、数值与操作方式，收敛 0.5.0 留下的重复实现：
   建筑占格、圆形格扫描、矩形距离、武器参数与战斗部队定义各归一处，
   为后续性能优化与兵种扩展留出代码预算。

@@ -59,22 +59,27 @@ class StorageService {
     } catch (_) {}
   }
 
+  /// 布尔偏好默认开启，读写键值收敛到一处。
+  bool _flag(String key) => _p.getBool(key) ?? true;
+
+  Future<void> _setFlag(String key, bool value) => _write((p) => p.setBool(key, value));
+
   /// 默认使用深色模式，战场氛围更统一。
-  bool get darkMode => _p.getBool(AppConstants.prefKeyDarkMode) ?? true;
-  Future<void> setDarkMode(bool value) =>
-      _write((p) => p.setBool(AppConstants.prefKeyDarkMode, value));
+  bool get darkMode => _flag(AppConstants.prefKeyDarkMode);
 
-  bool get soundEnabled => _p.getBool(AppConstants.prefKeySound) ?? true;
-  Future<void> setSoundEnabled(bool value) =>
-      _write((p) => p.setBool(AppConstants.prefKeySound, value));
+  Future<void> setDarkMode(bool value) => _setFlag(AppConstants.prefKeyDarkMode, value);
 
-  bool get musicEnabled => _p.getBool(AppConstants.prefKeyMusic) ?? true;
-  Future<void> setMusicEnabled(bool value) =>
-      _write((p) => p.setBool(AppConstants.prefKeyMusic, value));
+  bool get soundEnabled => _flag(AppConstants.prefKeySound);
 
-  bool get hapticsEnabled => _p.getBool(AppConstants.prefKeyHaptics) ?? true;
-  Future<void> setHapticsEnabled(bool value) =>
-      _write((p) => p.setBool(AppConstants.prefKeyHaptics, value));
+  Future<void> setSoundEnabled(bool value) => _setFlag(AppConstants.prefKeySound, value);
+
+  bool get musicEnabled => _flag(AppConstants.prefKeyMusic);
+
+  Future<void> setMusicEnabled(bool value) => _setFlag(AppConstants.prefKeyMusic, value);
+
+  bool get hapticsEnabled => _flag(AppConstants.prefKeyHaptics);
+
+  Future<void> setHapticsEnabled(bool value) => _setFlag(AppConstants.prefKeyHaptics, value);
 
   LogicRate get logicRate => LogicRate.byName(_p.getString(AppConstants.prefKeyLogicRate));
 

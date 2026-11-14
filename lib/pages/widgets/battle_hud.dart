@@ -109,14 +109,12 @@ class _SelectionCard extends StatelessWidget {
                 const SizedBox(height: 3),
                 SizedBox(
                   width: 110,
-                  child: ClipRRect(
+                  child: LinearProgressIndicator(
+                    value: info.hpRatio,
+                    minHeight: 5,
                     borderRadius: BorderRadius.circular(3),
-                    child: LinearProgressIndicator(
-                      value: info.hpRatio,
-                      minHeight: 5,
-                      backgroundColor: const Color(0x55201812),
-                      valueColor: AlwaysStoppedAnimation(info.team.color),
-                    ),
+                    color: info.team.color,
+                    backgroundColor: const Color(0x55201812),
                   ),
                 ),
               ],

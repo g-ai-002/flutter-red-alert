@@ -53,12 +53,17 @@ class BattleController extends ChangeNotifier {
   double speed = 1;
   double _notifyAccumulator = 0;
   bool _resultAnnounced = false;
+
+  /// 迷你地图的独立刷新节拍：HUD 其余部分静止时，单位光点仍按 6Hz 移动。
+  final ValueNotifier<int> hudPulse = ValueNotifier(0);
+  String? _hudSnapshotValue;
   bool _strikeAiming = false;
   Offset? _strikeTarget;
 
   /// 指令统一出口：按需播放反馈音，并通知 HUD 刷新。
   void _commit([BattleFeedback? feedback]) {
     if (feedback != null) SoundService.play(feedback);
+    _hudSnapshotValue = _hudSnapshot();
     notifyListeners();
   }
 
@@ -112,10 +117,30 @@ class BattleController extends ChangeNotifier {
     }
 
     _notifyAccumulator += dt;
-    if (_notifyAccumulator >= 0.16) {
-      _notifyAccumulator = 0;
-      notifyListeners();
-    }
+    if (_notifyAccumulator < 0.16) return;
+    _notifyAccumulator = 0;
+    hudPulse.value++;
+    final snapshot = _hudSnapshot();
+    if (snapshot == _hudSnapshotValue) return;
+    _hudSnapshotValue = snapshot;
+    notifyListeners();
+  }
+
+  /// HUD 渲染的值摘要：只有摘要变化才重建悬浮界面，空闲时整块 HUD 保持静止。
+  /// 进度与血条按 2% 量化，集火时血条依旧平滑；用户操作走 [_commit] 不经过这里。
+  String _hudSnapshot() {
+    final selection = _selection.summary;
+    final jobs = [
+      for (final category in ProductionCategory.values) state.jobOf(playerTeam, category),
+    ];
+    final power = '${state.powerUsed(playerTeam)}/${state.powerProduced(playerTeam)}';
+    final hp = ((selection?.hpRatio ?? 0) * 50).round();
+    final strike = (state.strikeProgress(playerTeam) * 50).round();
+    final queue = [for (final job in jobs) '${job?.id}:${((job?.progress ?? 0) * 50).round()}'];
+    final texts = [for (final toast in toasts) toast.text];
+    return '${state.creditsRed}|$power|${state.armySize(playerTeam)}|${state.elapsed.round()}'
+        '|${state.structureVersion}|${state.radarActive}|${state.radarCooldown.ceil()}|$strike'
+        '|${selection?.name}|${selection?.count}|$hp|${queue.join()}|${texts.join()}';
   }
 
   void _drainNotices() {
@@ -279,11 +304,6 @@ class BattleController extends ChangeNotifier {
     _commit();
   }
 
-  void togglePause() {
-    paused = !paused;
-    _commit();
-  }
-
   void setPaused(bool value) {
     if (paused == value) return;
     paused = value;
@@ -378,6 +398,7 @@ class BattleController extends ChangeNotifier {
   @override
   void dispose() {
     state.onAiTick = null;
+    hudPulse.dispose();
     super.dispose();
   }
 

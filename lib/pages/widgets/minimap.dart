@@ -49,7 +49,6 @@ class _BattleMinimapState extends State<BattleMinimap> {
     final aspect = map.width / map.height;
     final width = widget.size * aspect;
     final size = Size(width, widget.size);
-    final terrain = _terrain.pictureFor(map: map, vision: state.vision, size: size);
     return Semantics(
       label: '迷你地图',
       child: GestureDetector(
@@ -66,9 +65,15 @@ class _BattleMinimapState extends State<BattleMinimap> {
           ),
           clipBehavior: Clip.antiAlias,
           child: RepaintBoundary(
-            child: CustomPaint(
-              painter: _MinimapPainter(controller: widget.controller, terrain: terrain),
-              size: size,
+            child: ValueListenableBuilder<int>(
+              valueListenable: widget.controller.hudPulse,
+              builder: (context, _, _) => CustomPaint(
+                painter: _MinimapPainter(
+                  controller: widget.controller,
+                  terrain: _terrain.pictureFor(map: map, vision: state.vision, size: size),
+                ),
+                size: size,
+              ),
             ),
           ),
         ),

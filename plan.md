@@ -54,7 +54,12 @@
 
 ### v0.5.2 (PATCH, 性能与流畅度优化) — 2026-11-14
 
-- **状态**: 开发与测试完成（158 个用例通过，静态分析 0 告警，非测试代码 9999 行）
+- **状态**: 开发与测试完成（158 个用例通过，静态分析 0 告警，非测试代码 9999 行）；
+  Gitea Actions main 全流程（测试 / Android / Windows / Web）成功，
+  [构建记录](http://192.168.31.120:3020/GTech/flutter-red-alert/actions/runs/3184)；
+  v0.5.2 Tag 构建测试 / Android / Windows / Web 全部成功并发布三端产物，
+  [Tag 构建](http://192.168.31.120:3020/GTech/flutter-red-alert/actions/runs/3185)、
+  [Release](http://192.168.31.120:3020/GTech/flutter-red-alert/releases/tag/v0.5.2)
 - **目标**: 不改变玩法、数值与操作方式，削减大兵团对局中的三项固定开销：
   悬浮 HUD 每 160ms 的全量重建、工程兵每个逻辑步的全表维修扫描，
   以及 HUD 静止时迷你地图无法独立刷新的浪费。

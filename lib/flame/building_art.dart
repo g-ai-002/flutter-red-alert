@@ -173,6 +173,33 @@ class BuildingArt {
           );
         }
         break;
+      case BuildingKind.silo:
+        // 井盖与待发导弹：舱口环 + 弹体 + 尾翼，周围一圈警示条。
+        canvas.drawCircle(center, rect.width * 0.3, dark);
+        canvas.drawCircle(
+          center,
+          rect.width * 0.24,
+          brush.outlined(const Color(0xFFD9A94B), 0.035),
+        );
+        canvas.drawRect(
+          Rect.fromLTWH(center.dx - 0.09, center.dy - 0.62, 0.18, 0.95),
+          brush.solid(const Color(0xFFE8E2D2)),
+        );
+        canvas.drawPath(
+          Path()
+            ..moveTo(center.dx, center.dy - 0.86)
+            ..lineTo(center.dx + 0.09, center.dy - 0.6)
+            ..lineTo(center.dx - 0.09, center.dy - 0.6)
+            ..close(),
+          brush.solid(const Color(0xFFC8382B)),
+        );
+        for (final dx in [-0.13, 0.13]) {
+          canvas.drawRect(
+            Rect.fromLTWH(center.dx + dx - 0.03, center.dy - 0.06, 0.06, 0.22),
+            brush.solid(const Color(0xFF35342F)),
+          );
+        }
+        break;
     }
   }
 }

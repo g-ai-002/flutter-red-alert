@@ -14,7 +14,7 @@ class AppConstants {
   AppConstants._();
 
   static const String appName = '赤色黎明';
-  static const String version = '0.4.2';
+  static const String version = '0.5.0';
   static const String tagline = '单机即时战略';
 
   static const String prefKeyDarkMode = 'dark_mode';
@@ -27,10 +27,4 @@ class AppConstants {
   static const String prefKeyLosses = 'stats_losses';
   static const String prefKeyBestSeconds = 'stats_best_seconds';
   static const String prefKeyCampaign = 'campaign_completed';
-
-  /// 对局地图边长（格），44×44 兼顾路径查找开销与战场纵深。
-  static const int mapTiles = 44;
-
-  /// 战场逻辑固定步长的默认速率。
-  static const int defaultLogicHz = 60;
 }

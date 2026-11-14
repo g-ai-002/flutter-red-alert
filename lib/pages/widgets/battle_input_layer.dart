@@ -56,6 +56,8 @@ class _BattleInputLayerState extends State<BattleInputLayer> {
         onHover: (event) {
           if (_controller.isPlacing) {
             _controller.updateGhost(event.localPosition);
+          } else if (_controller.strikeAiming) {
+            _controller.updateStrikeAim(event.localPosition);
           }
         },
         child: isDesktopPlatform ? _buildDesktopGesture() : _buildTouchGesture(),
@@ -68,13 +70,17 @@ class _BattleInputLayerState extends State<BattleInputLayer> {
       behavior: HitTestBehavior.opaque,
       onTapUp: (details) => _controller.tap(details.localPosition),
       onPanStart: (details) {
-        if (_controller.isPlacing) return;
+        if (_controller.isPlacing || _controller.strikeAiming) return;
         _dragStart = details.localPosition;
         if (_boxRect != null) setState(() => _boxRect = null);
       },
       onPanUpdate: (details) {
         if (_controller.isPlacing) {
           _controller.updateGhost(details.localPosition);
+          return;
+        }
+        if (_controller.strikeAiming) {
+          _controller.updateStrikeAim(details.localPosition);
           return;
         }
         final start = _dragStart;
@@ -119,6 +125,10 @@ class _BattleInputLayerState extends State<BattleInputLayer> {
           final target = _scaleAnchor * details.scale;
           camera.zoomAt(details.localFocalPoint, (target / camera.tileSize).clamp(0.75, 1.35));
           camera.panByScreen(details.focalPointDelta);
+          return;
+        }
+        if (_controller.strikeAiming && details.pointerCount <= 1) {
+          _controller.updateStrikeAim(details.localFocalPoint);
           return;
         }
         if (details.pointerCount >= 2) {

@@ -16,6 +16,7 @@ Future<void> showBattleResultDialog(
   String? message,
 }) {
   final victory = result == BattleResult.victory;
+  final accent = victory ? appGold : appRed;
   return showDialog<void>(
     context: context,
     barrierDismissible: false,
@@ -27,13 +28,13 @@ Future<void> showBattleResultDialog(
           height: 62,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: (victory ? appGold : appRed).withValues(alpha: 0.16),
+            color: accent.withValues(alpha: 0.16),
             border: Border.all(color: victory ? hudGold : appRed),
           ),
           child: Icon(
             victory ? Icons.military_tech : Icons.local_fire_department,
             size: 30,
-            color: victory ? appGold : appRed,
+            color: accent,
           ),
         ),
         const SizedBox(height: 14),
@@ -65,77 +66,18 @@ Future<void> showBattleResultDialog(
           ),
         ],
         const SizedBox(height: 16),
-        Row(
-          children: [
-            _ResultStat(label: '模式', value: mode),
-            _ResultStat(label: '用时', value: elapsed),
-          ],
-        ),
+        Row(children: [_stat('模式', mode), _stat('用时', elapsed)]),
         const SizedBox(height: 18),
         Row(
           children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: onHome,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: hudTextSoft,
-                  side: const BorderSide(color: hudBorderDeep),
-                ),
-                child: const Text('返回主菜单'),
-              ),
-            ),
+            Expanded(child: _action('返回主菜单', onHome)),
             const SizedBox(width: 10),
-            Expanded(
-              child: FilledButton(
-                onPressed: onRestart,
-                style: FilledButton.styleFrom(
-                  backgroundColor: appRed,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('再战一次'),
-              ),
-            ),
+            Expanded(child: _action('再战一次', onRestart, filled: true)),
           ],
         ),
       ],
     ),
   );
-}
-
-class _ResultStat extends StatelessWidget {
-  const _ResultStat({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 3),
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          color: hudPanelAlt,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0x334F483C)),
-        ),
-        child: Column(
-          children: [
-            Text(label, style: const TextStyle(fontSize: 10, color: Color(0xFF9C9180))),
-            const SizedBox(height: 2),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFFEDE0CA),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 /// 暂停菜单：继续、重新开始、返回主菜单与玩法说明。
@@ -175,22 +117,74 @@ Future<void> showPauseDialog(
           ),
         ],
         const SizedBox(height: 16),
-        _PauseAction(
-          label: '继续战斗',
-          filled: true,
-          onPressed: () {
-            controller.setPaused(false);
-            Navigator.of(context).pop();
-          },
-        ),
+        _action('继续战斗', () {
+          controller.setPaused(false);
+          Navigator.of(context).pop();
+        }, filled: true),
         const SizedBox(height: 8),
-        _PauseAction(label: '玩法说明', onPressed: onGuide),
+        _action('玩法说明', onGuide),
         const SizedBox(height: 8),
-        _PauseAction(label: '重新开始', onPressed: onRestart),
+        _action('重新开始', onRestart),
         const SizedBox(height: 8),
-        _PauseAction(label: '返回主菜单', text: true, onPressed: onHome),
+        _action('返回主菜单', onHome, text: true),
       ],
     ),
+  );
+}
+
+/// 结算数据格：模式与用时。
+Widget _stat(String label, String value) {
+  return Expanded(
+    child: Container(
+      margin: const EdgeInsets.symmetric(horizontal: 3),
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: hudPanelAlt,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0x334F483C)),
+      ),
+      child: Column(
+        children: [
+          Text(label, style: const TextStyle(fontSize: 10, color: Color(0xFF9C9180))),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFFEDE0CA),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+/// 对话框按钮：实心、描边与文字三种样式，暂停菜单与结算共用。
+Widget _action(String label, VoidCallback onPressed, {bool filled = false, bool text = false}) {
+  return SizedBox(
+    width: double.infinity,
+    child: switch ((filled, text)) {
+      (true, _) => FilledButton(
+        onPressed: onPressed,
+        style: FilledButton.styleFrom(backgroundColor: appRed, foregroundColor: Colors.white),
+        child: Text(label),
+      ),
+      (_, true) => TextButton(
+        onPressed: onPressed,
+        style: TextButton.styleFrom(foregroundColor: hudTextWarm),
+        child: Text(label),
+      ),
+      _ => OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: hudTextSoft,
+          side: const BorderSide(color: hudBorderDeep),
+        ),
+        child: Text(label),
+      ),
+    },
   );
 }
 
@@ -216,47 +210,6 @@ class _HudDialog extends StatelessWidget {
           child: Column(mainAxisSize: MainAxisSize.min, children: children),
         ),
       ),
-    );
-  }
-}
-
-class _PauseAction extends StatelessWidget {
-  const _PauseAction({
-    required this.label,
-    required this.onPressed,
-    this.filled = false,
-    this.text = false,
-  });
-
-  final String label;
-  final VoidCallback onPressed;
-  final bool filled;
-  final bool text;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: switch ((filled, text)) {
-        (true, _) => FilledButton(
-          onPressed: onPressed,
-          style: FilledButton.styleFrom(backgroundColor: appRed, foregroundColor: Colors.white),
-          child: Text(label),
-        ),
-        (_, true) => TextButton(
-          onPressed: onPressed,
-          style: TextButton.styleFrom(foregroundColor: hudTextWarm),
-          child: Text(label),
-        ),
-        _ => OutlinedButton(
-          onPressed: onPressed,
-          style: OutlinedButton.styleFrom(
-            foregroundColor: hudTextSoft,
-            side: const BorderSide(color: hudBorderDeep),
-          ),
-          child: Text(label),
-        ),
-      },
     );
   }
 }

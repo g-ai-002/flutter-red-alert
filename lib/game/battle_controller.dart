@@ -53,6 +53,8 @@ class BattleController extends ChangeNotifier {
   double speed = 1;
   double _notifyAccumulator = 0;
   bool _resultAnnounced = false;
+  bool _strikeAiming = false;
+  Offset? _strikeTarget;
 
   /// 指令统一出口：按需播放反馈音，并通知 HUD 刷新。
   void _commit([BattleFeedback? feedback]) {
@@ -63,6 +65,15 @@ class BattleController extends ChangeNotifier {
   BattleResult? get result => state.result;
   BattleDifficulty get difficulty => state.difficulty;
   bool get isPlacing => _placement.active;
+
+  /// 战略打击瞄准状态与当前落点，渲染层据此绘制杀伤范围。
+  bool get strikeAiming => _strikeAiming;
+
+  Offset? get strikeTarget => _strikeTarget;
+
+  bool get strikeReady => state.strikeReady(playerTeam);
+
+  double get strikeProgress => state.strikeProgress(playerTeam);
 
   PlacementState get placement => _placement;
 
@@ -137,6 +148,11 @@ class BattleController extends ChangeNotifier {
 
   /// 单击/点按战场：选择、移动或攻击。
   void tap(Offset screenPosition, {bool additive = false}) {
+    if (_strikeAiming) {
+      updateStrikeAim(screenPosition);
+      _tryLaunchStrike();
+      return;
+    }
     if (isPlacing) {
       // 点哪放哪：先把预览移动到落点，再尝试确认。
       updateGhost(screenPosition);
@@ -169,8 +185,12 @@ class BattleController extends ChangeNotifier {
     }
   }
 
-  /// 桌面右键：对目标直接下达指令，不改变选择。
+  /// 桌面右键：对目标直接下达指令，不改变选择；瞄准时改为取消打击。
   void contextCommand(Offset screenPosition) {
+    if (_strikeAiming) {
+      cancelStrikeAim();
+      return;
+    }
     if (!canCommandSelection) return;
     final actor = _visibleActorAt(screenPosition);
     if (actor != null && actor.team != playerTeam) {
@@ -215,6 +235,7 @@ class BattleController extends ChangeNotifier {
   void beginPlacement(String id) {
     final kind = buildingKindFromId(id);
     if (kind == null || !state.hasReadyStructure(playerTeam, kind)) return;
+    _strikeAiming = false;
     selectedIds.clear();
     _placement.begin(kind, camera.center);
     _commit();
@@ -285,6 +306,53 @@ class BattleController extends ChangeNotifier {
     }
     _drainNotices();
     _commit(scanned ? BattleFeedback.command : null);
+  }
+
+  /// 进入或退出战略打击瞄准；发射井未就绪时给出原因。
+  void toggleStrikeAiming() {
+    if (_strikeAiming) {
+      cancelStrikeAim();
+      return;
+    }
+    if (!strikeReady) {
+      state.addNotice(
+        state.hasBuilding(playerTeam, BuildingKind.silo) ? '导弹发射井仍在蓄能' : '需要先建造导弹发射井',
+        level: NoticeLevel.warning,
+      );
+      _drainNotices();
+      _commit();
+      return;
+    }
+    _placement.cancel();
+    selectedIds.clear();
+    _strikeAiming = true;
+    _strikeTarget = camera.center;
+    _commit(BattleFeedback.command);
+  }
+
+  /// 瞄准落点跟随鼠标 / 手指，渲染层逐帧读取，不需要刷新 HUD。
+  void updateStrikeAim(Offset screenPosition) {
+    if (!_strikeAiming) return;
+    final world = camera.screenToWorld(screenPosition);
+    _strikeTarget = Offset(
+      world.dx.clamp(0, state.map.width.toDouble()),
+      world.dy.clamp(0, state.map.height.toDouble()),
+    );
+  }
+
+  void cancelStrikeAim() {
+    if (!_strikeAiming) return;
+    _strikeAiming = false;
+    _commit();
+  }
+
+  bool _tryLaunchStrike() {
+    final target = _strikeTarget;
+    if (target == null || !state.launchStrike(playerTeam, target)) return false;
+    _strikeAiming = false;
+    LogService.info('战略打击: (${target.dx.toStringAsFixed(1)}, ${target.dy.toStringAsFixed(1)})');
+    _commit(BattleFeedback.explosion);
+    return true;
   }
 
   /// 生产入口：开始生产或进入放置。

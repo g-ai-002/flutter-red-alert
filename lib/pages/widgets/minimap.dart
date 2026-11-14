@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import '../../game/battle_controller.dart';
 import '../../game/battle_state.dart';
 import '../../game/battle_types.dart';
-import '../../game/entity.dart';
 import '../../theme/palette.dart';
 import 'minimap_terrain.dart';
 
@@ -112,7 +111,7 @@ class _MinimapPainter extends CustomPainter {
     for (final unit in state.allUnits) {
       if (!unit.alive) continue;
       if (unit.team == Team.blue && !radar && !vision.sees(unit)) continue;
-      _drawUnit(canvas, unit, sx, sy);
+      canvas.drawCircle(Offset(unit.x * sx, unit.y * sy), 1.6, _fill..color = unit.team.color);
     }
 
     if (radar) {
@@ -138,10 +137,6 @@ class _MinimapPainter extends CustomPainter {
           ..color = hudText,
       );
     }
-  }
-
-  void _drawUnit(Canvas canvas, Unit unit, double sx, double sy) {
-    canvas.drawCircle(Offset(unit.x * sx, unit.y * sy), 1.6, _fill..color = unit.team.color);
   }
 
   @override

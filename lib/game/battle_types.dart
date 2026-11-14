@@ -63,7 +63,8 @@ enum BuildingKind {
   barracks('兵营', '兵', '训练步兵与火箭兵'),
   factory('战车工厂', '厂', '生产采矿车与各型坦克'),
   tower('哨戒炮塔', '塔', '自动攻击射程内的敌军，守卫基地'),
-  airDefense('防空炮塔', '防', '只攻击空中目标，是武装直升机的天敌');
+  airDefense('防空炮塔', '防', '只攻击空中目标，是武装直升机的天敌'),
+  silo('导弹发射井', '弹', '持续蓄能，满格后可对指定区域实施战略打击');
 
   const BuildingKind(this.label, this.icon, this.description);
   final String label;
@@ -473,6 +474,16 @@ const Map<BuildingKind, BuildingSpec> buildingSpecs = {
     vsAir: 1.8,
     canHitAir: true,
     canHitGround: false,
+  ),
+  BuildingKind.silo: BuildingSpec(
+    kind: BuildingKind.silo,
+    cost: 3000,
+    maxHp: 1400,
+    power: -70,
+    buildSeconds: 30,
+    width: 3,
+    height: 3,
+    requires: BuildingKind.factory,
   ),
 };
 

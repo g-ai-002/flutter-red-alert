@@ -27,7 +27,18 @@ class BattleNotice {
 }
 
 /// 一次性视觉事件，由渲染层消费。
-enum BattleEventKind { bullet, shell, airstrike, explosion, build, spawn, unload, move, repair }
+enum BattleEventKind {
+  bullet,
+  shell,
+  airstrike,
+  missile,
+  explosion,
+  build,
+  spawn,
+  unload,
+  move,
+  repair,
+}
 
 class BattleEvent {
   const BattleEvent(this.kind, this.x, this.y, {this.tx, this.ty, this.team, this.radius = 0.5});
@@ -83,6 +94,13 @@ class BattleState {
 
   static const double radarScanSeconds = 4;
   static const double radarCooldownSeconds = 45;
+
+  /// 战略打击：发射井蓄能时长、杀伤半径与中心伤害。
+  static const double strikeChargeSeconds = 120;
+  static const double strikeRadius = 4.2;
+  static const int strikeDamage = 900;
+
+  final Map<Team, double> _strikeCharge = {for (final team in Team.values) team: 0};
 
   final List<Actor> actors = [];
   final List<Unit> redUnits = [];
@@ -215,6 +233,12 @@ class BattleState {
 
   bool get radarReady => radarCooldown <= 0 && hasBuilding(Team.red, BuildingKind.hq);
 
+  /// 发射井蓄能进度：0 表示刚开始，1 表示可以发射。
+  double strikeProgress(Team team) => _strikeCharge[team]!;
+
+  /// 发射井在线且蓄能完毕才可实施战略打击。
+  bool strikeReady(Team team) => strikeProgress(team) >= 1 && hasBuilding(team, BuildingKind.silo);
+
   /// 启动一次雷达扫描：要求指挥中心在线且冷却结束。
   bool triggerRadar() {
     if (!radarReady) return false;
@@ -277,6 +301,7 @@ class BattleState {
     elapsed += dt;
     _updateVision(dt);
     _updateRadar(dt);
+    _updateStrike(dt);
     _updateProduction(dt);
     // 主循环直接遍历两方列表，避免每步都为 sync* 生成器分配迭代器。
     for (final unit in redUnits) {

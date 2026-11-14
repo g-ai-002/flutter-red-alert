@@ -24,6 +24,7 @@ void main() {
       'factory',
       'tower',
       'airDefense',
+      'silo',
       'hq',
     ]);
     expect(ProductionCatalog.of(ProductionCategory.infantry).map((i) => i.id), [

@@ -26,6 +26,7 @@ class Effects {
     BattleEventKind.bullet: _FxSpec(_FxKind.tracer, 0.1),
     BattleEventKind.shell: _FxSpec(_FxKind.shell, 0.24),
     BattleEventKind.airstrike: _FxSpec(_FxKind.airstrike, 0.34, tint: true),
+    BattleEventKind.missile: _FxSpec(_FxKind.missile, 1.1, radius: 4.2, tint: true),
     BattleEventKind.explosion: _FxSpec(_FxKind.explosion, 0.6),
     BattleEventKind.build: _FxSpec(_FxKind.ring, 0.7, minRadius: 1, tint: true),
     BattleEventKind.spawn: _FxSpec(_FxKind.ring, 0.45, radius: 0.7, tint: true),
@@ -79,6 +80,9 @@ class Effects {
           break;
         case _FxKind.airstrike:
           _drawAirstrike(canvas, item, t);
+          break;
+        case _FxKind.missile:
+          _drawMissile(canvas, item, t);
           break;
         case _FxKind.explosion:
           _drawExplosion(canvas, item, t);
@@ -176,6 +180,59 @@ class Effects {
     }
   }
 
+  /// 战略导弹：弹头从高空坠落并拖出尾焰，落地后炸开火球、浓烟与冲击波。
+  void _drawMissile(Canvas canvas, _Fx fx, double t) {
+    final target = Offset(fx.x, fx.y);
+    final fall = math.min(1.0, t * 1.7);
+    final head = Offset(fx.x, fx.y - 18 * (1 - fall));
+    canvas.drawLine(
+      Offset(head.dx, head.dy - 3.2),
+      head,
+      _stroke
+        ..color = _hot.withValues(alpha: 0.85 * fall)
+        ..strokeWidth = 0.16,
+    );
+    canvas.drawCircle(head, 0.16 + 0.2 * fall, _fill..color = _core);
+    if (fall < 1) {
+      canvas.drawCircle(
+        target,
+        fx.radius * 0.35,
+        _stroke
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.06
+          ..color = const Color(0x88FFD9B0),
+      );
+      return;
+    }
+    final impact = ((t - 1 / 1.7) / (1 - 1 / 1.7)).clamp(0.0, 1.0);
+    final grow = fx.radius * (0.2 + impact);
+    canvas.drawCircle(target, grow, _fill..color = _hot.withValues(alpha: 0.5 * (1 - impact)));
+    canvas.drawCircle(
+      target,
+      grow * 0.5,
+      _fill..color = _core.withValues(alpha: 0.85 * (1 - impact)),
+    );
+    for (var i = 0; i < 5; i++) {
+      final angle = i * math.pi * 2 / 5 + 0.4;
+      canvas.drawCircle(
+        Offset(
+          target.dx + math.cos(angle) * grow * 0.75,
+          target.dy + math.sin(angle) * grow * 0.75 - impact * 0.6,
+        ),
+        grow * 0.28,
+        _fill..color = _smoke.withValues(alpha: 0.55 * (1 - impact)),
+      );
+    }
+    canvas.drawCircle(
+      target,
+      fx.radius * (0.3 + impact),
+      _stroke
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.1
+        ..color = _hot.withValues(alpha: 0.7 * (1 - impact)),
+    );
+  }
+
   void _drawExplosion(Canvas canvas, _Fx fx, double t) {
     final radius = fx.radius;
     final grow = radius * (0.35 + 1.15 * t);
@@ -265,7 +322,7 @@ class Effects {
   }
 }
 
-enum _FxKind { tracer, shell, airstrike, explosion, ring, ping, spark, repair }
+enum _FxKind { tracer, shell, airstrike, missile, explosion, ring, ping, spark, repair }
 
 /// 事件到特效的固定参数：[radius] / [minRadius] 为空时沿用事件半径，
 /// [tint] 表示用事件所属阵营色绘制。

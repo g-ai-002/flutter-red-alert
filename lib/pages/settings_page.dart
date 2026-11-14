@@ -22,52 +22,46 @@ class SettingsPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
         children: [
-          _Group(
-            title: '外观与声音',
-            children: [
-              SwitchListTile(
-                title: const Text('深色模式'),
-                subtitle: const Text('战场氛围更统一'),
-                value: settings.darkMode,
-                onChanged: settings.setDarkMode,
-              ),
-              SwitchListTile(
-                title: const Text('音效'),
-                subtitle: const Text('开火、爆炸、建造与提示音'),
-                value: settings.soundEnabled,
-                onChanged: settings.setSoundEnabled,
-              ),
-              SwitchListTile(
-                title: const Text('背景音乐'),
-                subtitle: const Text('运行时合成的军鼓行进曲'),
-                value: settings.musicEnabled,
-                onChanged: settings.setMusicEnabled,
-              ),
-              SwitchListTile(
-                title: const Text('震动反馈'),
-                subtitle: const Text('选择、建造与爆炸时轻微震动'),
-                value: settings.hapticsEnabled,
-                onChanged: settings.setHapticsEnabled,
-              ),
-            ],
-          ),
+          _group(context, '外观与声音', [
+            SwitchListTile(
+              title: const Text('深色模式'),
+              subtitle: const Text('战场氛围更统一'),
+              value: settings.darkMode,
+              onChanged: settings.setDarkMode,
+            ),
+            SwitchListTile(
+              title: const Text('音效'),
+              subtitle: const Text('开火、爆炸、建造与提示音'),
+              value: settings.soundEnabled,
+              onChanged: settings.setSoundEnabled,
+            ),
+            SwitchListTile(
+              title: const Text('背景音乐'),
+              subtitle: const Text('运行时合成的军鼓行进曲'),
+              value: settings.musicEnabled,
+              onChanged: settings.setMusicEnabled,
+            ),
+            SwitchListTile(
+              title: const Text('震动反馈'),
+              subtitle: const Text('选择、建造与爆炸时轻微震动'),
+              value: settings.hapticsEnabled,
+              onChanged: settings.setHapticsEnabled,
+            ),
+          ]),
           const SizedBox(height: 12),
           RadioGroup<LogicRate>(
             groupValue: settings.logicRate,
             onChanged: (value) {
               if (value != null) settings.setLogicRate(value);
             },
-            child: _Group(
-              title: '战场逻辑刷新率',
-              children: [
-                for (final rate in LogicRate.values)
-                  RadioListTile<LogicRate>(
-                    title: Text(rate.label),
-                    subtitle: Text(_rateHint(rate)),
-                    value: rate,
-                  ),
-              ],
-            ),
+            child: _group(context, '战场逻辑刷新率', [
+              for (final rate in LogicRate.values)
+                RadioListTile<LogicRate>(
+                  title: Text(rate.label),
+                  subtitle: Text(_rateHint(rate)),
+                  value: rate,
+                ),
+            ]),
           ),
           const SizedBox(height: 12),
           RadioGroup<BattleDifficulty>(
@@ -75,44 +69,38 @@ class SettingsPage extends StatelessWidget {
             onChanged: (value) {
               if (value != null) settings.setDifficulty(value);
             },
-            child: _Group(
-              title: '默认战役难度',
-              children: [
-                for (final difficulty in BattleDifficulty.values)
-                  RadioListTile<BattleDifficulty>(
-                    title: Text(difficulty.label),
-                    subtitle: Text(difficulty.description),
-                    value: difficulty,
-                  ),
-              ],
-            ),
+            child: _group(context, '默认战役难度', [
+              for (final difficulty in BattleDifficulty.values)
+                RadioListTile<BattleDifficulty>(
+                  title: Text(difficulty.label),
+                  subtitle: Text(difficulty.description),
+                  value: difficulty,
+                ),
+            ]),
           ),
           const SizedBox(height: 12),
-          _Group(
-            title: '日志',
-            children: [
+          _group(context, '日志', [
+            ListTile(
+              title: const Text('查看最近日志'),
+              subtitle: const Text('出问题时把日志文件提供给开发者定位'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _showLogs(context),
+            ),
+            if (isDesktopPlatform)
               ListTile(
-                title: const Text('查看最近日志'),
-                subtitle: const Text('出问题时把日志文件提供给开发者定位'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _showLogs(context),
+                title: const Text('打开日志目录'),
+                trailing: const Icon(Icons.folder_open),
+                onTap: () async {
+                  final path = await FileSystemService.instance.getLogRootPath();
+                  final opened = await FileSystemService.instance.openDirectory(path);
+                  if (!context.mounted) return;
+                  if (!opened) {
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text('无法打开目录：$path')));
+                  }
+                },
               ),
-              if (isDesktopPlatform)
-                ListTile(
-                  title: const Text('打开日志目录'),
-                  trailing: const Icon(Icons.folder_open),
-                  onTap: () async {
-                    final path = await FileSystemService.instance.getLogRootPath();
-                    final opened = await FileSystemService.instance.openDirectory(path);
-                    if (!context.mounted) return;
-                    if (!opened) {
-                      ScaffoldMessenger.of(context)
-                          .showSnackBar(SnackBar(content: Text('无法打开目录：$path')));
-                    }
-                  },
-                ),
-            ],
-          ),
+          ]),
           const SizedBox(height: 16),
           const Text(
             '${AppConstants.appName} v${AppConstants.version} · 本地单机',
@@ -124,18 +112,13 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  String _rateHint(LogicRate rate) {
-    return switch (rate) {
-      LogicRate.hz30 => '低功耗，适合老设备',
-      LogicRate.hz60 => '默认，性能与顺滑度均衡',
-      LogicRate.hz120 => '高刷屏更顺滑，耗电略高',
-    };
-  }
+  String _rateHint(LogicRate rate) => const ['低功耗，适合老设备', '默认，性能与顺滑度均衡', '高刷屏更顺滑，耗电略高'][rate.index];
 
   Future<void> _showLogs(BuildContext context) async {
     final path = await FileSystemService.instance.getLogRootPath();
     final lines = LogService.getRecentLogs(300);
     if (!context.mounted) return;
+    final text = [if (path.isNotEmpty) path, if (lines.isEmpty) '暂无日志' else ...lines].join('\n');
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
@@ -143,33 +126,24 @@ class SettingsPage extends StatelessWidget {
         content: SizedBox(
           width: 560,
           height: 420,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (path.isNotEmpty) Text(path, style: const TextStyle(fontSize: 10)),
-              const SizedBox(height: 6),
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF12110E),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: SingleChildScrollView(
-                    child: SelectableText(
-                      lines.isEmpty ? '暂无日志' : lines.join('\n'),
-                      style: const TextStyle(
-                        fontSize: 10,
-                        height: 1.5,
-                        fontFamily: 'monospace',
-                        color: hudTextSoft,
-                      ),
-                    ),
-                  ),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF12110E),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: SingleChildScrollView(
+              child: SelectableText(
+                text,
+                style: const TextStyle(
+                  fontSize: 10,
+                  height: 1.5,
+                  fontFamily: 'monospace',
+                  color: hudTextSoft,
                 ),
               ),
-            ],
+            ),
           ),
         ),
         actions: [
@@ -180,40 +154,32 @@ class SettingsPage extends StatelessWidget {
   }
 }
 
-class _Group extends StatelessWidget {
-  const _Group({required this.title, required this.children});
-
-  final String title;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(4, 8, 4, 6),
-          child: Text(
-            title,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+Widget _group(BuildContext context, String title, List<Widget> children) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(4, 8, 4, 6),
+        child: Text(
+          title,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
-        Card(
-          child: Column(
-            children: [
-              for (var i = 0; i < children.length; i++) ...[
-                if (i > 0) const Divider(height: 1),
-                children[i],
-              ],
+      ),
+      Card(
+        child: Column(
+          children: [
+            for (var i = 0; i < children.length; i++) ...[
+              if (i > 0) const Divider(height: 1),
+              children[i],
             ],
-          ),
+          ],
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
 }

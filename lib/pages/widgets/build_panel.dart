@@ -42,22 +42,18 @@ class _BuildPanelState extends State<BuildPanel> {
           Row(
             children: [
               for (final category in ProductionCategory.values) ...[
-                _TabButton(
-                  label: category.label,
-                  active: category == _tab,
-                  busy: _state.jobOf(playerTeam, category) != null,
-                  onTap: () => setState(() => _tab = category),
+                _tabButton(
+                  category.label,
+                  category == _tab,
+                  _state.jobOf(playerTeam, category) != null,
+                  () => setState(() => _tab = category),
                 ),
                 const SizedBox(width: 6),
               ],
               const Spacer(),
               Flexible(
                 child: job != null
-                    ? _QueueHint(
-                        name: job.name,
-                        progress: job.progress,
-                        onCancel: () => controller.cancelProduction(_tab),
-                      )
+                    ? _queueHint(job.name, job.progress, () => controller.cancelProduction(_tab))
                     : Text(
                         _hintForTab(),
                         maxLines: 1,
@@ -120,85 +116,61 @@ class _BuildPanelState extends State<BuildPanel> {
   }
 }
 
-class _TabButton extends StatelessWidget {
-  const _TabButton({
-    required this.label,
-    required this.active,
-    required this.busy,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool active;
-  final bool busy;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(6),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: active ? hudGoldVeil : Colors.transparent,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: active ? const Color(0xAAD9A94B) : const Color(0x334F4A40)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                color: active ? const Color(0xFFF2D79C) : const Color(0xFFAFA595),
-              ),
-            ),
-            if (busy) ...[
-              const SizedBox(width: 4),
-              Container(
-                width: 5,
-                height: 5,
-                decoration: const BoxDecoration(color: appRed, shape: BoxShape.circle),
-              ),
-            ],
-          ],
-        ),
+Widget _tabButton(String label, bool active, bool busy, VoidCallback onTap) {
+  return InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(6),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: active ? hudGoldVeil : Colors.transparent,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: active ? const Color(0xAAD9A94B) : const Color(0x334F4A40)),
       ),
-    );
-  }
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+              color: active ? const Color(0xFFF2D79C) : const Color(0xFFAFA595),
+            ),
+          ),
+          if (busy) ...[
+            const SizedBox(width: 4),
+            Container(
+              width: 5,
+              height: 5,
+              decoration: const BoxDecoration(color: appRed, shape: BoxShape.circle),
+            ),
+          ],
+        ],
+      ),
+    ),
+  );
 }
 
-class _QueueHint extends StatelessWidget {
-  const _QueueHint({required this.name, required this.progress, required this.onCancel});
-
-  final String name;
-  final double progress;
-  final VoidCallback onCancel;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          '$name ${(progress * 100).clamp(0, 100).toStringAsFixed(0)}%',
-          style: const TextStyle(fontSize: 11, color: hudTextSoft),
+Widget _queueHint(String name, double progress, VoidCallback onCancel) {
+  return Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(
+        '$name ${(progress * 100).clamp(0, 100).toStringAsFixed(0)}%',
+        style: const TextStyle(fontSize: 11, color: hudTextSoft),
+      ),
+      const SizedBox(width: 4),
+      InkWell(
+        onTap: onCancel,
+        borderRadius: BorderRadius.circular(4),
+        child: const Padding(
+          padding: EdgeInsets.all(2),
+          child: Icon(Icons.close, size: 13, color: Color(0xFFB9AD9A)),
         ),
-        const SizedBox(width: 4),
-        InkWell(
-          onTap: onCancel,
-          borderRadius: BorderRadius.circular(4),
-          child: const Padding(
-            padding: EdgeInsets.all(2),
-            child: Icon(Icons.close, size: 13, color: Color(0xFFB9AD9A)),
-          ),
-        ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
 }
 
 class _BuildCard extends StatelessWidget {
@@ -337,22 +309,14 @@ class _BuildCard extends StatelessWidget {
                     left: 0,
                     right: 0,
                     bottom: 4,
-                    child: _CardBadge(
-                      text: lock,
-                      background: const Color(0xCC1B1915),
-                      color: hudTroops,
-                    ),
+                    child: _badge(lock, const Color(0xCC1B1915), hudTroops),
                   ),
                 if (!locked && !affordable && !ready)
-                  const Positioned(
+                  Positioned(
                     left: 0,
                     right: 0,
                     bottom: 4,
-                    child: _CardBadge(
-                      text: '资金不足',
-                      background: Color(0xAA27120E),
-                      color: Color(0xFFFFB4A2),
-                    ),
+                    child: _badge('资金不足', const Color(0xAA27120E), const Color(0xFFFFB4A2)),
                   ),
               ],
             ),
@@ -364,25 +328,16 @@ class _BuildCard extends StatelessWidget {
 }
 
 /// 建造卡片底部的锁定 / 资金不足提示条。
-class _CardBadge extends StatelessWidget {
-  const _CardBadge({required this.text, required this.background, required this.color});
-
-  final String text;
-  final Color background;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: background,
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      alignment: Alignment.center,
-      child: Text(
-        text,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(fontSize: 9, color: color),
-      ),
-    );
-  }
+Widget _badge(String text, Color background, Color color) {
+  return Container(
+    color: background,
+    padding: const EdgeInsets.symmetric(vertical: 2),
+    alignment: Alignment.center,
+    child: Text(
+      text,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(fontSize: 9, color: color),
+    ),
+  );
 }

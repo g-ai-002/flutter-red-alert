@@ -2,6 +2,51 @@ part of 'battle_state.dart';
 
 /// 索敌与火力：自动索敌、追击、伤害结算，以及防御建筑的自瞄开火。
 extension BattleCombat on BattleState {
+  /// 发射井蓄能推进；发射井被摧毁时蓄能清零，重新建造需要从头积累。
+  void _updateStrike(double dt) {
+    for (final team in Team.values) {
+      if (!hasBuilding(team, BuildingKind.silo)) {
+        _strikeCharge[team] = 0;
+        continue;
+      }
+      final charge = _strikeCharge[team]!;
+      if (charge >= 1) continue;
+      _strikeCharge[team] = math.min(1, charge + dt / BattleState.strikeChargeSeconds);
+      if (_strikeCharge[team]! >= 1 && team == Team.red) {
+        addNotice('导弹发射井蓄能完毕，可实施战略打击', level: NoticeLevel.success);
+      }
+    }
+  }
+
+  /// 对 [target] 周围实施战略打击：只杀伤敌方单位与建筑，越靠近中心伤害越高。
+  bool launchStrike(Team team, Offset target) {
+    if (result != null || !strikeReady(team)) return false;
+    _strikeCharge[team] = 0;
+    _emit(
+      BattleEvent(
+        BattleEventKind.missile,
+        target.dx,
+        target.dy,
+        team: team,
+        radius: BattleState.strikeRadius,
+      ),
+    );
+    for (final actor in actors) {
+      if (!actor.alive || actor.team == team) continue;
+      final gap = actor is Building
+          ? distanceToRect(target, actor.bounds)
+          : actor.distanceToPoint(target) - actor.radius * 0.5;
+      if (gap > BattleState.strikeRadius) continue;
+      final falloff = 1 - 0.55 * math.max(0, gap) / BattleState.strikeRadius;
+      actor.applyDamage((BattleState.strikeDamage * falloff).round());
+    }
+    addNotice(
+      team == Team.red ? '东风快递已抵达，目标区域被夷平' : '蓝军导弹命中我方阵地',
+      level: team == Team.red ? NoticeLevel.success : NoticeLevel.warning,
+    );
+    return true;
+  }
+
   /// 下达攻击指令：目标可以是单位或建筑，武器打不到的目标类型会被忽略。
   void issueAttack(List<Unit> units, int targetId) {
     final target = actorById(targetId);

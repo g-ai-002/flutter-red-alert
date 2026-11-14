@@ -88,6 +88,7 @@ class BattleGame extends FlameGame {
     BattleEventKind.bullet: BattleFeedback.fire,
     BattleEventKind.shell: BattleFeedback.fire,
     BattleEventKind.airstrike: BattleFeedback.fire,
+    BattleEventKind.missile: BattleFeedback.explosion,
     BattleEventKind.explosion: BattleFeedback.explosion,
     BattleEventKind.build: BattleFeedback.build,
     BattleEventKind.spawn: BattleFeedback.ready,
@@ -136,6 +137,10 @@ class BattleGame extends FlameGame {
     _actors.drawActors(canvas, visible);
     effects.render(canvas, camera.tileSize, view: visible);
     _fog.paint(canvas);
+    final strikeTarget = controller.strikeTarget;
+    if (controller.strikeAiming && strikeTarget != null) {
+      _actors.drawStrikeAim(canvas, strikeTarget, BattleState.strikeRadius);
+    }
     _actors.drawGhost(canvas);
     canvas.restore();
 

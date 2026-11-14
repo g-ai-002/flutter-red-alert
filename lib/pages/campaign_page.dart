@@ -138,9 +138,9 @@ class _MissionCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  _Chip(text: mission.objective.label, color: accent),
+                  _chip(mission.objective.label, accent),
                   const SizedBox(width: 6),
-                  _Chip(text: mission.difficulty.label, color: const Color(0xFF9FB3C6)),
+                  _chip(mission.difficulty.label, const Color(0xFF9FB3C6)),
                 ],
               ),
               const SizedBox(height: 10),
@@ -182,22 +182,14 @@ class _MissionCard extends StatelessWidget {
   }
 }
 
-class _Chip extends StatelessWidget {
-  const _Chip({required this.text, required this.color});
-
-  final String text;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
-      ),
-      child: Text(text, style: TextStyle(fontSize: 10, color: color)),
-    );
-  }
+Widget _chip(String text, Color color) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: color.withValues(alpha: 0.5)),
+    ),
+    child: Text(text, style: TextStyle(fontSize: 10, color: color)),
+  );
 }

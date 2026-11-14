@@ -119,8 +119,9 @@ const List<GameMission> campaignMissions = [
     title: '第五关 · 黎明总攻',
     subtitle: '最后的总攻',
     brief:
-        '蓝军把最后的精锐与指挥中心一起缩进核心阵地，防空炮塔已封锁低空。'
-        '带上工程兵、重炮与直升机，先敲掉防空再压制地面，把旗帜插上他们的指挥中心。',
+        '蓝军把最后的精锐与指挥中心一起缩进核心阵地，防空炮塔已封锁低空，'
+        '导弹发射井也已进入战备。带上工程兵、重炮与直升机，先敲掉防空与发射井，'
+        '再把旗帜插上他们的指挥中心。',
     objective: MissionObjective.decapitate,
     difficulty: BattleDifficulty.hard,
     mapSeed: 20261128,
@@ -147,6 +148,7 @@ const List<GameMission> campaignMissions = [
       BuildingKind.tower,
       BuildingKind.barracks,
       BuildingKind.airDefense,
+      BuildingKind.silo,
     ],
   ),
 ];

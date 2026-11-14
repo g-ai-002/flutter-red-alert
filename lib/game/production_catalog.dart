@@ -43,6 +43,7 @@ class ProductionCatalog {
     'factory',
     'tower',
     'airDefense',
+    'silo',
     'hq',
   ];
   static const List<String> _infantryOrder = ['rifle', 'rocket', 'engineer'];

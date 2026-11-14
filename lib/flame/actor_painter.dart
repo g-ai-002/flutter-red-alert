@@ -166,6 +166,19 @@ class ActorPainter {
     );
   }
 
+  // ===== 战略打击瞄准 =====
+
+  /// 瞄准圈：外圈为杀伤半径，内部十字与脉冲圈帮助确认落点。
+  void drawStrikeAim(Canvas canvas, Offset target, double radius) {
+    const color = Color(0xFFE0806F);
+    canvas.drawCircle(target, radius, _brush.solid(color.withValues(alpha: 0.16)));
+    canvas.drawCircle(target, radius, _brush.outlined(color, 0.09));
+    canvas.drawCircle(target, radius * 0.35, _brush.outlined(const Color(0xCCFFD9B0), 0.05));
+    final cross = _brush.outlined(const Color(0xCCFFD9B0), 0.06);
+    canvas.drawLine(target - const Offset(0.7, 0), target + const Offset(0.7, 0), cross);
+    canvas.drawLine(target - const Offset(0, 0.7), target + const Offset(0, 0.7), cross);
+  }
+
   // ===== 放置预览 =====
 
   void drawGhost(Canvas canvas) {

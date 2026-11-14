@@ -26,6 +26,8 @@ void main() {
     expect(find.text('建筑'), findsOneWidget);
     expect(find.text('步兵'), findsOneWidget);
     expect(find.text('装甲'), findsOneWidget);
+    expect(find.text('导弹'), findsOneWidget);
+    expect(find.text('雷达'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();

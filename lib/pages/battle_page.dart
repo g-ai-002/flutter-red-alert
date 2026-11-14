@@ -128,10 +128,6 @@ class _BattlePageState extends State<BattlePage> with WidgetsBindingObserver {
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
-  void _openGuide() {
-    pushPage(context, const GuidePage());
-  }
-
   Future<void> _openPauseMenu() async {
     _controller.setPaused(true);
     _game.pauseEngine();
@@ -142,7 +138,7 @@ class _BattlePageState extends State<BattlePage> with WidgetsBindingObserver {
       onHome: _goHome,
       onGuide: () {
         Navigator.of(context).pop();
-        _openGuide();
+        pushPage(context, const GuidePage());
       },
     );
     if (!mounted) return;
@@ -168,7 +164,9 @@ class _BattlePageState extends State<BattlePage> with WidgetsBindingObserver {
     }
     final key = event.logicalKey;
     if (key == LogicalKeyboardKey.escape) {
-      if (_controller.isPlacing) {
+      if (_controller.strikeAiming) {
+        _controller.cancelStrikeAim();
+      } else if (_controller.isPlacing) {
         _controller.cancelPlacement();
       } else if (!_controller.paused) {
         _openPauseMenu();

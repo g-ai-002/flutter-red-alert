@@ -134,10 +134,11 @@ class _Intro extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           alignment: wide ? WrapAlignment.start : WrapAlignment.center,
-          children: const [
-            _FeatureTag(icon: Icons.engineering, text: '建造基地'),
-            _FeatureTag(icon: Icons.local_shipping, text: '采矿经济'),
-            _FeatureTag(icon: Icons.shield_moon, text: '装甲集群'),
+          children: [
+            _tag(Icons.engineering, '建造基地'),
+            _tag(Icons.local_shipping, '采矿经济'),
+            _tag(Icons.shield_moon, '装甲集群'),
+            _tag(Icons.rocket_launch, '战略打击'),
           ],
         ),
       ],
@@ -145,31 +146,23 @@ class _Intro extends StatelessWidget {
   }
 }
 
-class _FeatureTag extends StatelessWidget {
-  const _FeatureTag({required this.icon, required this.text});
-
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0x55161410),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0x33C8A97A)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: hudBronze),
-          const SizedBox(width: 5),
-          Text(text, style: const TextStyle(fontSize: 11.5, color: Color(0xFFCFC3B0))),
-        ],
-      ),
-    );
-  }
+Widget _tag(IconData icon, String text) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    decoration: BoxDecoration(
+      color: const Color(0x55161410),
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: const Color(0x33C8A97A)),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: hudBronze),
+        const SizedBox(width: 5),
+        Text(text, style: const TextStyle(fontSize: 11.5, color: Color(0xFFCFC3B0))),
+      ],
+    ),
+  );
 }
 
 class _CommandPanel extends StatelessWidget {
@@ -206,10 +199,10 @@ class _CommandPanel extends StatelessWidget {
             children: [
               for (final difficulty in BattleDifficulty.values) ...[
                 Expanded(
-                  child: _DifficultyButton(
-                    difficulty: difficulty,
-                    selected: settings.difficulty == difficulty,
-                    onTap: () => settings.setDifficulty(difficulty),
+                  child: _difficultyButton(
+                    difficulty,
+                    settings.difficulty == difficulty,
+                    () => settings.setDifficulty(difficulty),
                   ),
                 ),
                 if (difficulty != BattleDifficulty.values.last) const SizedBox(width: 6),
@@ -222,7 +215,7 @@ class _CommandPanel extends StatelessWidget {
             style: const TextStyle(fontSize: 11, color: Color(0xFF9C9180)),
           ),
           const SizedBox(height: 16),
-          _StartButton(difficulty: settings.difficulty),
+          _startRow(context, settings.difficulty),
           const SizedBox(height: 10),
           Row(
             children: [
@@ -259,13 +252,10 @@ class _CommandPanel extends StatelessWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              _StatText(label: '胜场', value: '${stats.wins}'),
-              _StatText(label: '负场', value: '${stats.losses}'),
-              _StatText(label: '胜率', value: '${(stats.winRate * 100).round()}%'),
-              _StatText(
-                label: '最快',
-                value: stats.bestSeconds == null ? '—' : formatDuration(stats.bestSeconds!),
-              ),
+              _stat('胜场', '${stats.wins}'),
+              _stat('负场', '${stats.losses}'),
+              _stat('胜率', '${(stats.winRate * 100).round()}%'),
+              _stat('最快', stats.bestSeconds == null ? '—' : formatDuration(stats.bestSeconds!)),
             ],
           ),
           const SizedBox(height: 12),
@@ -280,132 +270,108 @@ class _CommandPanel extends StatelessWidget {
   }
 }
 
-class _DifficultyButton extends StatelessWidget {
-  const _DifficultyButton({required this.difficulty, required this.selected, required this.onTap});
-
-  final BattleDifficulty difficulty;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(vertical: 9),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          color: selected ? const Color(0xCC8E241B) : hudPanelAlt,
-          border: Border.all(color: selected ? hudGoldBright : const Color(0x44584F41)),
-        ),
-        child: Text(
-          difficulty.label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-            color: selected ? const Color(0xFFFFF2DC) : hudTextWarm,
-          ),
+Widget _difficultyButton(BattleDifficulty difficulty, bool selected, VoidCallback onTap) {
+  return InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(8),
+    child: AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      padding: const EdgeInsets.symmetric(vertical: 9),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: selected ? const Color(0xCC8E241B) : hudPanelAlt,
+        border: Border.all(color: selected ? hudGoldBright : const Color(0x44584F41)),
+      ),
+      child: Text(
+        difficulty.label,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+          color: selected ? const Color(0xFFFFF2DC) : hudTextWarm,
         ),
       ),
-    );
-  }
+    ),
+  );
 }
 
-class _StartButton extends StatelessWidget {
-  const _StartButton({required this.difficulty});
-
-  final BattleDifficulty difficulty;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 54,
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: FilledButton(
-              onPressed: () {
-                SoundService.play(BattleFeedback.command);
-                pushPage(context, const CampaignPage());
-              },
-              style: FilledButton.styleFrom(
-                backgroundColor: appRed,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                elevation: 0,
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.play_arrow_rounded, size: 24),
-                  SizedBox(width: 4),
-                  Text(
-                    '开始战役',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: 2),
-                  ),
-                ],
-              ),
+Widget _startRow(BuildContext context, BattleDifficulty difficulty) {
+  return SizedBox(
+    height: 54,
+    child: Row(
+      children: [
+        Expanded(
+          flex: 3,
+          child: FilledButton(
+            onPressed: () {
+              SoundService.play(BattleFeedback.command);
+              pushPage(context, const CampaignPage());
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: appRed,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.play_arrow_rounded, size: 24),
+                SizedBox(width: 4),
+                Text(
+                  '开始战役',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: 2),
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            flex: 2,
-            child: OutlinedButton(
-              onPressed: () {
-                SoundService.play(BattleFeedback.command);
-                pushPage(context, BattlePage(difficulty: difficulty));
-              },
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFFF0E2CA),
-                side: const BorderSide(color: Color(0x88D9A94B)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                padding: EdgeInsets.zero,
-              ),
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '遭遇战',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, letterSpacing: 1),
-                  ),
-                  Text('自由对战', style: TextStyle(fontSize: 9, color: hudTextWarm)),
-                ],
-              ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 2,
+          child: OutlinedButton(
+            onPressed: () {
+              SoundService.play(BattleFeedback.command);
+              pushPage(context, BattlePage(difficulty: difficulty));
+            },
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFFF0E2CA),
+              side: const BorderSide(color: Color(0x88D9A94B)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: EdgeInsets.zero,
+            ),
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '遭遇战',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, letterSpacing: 1),
+                ),
+                Text('自由对战', style: TextStyle(fontSize: 9, color: hudTextWarm)),
+              ],
             ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
 }
 
-class _StatText extends StatelessWidget {
-  const _StatText({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFFEDE0CA),
-            ),
+Widget _stat(String label, String value) {
+  return Expanded(
+    child: Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFFEDE0CA),
           ),
-          const SizedBox(height: 2),
-          Text(label, style: const TextStyle(fontSize: 10, color: hudTextDim)),
-        ],
-      ),
-    );
-  }
+        ),
+        const SizedBox(height: 2),
+        Text(label, style: const TextStyle(fontSize: 10, color: hudTextDim)),
+      ],
+    ),
+  );
 }

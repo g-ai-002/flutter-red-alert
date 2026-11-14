@@ -13,33 +13,35 @@ class SelectionStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (controller.strikeAiming) {
+      return _Banner(
+        icon: Icons.rocket_launch,
+        color: hudWarning,
+        title: '战略打击',
+        hint: '点击地图选择打击区域，杀伤半径 4.2 格',
+        onCancel: controller.cancelStrikeAim,
+      );
+    }
     if (controller.isPlacing) return _PlacementBanner(controller: controller);
     final selection = controller.selection;
     if (selection == null) {
       if (controller.state.elapsed > 40) return const SizedBox.shrink();
-      return const _Tip(text: '点选部队后点击地面移动，点击敌军或建筑发起攻击');
+      return _tip('点选部队后点击地面移动，点击敌军或建筑发起攻击');
     }
     return _SelectionCard(controller: controller, info: selection);
   }
 }
 
-class _Tip extends StatelessWidget {
-  const _Tip({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: const Color(0xCC15140F),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: hudBorderFaint),
-      ),
-      child: Text(text, style: const TextStyle(fontSize: 11.5, color: Color(0xFFC9BDA9))),
-    );
-  }
+Widget _tip(String text) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    decoration: BoxDecoration(
+      color: const Color(0xCC15140F),
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: hudBorderFaint),
+    ),
+    child: Text(text, style: const TextStyle(fontSize: 11.5, color: Color(0xFFC9BDA9))),
+  );
 }
 
 class _SelectionCard extends StatelessWidget {
@@ -122,13 +124,9 @@ class _SelectionCard extends StatelessWidget {
           ),
           if (canCommand) ...[
             const SizedBox(width: 6),
-            _MiniAction(icon: Icons.pan_tool_alt, label: '停止', onTap: controller.stopSelected),
-            _MiniAction(icon: Icons.select_all, label: '全选', onTap: controller.selectAllSameKind),
-            _MiniAction(
-              icon: Icons.center_focus_strong,
-              label: '定位',
-              onTap: controller.focusSelection,
-            ),
+            _miniAction(Icons.pan_tool_alt, '停止', controller.stopSelected),
+            _miniAction(Icons.select_all, '全选', controller.selectAllSameKind),
+            _miniAction(Icons.center_focus_strong, '定位', controller.focusSelection),
           ],
         ],
       ),
@@ -136,30 +134,21 @@ class _SelectionCard extends StatelessWidget {
   }
 }
 
-class _MiniAction extends StatelessWidget {
-  const _MiniAction({required this.icon, required this.label, required this.onTap});
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(6),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 15, color: hudTextSoft),
-            Text(label, style: const TextStyle(fontSize: 9, color: Color(0xFFB3A794))),
-          ],
-        ),
+Widget _miniAction(IconData icon, String label, VoidCallback onTap) {
+  return InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(6),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15, color: hudTextSoft),
+          Text(label, style: const TextStyle(fontSize: 9, color: Color(0xFFB3A794))),
+        ],
       ),
-    );
-  }
+    ),
+  );
 }
 
 class _PlacementBanner extends StatelessWidget {
@@ -172,34 +161,55 @@ class _PlacementBanner extends StatelessWidget {
     final spec = controller.placingSpec;
     if (spec == null) return const SizedBox.shrink();
     final valid = controller.ghostValid;
+    return _Banner(
+      icon: valid ? Icons.check_circle_outline : Icons.error_outline,
+      color: valid ? hudSuccess : hudWarning,
+      title: '放置 ${spec.kind.label}',
+      hint: valid ? '点击地图确认' : '靠近己方建筑的空地',
+      onCancel: controller.cancelPlacement,
+    );
+  }
+}
+
+/// 放置与战略打击共用的操作提示条。
+class _Banner extends StatelessWidget {
+  const _Banner({
+    required this.icon,
+    required this.color,
+    required this.title,
+    required this.hint,
+    required this.onCancel,
+  });
+
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String hint;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 5, 6, 5),
       decoration: BoxDecoration(
         color: hudPanelSolid.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: valid ? const Color(0xAA6FCF7A) : const Color(0xAAE0604F)),
+        border: Border.all(color: color.withValues(alpha: 0.67)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            valid ? Icons.check_circle_outline : Icons.error_outline,
-            size: 16,
-            color: valid ? hudSuccess : hudWarning,
-          ),
+          Icon(icon, size: 16, color: color),
           const SizedBox(width: 6),
           Text(
-            '放置 ${spec.kind.label}',
+            title,
             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: hudText),
           ),
           const SizedBox(width: 6),
-          Text(
-            valid ? '点击地图确认' : '靠近己方建筑的空地',
-            style: const TextStyle(fontSize: 10.5, color: hudTextMuted),
-          ),
+          Text(hint, style: const TextStyle(fontSize: 10.5, color: hudTextMuted)),
           const SizedBox(width: 4),
           TextButton(
-            onPressed: controller.cancelPlacement,
+            onPressed: onCancel,
             style: TextButton.styleFrom(
               minimumSize: const Size(48, 28),
               padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -229,45 +239,37 @@ class ToastStack extends StatelessWidget {
         for (final toast in toasts)
           Padding(
             padding: const EdgeInsets.only(bottom: 4),
-            child: _Toast(text: toast.text, level: toast.level),
+            child: _toast(toast.text, toast.level),
           ),
       ],
     );
   }
 }
 
-class _Toast extends StatelessWidget {
-  const _Toast({required this.text, required this.level});
-
-  final String text;
-  final NoticeLevel level;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = switch (level) {
-      NoticeLevel.info => hudInfo,
-      NoticeLevel.warning => hudWarning,
-      NoticeLevel.success => hudSuccess,
-    };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: hudPanelDeep,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.55)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 5,
-            height: 5,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 6),
-          Text(text, style: const TextStyle(fontSize: 11.5, color: Color(0xFFEDE0CA))),
-        ],
-      ),
-    );
-  }
+Widget _toast(String text, NoticeLevel level) {
+  final color = switch (level) {
+    NoticeLevel.info => hudInfo,
+    NoticeLevel.warning => hudWarning,
+    NoticeLevel.success => hudSuccess,
+  };
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    decoration: BoxDecoration(
+      color: hudPanelDeep,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: color.withValues(alpha: 0.55)),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 5,
+          height: 5,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(text, style: const TextStyle(fontSize: 11.5, color: Color(0xFFEDE0CA))),
+      ],
+    ),
+  );
 }

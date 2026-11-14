@@ -4,11 +4,7 @@ import '../game/battle_types.dart';
 
 /// 赤色黎明的基础配色：军绿、沙土、钢铁与赤红。
 const Color appRed = Color(0xFFC8382B);
-const Color appRedDeep = Color(0xFF8E241B);
 const Color appGold = Color(0xFFD9A94B);
-const Color appSteel = Color(0xFF39424B);
-const Color appSand = Color(0xFFF1E6D2);
-const Color appNight = Color(0xFF121110);
 
 /// HUD 语义色：面板、描边与文字层级，界面组件不再各自写死颜色值。
 const Color hudPanel = Color(0xE6191815);

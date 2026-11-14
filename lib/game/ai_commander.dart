@@ -22,6 +22,7 @@ class AiCommander {
     (BuildingKind.power, 3),
     (BuildingKind.refinery, 3),
     (BuildingKind.tower, 6),
+    (BuildingKind.silo, 1),
   ];
 
   double _think = 0.5;
@@ -36,7 +37,22 @@ class AiCommander {
     final enemyAir = state.unitsOf(team.opponent).any((u) => u.isAir);
     _manageStructures(state, enemyAir);
     _manageProduction(state, enemyAir);
+    _manageStrike(state);
     _manageArmy(state, 1.0);
+  }
+
+  /// 发射井蓄满后优先打击赤军指挥中心，其次打击精炼厂等经济建筑。
+  void _manageStrike(BattleState state) {
+    if (!state.strikeReady(team)) return;
+    Building? target;
+    for (final building in state.buildingsOf(team.opponent)) {
+      if (building.spec.kind == BuildingKind.hq) {
+        target = building;
+        break;
+      }
+      if (target == null || building.spec.kind == BuildingKind.refinery) target = building;
+    }
+    if (target != null) state.launchStrike(team, target.position);
   }
 
   void _placeReadyStructures(BattleState state) {

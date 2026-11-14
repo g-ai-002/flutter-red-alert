@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../game/battle_types.dart';
 import '../theme/app_theme.dart';
 
-/// 玩法说明：目标、经济、建造流程、兵种与操作。
+/// 玩法说明：目标、经济、建造流程、兵种、战略打击与操作。
 class GuidePage extends StatelessWidget {
   const GuidePage({super.key});
 
@@ -14,96 +14,50 @@ class GuidePage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
         children: [
-          const _Section(
-            icon: Icons.flag,
-            title: '战役目标',
-            children: [
-              _Paragraph(
-                '遭遇战摧毁蓝军的全部建筑即可获胜；赤军建筑被全部摧毁则失败。'
-                '蓝军会不断扩军并成波进攻，稳住经济、及时补防线是关键。',
-              ),
-              _Paragraph(
-                '战役模式共五关：以歼灭战开局，中段穿插斩首行动，'
-                '最后一关直取指挥中心。通关后自动解锁下一关。',
-              ),
-            ],
-          ),
-          const _Section(
-            icon: Icons.radar,
-            title: '战争迷雾与雷达',
-            children: [
-              _Paragraph(
-                '战场被战争迷雾覆盖：己方单位与建筑提供视野，未探索区域全黑，'
-                '撤出视野后敌军会从画面与迷你地图上消失，只留下已探索的地形。',
-              ),
-              _Paragraph(
-                '指挥中心提供雷达。点击顶部雷达按钮可扫描一次，'
-                '4 秒内在迷你地图上标定全部敌军，冷却 45 秒；指挥中心被摧毁后雷达失效。',
-              ),
-            ],
-          ),
-          const _Section(
-            icon: Icons.paid,
-            title: '经济与电力',
-            children: [
-              _Paragraph(
-                '采矿车会自动往返矿区与矿石精炼厂，每次入库都会转化为资金。'
-                '开局有两辆采矿车，矿区采空后会自动寻找最近的矿脉。',
-              ),
-              _Paragraph(
-                '电厂提供电力，建筑会消耗电力。电力不足时生产速度与防御塔射速减半，'
-                '看到顶部电力变红就优先补电厂。',
-              ),
-            ],
-          ),
-          const _Section(
-            icon: Icons.construction,
-            title: '建造流程',
-            children: [
-              _Paragraph(
-                '① 在下方建造栏选择建筑或单位，资金会立即扣除并开始生产。'
-                '② 建筑完成后卡片出现金色标记，点击后进入放置模式。'
-                '③ 移动光标或手指选择位置，绿色表示可以建造，点击确认。',
-              ),
-              _Paragraph(
-                '建筑必须靠近己方已有建筑（指挥中心 9 格，其他建筑 7 格）；'
-                '水域、岩石与矿石上不能建造。',
-              ),
-            ],
-          ),
-          _Section(
-            icon: Icons.groups,
-            title: '兵种与克制',
-            children: [
-              for (final (kind, role) in _unitRoles) _UnitRow(kind: kind, role: role),
-              const _Paragraph(
-                '哨戒炮塔自动攻击射程内的地面目标，适合放在矿区与基地入口；'
-                '防空炮塔只打空中目标，射程 9.5 格，是武装直升机的天敌。'
-                '工程兵会自动维修附近受损的车辆与建筑；自行火炮射程 11.5 格，但 3 格内无法开火。',
-              ),
-            ],
-          ),
-          const _Section(
-            icon: Icons.touch_app,
-            title: '操作方式',
-            children: [
-              _Bullet('点选己方单位，再点击地面移动；点击敌军或建筑发起攻击。'),
-              _Bullet('拖动空白处平移视角，双指捏合缩放；左上角迷你地图可快速跳转。'),
-              _Bullet('桌面端：左键框选、右键下达指令、滚轮缩放、WASD / 方向键平移。'),
-              _Bullet('「全选」选中同型部队，「停止」取消当前指令，「定位」把视角移到选中目标。'),
-              _Bullet('右上角可以切换 1× / 2× 速度与暂停；Esc 取消放置或打开暂停菜单。'),
-            ],
-          ),
-          const _Section(
-            icon: Icons.tips_and_updates,
-            title: '开局建议',
-            children: [
-              _Bullet('先补一座电厂，再建兵营；兵营完成后立刻造 2~3 名步兵防早期骚扰。'),
-              _Bullet('尽快建造战车工厂，补充第 3 辆采矿车，经济领先才有装甲优势。'),
-              _Bullet('蓝军第一波通常在数分钟内到达，提前在矿区与路口布置炮塔。'),
-              _Bullet('攒够 4~6 辆坦克再推进，沿公路走能提高移动速度。'),
-            ],
-          ),
+          const _Section(Icons.flag, '战役目标', [
+            _Text('遭遇战摧毁蓝军全部建筑即可获胜，赤军建筑被全灭则失败；蓝军会持续扩军并成波进攻。'),
+            _Text('战役共五关：歼灭战开局，中段穿插斩首行动，最后一关直取指挥中心，通关后自动解锁下一关。'),
+          ]),
+          const _Section(Icons.radar, '战争迷雾与雷达', [
+            _Text('己方单位与建筑提供视野：未探索区域全黑，撤出视野后敌军会从画面与迷你地图上消失。'),
+            _Text('指挥中心提供雷达，点击顶部雷达按钮可在 4 秒内标定全部敌军，冷却 45 秒。'),
+          ]),
+          const _Section(Icons.paid, '经济与电力', [
+            _Text('采矿车自动往返矿区与精炼厂，每次入库转化为资金；矿区采空后自动寻找最近矿脉。'),
+            _Text('电厂供电、建筑耗电。电力不足时生产速度与防御塔射速减半，看到顶部电力变红就优先补电厂。'),
+          ]),
+          const _Section(Icons.construction, '建造流程', [
+            _Text(
+              '① 在下方建造栏选择建筑或单位，资金立即扣除并开始生产。'
+              '② 建筑完成后卡片出现金色标记，点击进入放置模式。'
+              '③ 绿色表示可建，点击确认，建筑必须靠近己方已有建筑。',
+            ),
+            _Text('水域、岩石与矿石上不能建造；指挥中心被摧毁后，只能用残存建筑重建。'),
+          ]),
+          _Section(Icons.groups, '兵种与克制', [
+            for (final (kind, role) in _unitRoles)
+              _Text('${unitSpecs[kind]!.name} · ¥${unitSpecs[kind]!.cost}：$role', bullet: true),
+            const _Text('哨戒炮塔自动打地面，防空炮塔只打空中；工程兵自动维修，自行火炮射程 11.5 格但 3 格内无法开火。'),
+          ]),
+          const _Section(Icons.rocket_launch, '战略打击', [
+            _Text('战车工厂建成后可建造导弹发射井（3000 资金，耗电 70）。发射井在线时持续蓄能，120 秒充满。'),
+            _Text('蓄满后点击顶部「发射」，再点选地图目标即可呼叫东风快递：半径 4.2 格内的敌军受到递减伤害。'),
+            _Text('东风快递只杀伤敌军，不会误伤己方；发射井被摧毁会清空蓄能，重建后需重新积累。'),
+            _Text('蓝军同样会建造发射井，并优先用导弹打击我方指挥中心，看到「蓝军导弹」提示要尽快分散部队。'),
+          ]),
+          const _Section(Icons.touch_app, '操作方式', [
+            _Text('点选己方单位，再点击地面移动；点击敌军或建筑发起攻击。'),
+            _Text('拖动空白处平移视角，双指捏合缩放；左上角迷你地图可快速跳转。'),
+            _Text('桌面端：左键框选、右键下达指令、滚轮缩放、WASD / 方向键平移。'),
+            _Text('「全选」选中同型部队，「停止」取消指令，「定位」把视角移到选中目标。'),
+            _Text('右上角可切换 1× / 2× 速度与暂停；Esc 取消放置、退出瞄准或打开暂停菜单。'),
+          ]),
+          const _Section(Icons.tips_and_updates, '开局建议', [
+            _Text('先补电厂再建兵营，兵营完成后立刻造 2~3 名步兵防早期骚扰。'),
+            _Text('尽快建造战车工厂，补充第 3 辆采矿车，经济领先才有装甲优势。'),
+            _Text('蓝军第一波通常在数分钟内到达，提前在矿区与路口布置炮塔。'),
+            _Text('中后期补一座发射井，用东风快递敲掉敌军炮塔群或指挥中心再推进。'),
+          ]),
           const SizedBox(height: 12),
           const Text(
             '提示：本作为纯单机游戏，进度与战绩保存在本地。',
@@ -117,7 +71,7 @@ class GuidePage extends StatelessWidget {
 }
 
 class _Section extends StatelessWidget {
-  const _Section({required this.icon, required this.title, required this.children});
+  const _Section(this.icon, this.title, this.children);
 
   final IconData icon;
   final String title;
@@ -150,27 +104,22 @@ class _Section extends StatelessWidget {
   }
 }
 
-class _Paragraph extends StatelessWidget {
-  const _Paragraph(this.text);
+/// 说明文字：普通段落或带圆点的条目。
+class _Text extends StatelessWidget {
+  const _Text(this.text, {this.bullet = false});
 
   final String text;
+  final bool bullet;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Text(text, style: const TextStyle(fontSize: 12.5, height: 1.75)),
-    );
-  }
-}
-
-class _Bullet extends StatelessWidget {
-  const _Bullet(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
+    const style = TextStyle(fontSize: 12.5, height: 1.7);
+    if (!bullet) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Text(text, style: style),
+      );
+    }
     return Padding(
       padding: const EdgeInsets.only(bottom: 5),
       child: Row(
@@ -186,42 +135,7 @@ class _Bullet extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(child: Text(text, style: const TextStyle(fontSize: 12.5, height: 1.7))),
-        ],
-      ),
-    );
-  }
-}
-
-class _UnitRow extends StatelessWidget {
-  const _UnitRow({required this.kind, required this.role});
-
-  final UnitKind kind;
-  final String role;
-
-  @override
-  Widget build(BuildContext context) {
-    final spec = unitSpecs[kind]!;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 7),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-            decoration: BoxDecoration(
-              color: appRed.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(5),
-            ),
-            child: Text(
-              spec.name,
-              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(child: Text(role, style: const TextStyle(fontSize: 12, height: 1.6))),
-          const SizedBox(width: 6),
-          Text('¥${spec.cost}', style: const TextStyle(fontSize: 11, color: hudTextDim)),
+          Expanded(child: Text(text, style: style)),
         ],
       ),
     );

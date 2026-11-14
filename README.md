@@ -40,8 +40,8 @@
 ## 下载
 
 v0.5.0 新增战略打击：建造导弹发射井并蓄能 120 秒，点击顶部「发射」进入瞄准，
-即可对指定区域呼叫「东风快递」；蓝军也会建造发射井并用导弹反击。构建产物由 CI 生成，
-Windows Runner 离线时 Release 会排队等待。
+即可对指定区域呼叫「东风快递」；蓝军也会建造发射井并用导弹反击。构建产物由 CI 生成。
+[Release 下载](http://192.168.31.120:3020/GTech/flutter-red-alert/releases/tag/v0.5.0) ·
 Web 试玩：[v0.5.0](http://192.168.31.120:3020/GTech/flutter-red-alert/src/branch/tea-pages/v0.5.0/index.html)。
 
 | 平台 | 产物 |

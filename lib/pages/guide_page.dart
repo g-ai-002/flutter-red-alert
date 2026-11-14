@@ -77,9 +77,9 @@ class GuidePage extends StatelessWidget {
             children: [
               for (final (kind, role) in _unitRoles) _UnitRow(kind: kind, role: role),
               const _Paragraph(
-                '哨戒炮塔自动攻击射程内目标，适合放在矿区与基地入口；'
-                '但它耗电，电力不足时射速会下降。工程兵会自动维修附近'
-                '受损的车辆与建筑；自行火炮射程 11.5 格，但 3 格内无法开火。',
+                '哨戒炮塔自动攻击射程内的地面目标，适合放在矿区与基地入口；'
+                '防空炮塔只打空中目标，射程 9.5 格，是武装直升机的天敌。'
+                '工程兵会自动维修附近受损的车辆与建筑；自行火炮射程 11.5 格，但 3 格内无法开火。',
               ),
             ],
           ),
@@ -230,10 +230,11 @@ class _UnitRow extends StatelessWidget {
 
 const List<(UnitKind, String)> _unitRoles = [
   (UnitKind.rifle, '廉价主力，清理步兵效果好，对装甲伤害很低。'),
-  (UnitKind.rocket, '反装甲核心，射程远，对坦克与建筑效果显著。'),
+  (UnitKind.rocket, '反装甲核心，射程远，对坦克与建筑效果显著；可对空射击直升机。'),
   (UnitKind.engineer, '无武器，自动维修附近的车辆与建筑，需要部队护送。'),
   (UnitKind.harvester, '自动采矿，无武装。被袭击时尽快派兵驱赶敌军。'),
   (UnitKind.lightTank, '机动快，适合骚扰矿区与追击步兵。'),
   (UnitKind.heavyTank, '高血量高火力，攻坚与正面决战的主力。'),
   (UnitKind.artillery, '远程拆建筑与炮群，贴脸无法开火，靠队友掩护。'),
+  (UnitKind.gunship, '无视地形直飞，机炮压制步兵；只会被防空炮塔与火箭兵击落。'),
 ];

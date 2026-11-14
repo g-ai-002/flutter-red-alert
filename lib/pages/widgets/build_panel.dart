@@ -33,9 +33,7 @@ class _BuildPanelState extends State<BuildPanel> {
         color: hudPanel,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: hudBorderGold),
-        boxShadow: const [
-          BoxShadow(color: Color(0x66000000), blurRadius: 12, offset: Offset(0, 4)),
-        ],
+        boxShadow: const [BoxShadow(color: hudShadow, blurRadius: 12, offset: Offset(0, 4))],
       ),
       padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
       child: Column(
@@ -143,7 +141,7 @@ class _TabButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: active ? const Color(0x33D9A94B) : Colors.transparent,
+          color: active ? hudGoldVeil : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
           border: Border.all(color: active ? const Color(0xAAD9A94B) : const Color(0x334F4A40)),
         ),
@@ -187,7 +185,7 @@ class _QueueHint extends StatelessWidget {
       children: [
         Text(
           '$name ${(progress * 100).clamp(0, 100).toStringAsFixed(0)}%',
-          style: const TextStyle(fontSize: 11, color: Color(0xFFD9CBB4)),
+          style: const TextStyle(fontSize: 11, color: hudTextSoft),
         ),
         const SizedBox(width: 4),
         InkWell(
@@ -242,15 +240,15 @@ class _BuildCard extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: ready
-                    ? const [Color(0xFF5A4520), Color(0xFF33280F)]
-                    : const [Color(0xFF2F2C25), Color(0xFF23211C)],
+                    ? const [hudCardReadyTop, hudCardReadyBottom]
+                    : const [hudCardTop, hudCardBottom],
               ),
               border: Border.all(
                 color: ready
                     ? hudGoldBright
                     : active
                     ? const Color(0xFFB0663F)
-                    : const Color(0x33EFE2C8),
+                    : hudBorderFaint,
                 width: ready ? 1.6 : 1,
               ),
             ),
@@ -342,7 +340,7 @@ class _BuildCard extends StatelessWidget {
                     child: _CardBadge(
                       text: lock,
                       background: const Color(0xCC1B1915),
-                      color: const Color(0xFFC9B79B),
+                      color: hudTroops,
                     ),
                   ),
                 if (!locked && !affordable && !ready)

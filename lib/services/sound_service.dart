@@ -108,6 +108,19 @@ class SoundService {
   static Uint8List clipOf(BattleFeedback feedback) =>
       _clips.putIfAbsent(feedback, () => synthesizeWav(_presets[feedback]!));
 
+  /// 各反馈的震动强度，与音效配方一样集中成一张表。
+  static final Map<BattleFeedback, Future<void> Function()> _haptics = {
+    BattleFeedback.select: HapticFeedback.selectionClick,
+    BattleFeedback.command: HapticFeedback.lightImpact,
+    BattleFeedback.build: HapticFeedback.mediumImpact,
+    BattleFeedback.ready: HapticFeedback.selectionClick,
+    BattleFeedback.fire: HapticFeedback.lightImpact,
+    BattleFeedback.explosion: HapticFeedback.mediumImpact,
+    BattleFeedback.harvest: HapticFeedback.selectionClick,
+    BattleFeedback.victory: HapticFeedback.heavyImpact,
+    BattleFeedback.defeat: HapticFeedback.vibrate,
+  };
+
   static void play(BattleFeedback feedback) {
     if (soundEnabled) {
       final target = sink;
@@ -118,18 +131,8 @@ class SoundService {
       }
     }
     if (!hapticsEnabled) return;
-    final haptic = switch (feedback) {
-      BattleFeedback.select => HapticFeedback.selectionClick,
-      BattleFeedback.command => HapticFeedback.lightImpact,
-      BattleFeedback.build => HapticFeedback.mediumImpact,
-      BattleFeedback.ready => HapticFeedback.selectionClick,
-      BattleFeedback.fire => HapticFeedback.lightImpact,
-      BattleFeedback.explosion => HapticFeedback.mediumImpact,
-      BattleFeedback.harvest => HapticFeedback.selectionClick,
-      BattleFeedback.victory => HapticFeedback.heavyImpact,
-      BattleFeedback.defeat => HapticFeedback.vibrate,
-    };
-    haptic();
+    final haptic = _haptics[feedback];
+    if (haptic != null) unawaited(haptic());
   }
 
   static Future<void> _play(BattleFeedback feedback) async {

@@ -104,7 +104,7 @@ class _Intro extends StatelessWidget {
             const SizedBox(width: 8),
             const Text(
               AppConstants.tagline,
-              style: TextStyle(fontSize: 12, letterSpacing: 4, color: Color(0xFFC8A97A)),
+              style: TextStyle(fontSize: 12, letterSpacing: 4, color: hudBronze),
             ),
           ],
         ),
@@ -126,7 +126,7 @@ class _Intro extends StatelessWidget {
             '开采矿石、建设基地、训练装甲集群。'
             '在中国边境的荒原上，指挥赤军摧毁蓝军的前哨与指挥中心。',
             textAlign: wide ? TextAlign.left : TextAlign.center,
-            style: const TextStyle(fontSize: 13, height: 1.7, color: Color(0xFFB7AA97)),
+            style: const TextStyle(fontSize: 13, height: 1.7, color: hudTextWarm),
           ),
         ),
         const SizedBox(height: 18),
@@ -163,7 +163,7 @@ class _FeatureTag extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: const Color(0xFFC8A97A)),
+          Icon(icon, size: 14, color: hudBronze),
           const SizedBox(width: 5),
           Text(text, style: const TextStyle(fontSize: 11.5, color: Color(0xFFCFC3B0))),
         ],
@@ -185,10 +185,8 @@ class _CommandPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xE6191714),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0x44D9A94B)),
-        boxShadow: const [
-          BoxShadow(color: Color(0x66000000), blurRadius: 24, offset: Offset(0, 8)),
-        ],
+        border: Border.all(color: hudBorderGold),
+        boxShadow: const [BoxShadow(color: hudShadow, blurRadius: 24, offset: Offset(0, 8))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -200,7 +198,7 @@ class _CommandPanel extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.w600,
               letterSpacing: 2,
-              color: Color(0xFFC8A97A),
+              color: hudBronze,
             ),
           ),
           const SizedBox(height: 8),
@@ -233,8 +231,8 @@ class _CommandPanel extends StatelessWidget {
                   onPressed: () => pushPage(context, const GuidePage()),
                   icon: const Icon(Icons.menu_book, size: 16),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFD9CBB4),
-                    side: const BorderSide(color: Color(0x55584F41)),
+                    foregroundColor: hudTextSoft,
+                    side: const BorderSide(color: hudBorderDeep),
                     minimumSize: const Size(0, 40),
                   ),
                   label: const Text('玩法说明'),
@@ -248,8 +246,8 @@ class _CommandPanel extends StatelessWidget {
                   onPressed: () => pushPage(context, const SettingsPage()),
                   style: OutlinedButton.styleFrom(
                     padding: EdgeInsets.zero,
-                    foregroundColor: const Color(0xFFD9CBB4),
-                    side: const BorderSide(color: Color(0x55584F41)),
+                    foregroundColor: hudTextSoft,
+                    side: const BorderSide(color: hudBorderDeep),
                   ),
                   child: const Icon(Icons.settings, size: 18),
                 ),
@@ -257,7 +255,7 @@ class _CommandPanel extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          const Divider(color: Color(0x33584F41), height: 1),
+          const Divider(color: hudBorderSoft, height: 1),
           const SizedBox(height: 10),
           Row(
             children: [
@@ -300,15 +298,15 @@ class _DifficultyButton extends StatelessWidget {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: selected ? const Color(0xCC8E241B) : const Color(0xFF232019),
-          border: Border.all(color: selected ? const Color(0xFFE8C271) : const Color(0x44584F41)),
+          color: selected ? const Color(0xCC8E241B) : hudPanelAlt,
+          border: Border.all(color: selected ? hudGoldBright : const Color(0x44584F41)),
         ),
         child: Text(
           difficulty.label,
           style: TextStyle(
             fontSize: 13,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-            color: selected ? const Color(0xFFFFF2DC) : const Color(0xFFB7AA97),
+            color: selected ? const Color(0xFFFFF2DC) : hudTextWarm,
           ),
         ),
       ),
@@ -374,7 +372,7 @@ class _StartButton extends StatelessWidget {
                     '遭遇战',
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, letterSpacing: 1),
                   ),
-                  Text('自由对战', style: TextStyle(fontSize: 9, color: Color(0xFFB7AA97))),
+                  Text('自由对战', style: TextStyle(fontSize: 9, color: hudTextWarm)),
                 ],
               ),
             ),
@@ -405,7 +403,7 @@ class _StatText extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 2),
-          Text(label, style: const TextStyle(fontSize: 10, color: Color(0xFF8B8172))),
+          Text(label, style: const TextStyle(fontSize: 10, color: hudTextDim)),
         ],
       ),
     );

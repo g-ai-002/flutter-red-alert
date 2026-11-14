@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../game/mission.dart';
 import '../providers/settings_provider.dart';
 import '../services/sound_service.dart';
+import '../theme/palette.dart';
 import '../utils/navigation.dart';
 import 'battle_page.dart';
 
@@ -29,7 +30,7 @@ class CampaignPage extends StatelessWidget {
               padding: const EdgeInsets.only(right: 16),
               child: Text(
                 '已通关 $completed/${campaignMissions.length}',
-                style: const TextStyle(fontSize: 12, color: Color(0xFFC8A97A)),
+                style: const TextStyle(fontSize: 12, color: hudBronze),
               ),
             ),
           ),
@@ -76,9 +77,9 @@ class _MissionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = completed
-        ? const Color(0xFF8AD694)
+        ? hudSuccess
         : unlocked
-        ? const Color(0xFFE8C271)
+        ? hudGoldBright
         : const Color(0xFF6E6558);
     return Opacity(
       opacity: unlocked ? 1 : 0.55,
@@ -126,13 +127,13 @@ class _MissionCard extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFFF4EAD6),
+                            color: hudText,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           mission.subtitle,
-                          style: const TextStyle(fontSize: 11, color: Color(0xFFAFA393)),
+                          style: const TextStyle(fontSize: 11, color: hudTextMuted),
                         ),
                       ],
                     ),
@@ -150,12 +151,12 @@ class _MissionCard extends StatelessWidget {
               const SizedBox(height: 10),
               Row(
                 children: [
-                  const Icon(Icons.track_changes, size: 14, color: Color(0xFFC8A97A)),
+                  const Icon(Icons.track_changes, size: 14, color: hudBronze),
                   const SizedBox(width: 5),
                   Expanded(
                     child: Text(
                       mission.objectiveText,
-                      style: const TextStyle(fontSize: 11.5, color: Color(0xFFD9CBB4)),
+                      style: const TextStyle(fontSize: 11.5, color: hudTextSoft),
                     ),
                   ),
                   Text(

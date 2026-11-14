@@ -35,7 +35,7 @@ class _Tip extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xCC15140F),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0x33EFE2C8)),
+        border: Border.all(color: hudBorderFaint),
       ),
       child: Text(text, style: const TextStyle(fontSize: 11.5, color: Color(0xFFC9BDA9))),
     );

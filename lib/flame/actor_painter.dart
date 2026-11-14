@@ -7,6 +7,7 @@ import '../game/battle_camera.dart';
 import '../game/battle_state.dart';
 import '../game/entity.dart';
 import '../game/placement_state.dart';
+import '../theme/palette.dart';
 import '../utils/constants.dart';
 import 'building_art.dart';
 import 'paint_utils.dart';
@@ -116,7 +117,7 @@ class ActorPainter {
         center: center + Offset(0, unit.radius + 0.16),
         width: 0.8,
         ratio: unit.cargoRatio,
-        color: const Color(0xFFD9A94B),
+        color: hudGold,
       );
     }
   }
@@ -171,7 +172,7 @@ class ActorPainter {
     final spec = placement.spec;
     final tile = placement.tile;
     if (spec == null || tile == null) return;
-    final color = placement.valid ? const Color(0xFF6FCF7A) : const Color(0xFFE0604F);
+    final color = placement.valid ? hudBuildOk : hudBuildNo;
     final rect = Rect.fromLTWH(
       tile.x.toDouble(),
       tile.y.toDouble(),

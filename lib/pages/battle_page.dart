@@ -150,6 +150,18 @@ class _BattlePageState extends State<BattlePage> with WidgetsBindingObserver {
     _game.resumeEngine();
   }
 
+  /// 键盘平移方向：方向键与 WASD 等价，单次移动 1.4 格。
+  static final Map<LogicalKeyboardKey, Offset> _panKeys = {
+    LogicalKeyboardKey.keyA: const Offset(-1.4, 0),
+    LogicalKeyboardKey.arrowLeft: const Offset(-1.4, 0),
+    LogicalKeyboardKey.keyD: const Offset(1.4, 0),
+    LogicalKeyboardKey.arrowRight: const Offset(1.4, 0),
+    LogicalKeyboardKey.keyW: const Offset(0, -1.4),
+    LogicalKeyboardKey.arrowUp: const Offset(0, -1.4),
+    LogicalKeyboardKey.keyS: const Offset(0, 1.4),
+    LogicalKeyboardKey.arrowDown: const Offset(0, 1.4),
+  };
+
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
       return KeyEventResult.ignored;
@@ -167,19 +179,9 @@ class _BattlePageState extends State<BattlePage> with WidgetsBindingObserver {
       if (!_controller.paused) _openPauseMenu();
       return KeyEventResult.handled;
     }
-    var dx = 0.0;
-    var dy = 0.0;
-    if (key == LogicalKeyboardKey.keyA || key == LogicalKeyboardKey.arrowLeft) {
-      dx = -1;
-    } else if (key == LogicalKeyboardKey.keyD || key == LogicalKeyboardKey.arrowRight) {
-      dx = 1;
-    } else if (key == LogicalKeyboardKey.keyW || key == LogicalKeyboardKey.arrowUp) {
-      dy = -1;
-    } else if (key == LogicalKeyboardKey.keyS || key == LogicalKeyboardKey.arrowDown) {
-      dy = 1;
-    }
-    if (dx == 0 && dy == 0) return KeyEventResult.ignored;
-    _controller.camera.panByTiles(Offset(dx * 1.4, dy * 1.4));
+    final pan = _panKeys[key];
+    if (pan == null) return KeyEventResult.ignored;
+    _controller.camera.panByTiles(pan);
     return KeyEventResult.handled;
   }
 

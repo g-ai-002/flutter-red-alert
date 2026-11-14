@@ -62,7 +62,7 @@ class _BattleMinimapState extends State<BattleMinimap> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: const Color(0x663A342B)),
-            boxShadow: const [BoxShadow(color: Color(0x66000000), blurRadius: 8)],
+            boxShadow: const [BoxShadow(color: hudShadow, blurRadius: 8)],
           ),
           clipBehavior: Clip.antiAlias,
           child: RepaintBoundary(

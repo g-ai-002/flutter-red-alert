@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../game/battle_controller.dart';
+import '../../theme/palette.dart';
 import '../../utils/platform_info.dart';
 
 /// 战场手势层：桌面框选 / 右键指令 / 滚轮缩放，触屏点选 / 拖拽 / 捏合。
@@ -138,7 +139,7 @@ class _SelectionBoxPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawRect(rect, Paint()..color = const Color(0x33D9A94B));
+    canvas.drawRect(rect, Paint()..color = hudGoldVeil);
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2

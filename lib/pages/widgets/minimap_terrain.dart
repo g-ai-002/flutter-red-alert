@@ -16,7 +16,7 @@ class MinimapTerrainCache {
   int _mapVersion = -1;
   int _visionVersion = -1;
 
-  static const Color _oreColor = Color(0xFFD9A94B);
+  static const Color _oreColor = hudGold;
 
   ui.Picture? pictureFor({required GameMap map, required VisionMap vision, required Size size}) {
     if (_picture != null &&

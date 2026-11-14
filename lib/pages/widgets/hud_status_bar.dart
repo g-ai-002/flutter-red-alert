@@ -44,7 +44,7 @@ class BattleStatusBar extends StatelessWidget {
                       glyph: '电',
                       value: '$used/$produced',
                       label: '电力',
-                      color: used > produced ? hudWarning : const Color(0xFF7FB7C9),
+                      color: used > produced ? hudWarning : hudPower,
                       compact: compact,
                     ),
                     const SizedBox(width: 6),
@@ -52,7 +52,7 @@ class BattleStatusBar extends StatelessWidget {
                       glyph: '兵',
                       value: '${state.armySize(playerTeam)}',
                       label: '部队',
-                      color: const Color(0xFFC9B79B),
+                      color: hudTroops,
                       compact: compact,
                     ),
                     if (!compact) ...[
@@ -119,7 +119,7 @@ class _StatChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xD9181714),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0x33EFE2C8)),
+        border: Border.all(color: hudBorderFaint),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -187,9 +187,7 @@ class _HudButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 7),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: highlight ? const Color(0xAAE8C271) : const Color(0x33EFE2C8),
-            ),
+            border: Border.all(color: highlight ? const Color(0xAAE8C271) : hudBorderFaint),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,

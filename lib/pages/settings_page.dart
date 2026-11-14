@@ -6,6 +6,7 @@ import '../game/logic_rate.dart';
 import '../providers/settings_provider.dart';
 import '../services/file_system_service.dart';
 import '../services/log_service.dart';
+import '../theme/palette.dart';
 import '../utils/constants.dart';
 import '../utils/platform_info.dart';
 
@@ -116,7 +117,7 @@ class SettingsPage extends StatelessWidget {
           const Text(
             '${AppConstants.appName} v${AppConstants.version} · 本地单机',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 11, color: Color(0xFF8B8172)),
+            style: TextStyle(fontSize: 11, color: hudTextDim),
           ),
         ],
       ),
@@ -162,7 +163,7 @@ class SettingsPage extends StatelessWidget {
                         fontSize: 10,
                         height: 1.5,
                         fontFamily: 'monospace',
-                        color: Color(0xFFD9CBB4),
+                        color: hudTextSoft,
                       ),
                     ),
                   ),

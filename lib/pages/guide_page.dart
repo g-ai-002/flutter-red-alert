@@ -108,7 +108,7 @@ class GuidePage extends StatelessWidget {
           const Text(
             '提示：本作为纯单机游戏，进度与战绩保存在本地。',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 11, color: Color(0xFF8B8172)),
+            style: TextStyle(fontSize: 11, color: hudTextDim),
           ),
         ],
       ),
@@ -221,7 +221,7 @@ class _UnitRow extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(child: Text(role, style: const TextStyle(fontSize: 12, height: 1.6))),
           const SizedBox(width: 6),
-          Text('¥${spec.cost}', style: const TextStyle(fontSize: 11, color: Color(0xFF8B8172))),
+          Text('¥${spec.cost}', style: const TextStyle(fontSize: 11, color: hudTextDim)),
         ],
       ),
     );

@@ -46,7 +46,8 @@ enum UnitKind {
   harvester('采矿车', '矿', '自动往返矿区与精炼厂，为基地提供资金'),
   lightTank('轻型坦克', '轻', '机动灵活，压制步兵与轻型目标'),
   heavyTank('重型坦克', '重', '装甲厚重的主战坦克，攻坚核心'),
-  artillery('自行火炮', '炮', '远程压制火炮，射程极远但无法攻击近身目标');
+  artillery('自行火炮', '炮', '远程压制火炮，射程极远但无法攻击近身目标'),
+  gunship('武装直升机', '直', '低空突击单位，无视地形直飞，只能被防空火力拦截');
 
   const UnitKind(this.label, this.icon, this.description);
   final String label;
@@ -61,7 +62,8 @@ enum BuildingKind {
   refinery('矿石精炼厂', '炼', '接收采矿车卸矿，并作为后续科技的跳板'),
   barracks('兵营', '兵', '训练步兵与火箭兵'),
   factory('战车工厂', '厂', '生产采矿车与各型坦克'),
-  tower('哨戒炮塔', '塔', '自动攻击射程内的敌军，守卫基地');
+  tower('哨戒炮塔', '塔', '自动攻击射程内的敌军，守卫基地'),
+  airDefense('防空炮塔', '防', '只攻击空中目标，是武装直升机的天敌');
 
   const BuildingKind(this.label, this.icon, this.description);
   final String label;
@@ -70,8 +72,6 @@ enum BuildingKind {
 }
 
 /// 单位与建筑共用的武器参数：攻击、射程、冷却、护甲倍率与弹道表现。
-///
-/// 具体数值仍留在 [UnitSpec] / [BuildingSpec]，这里只收敛双方相同的查询与结算。
 mixin WeaponStats {
   int get attack;
   double get range;
@@ -79,12 +79,22 @@ mixin WeaponStats {
   double get vsInfantry;
   double get vsVehicle;
   double get vsStructure;
+  double get vsAir;
+
+  /// 能否攻击空中目标；防空炮塔与火箭兵具备此能力。
+  bool get canHitAir;
+
+  /// 能否攻击地面目标；防空炮塔专司对空，无法对地。
+  bool get canHitGround;
 
   /// 是否使用抛物线炮弹特效（车辆与防御建筑）。
   bool get firesShell;
 
   /// 溅射半径（格），0 表示单体伤害。
   double get splash;
+
+  /// 该武器能否攻击给定目标类型。
+  bool canTarget(bool airborne) => airborne ? canHitAir : canHitGround;
 
   double multiplierAgainst(ArmorClass armor) => switch (armor) {
     ArmorClass.infantry => vsInfantry,
@@ -108,6 +118,10 @@ class UnitSpec with WeaponStats {
     this.vsInfantry = 1,
     this.vsVehicle = 1,
     this.vsStructure = 1,
+    this.vsAir = 1,
+    this.canHitAir = false,
+    this.canHitGround = true,
+    this.airborne = false,
     this.requires,
     this.capacity = 0,
     this.minRange = 0,
@@ -137,6 +151,15 @@ class UnitSpec with WeaponStats {
   final double vsVehicle;
   @override
   final double vsStructure;
+  @override
+  final double vsAir;
+  @override
+  final bool canHitAir;
+  @override
+  final bool canHitGround;
+
+  /// 是否为空中单位：无视地形与建筑占位，只会被对空武器命中。
+  final bool airborne;
   final BuildingKind? requires;
 
   /// 采矿车载矿上限，非采矿车为 0。
@@ -160,9 +183,10 @@ class UnitSpec with WeaponStats {
   String get description => kind.description;
   bool get isHarvester => kind == UnitKind.harvester;
   bool get isEngineer => repair > 0;
+  bool get isAir => airborne;
 
   @override
-  bool get firesShell => armor == ArmorClass.vehicle;
+  bool get firesShell => armor == ArmorClass.vehicle && !airborne;
 }
 
 /// 建筑参数。
@@ -182,6 +206,9 @@ class BuildingSpec with WeaponStats {
     this.vsInfantry = 1,
     this.vsVehicle = 1,
     this.vsStructure = 1,
+    this.vsAir = 1,
+    this.canHitAir = false,
+    this.canHitGround = true,
     this.producesCategory,
   });
 
@@ -207,6 +234,12 @@ class BuildingSpec with WeaponStats {
   final double vsVehicle;
   @override
   final double vsStructure;
+  @override
+  final double vsAir;
+  @override
+  final bool canHitAir;
+  @override
+  final bool canHitGround;
 
   /// 该建筑可排产的生产分类。
   final ProductionCategory? producesCategory;
@@ -255,6 +288,8 @@ const Map<UnitKind, UnitSpec> unitSpecs = {
     cooldown: 1.7,
     vsInfantry: 0.5,
     vsStructure: 0.9,
+    vsAir: 1.4,
+    canHitAir: true,
     requires: BuildingKind.barracks,
     radius: 0.28,
   ),
@@ -333,6 +368,23 @@ const Map<UnitKind, UnitSpec> unitSpecs = {
     armor: ArmorClass.vehicle,
     radius: 0.44,
   ),
+  UnitKind.gunship: UnitSpec(
+    kind: UnitKind.gunship,
+    cost: 1400,
+    maxHp: 420,
+    speed: 3.4,
+    buildSeconds: 16,
+    category: ProductionCategory.armor,
+    attack: 44,
+    range: 5.2,
+    vsInfantry: 1.25,
+    vsVehicle: 0.9,
+    vsStructure: 0.55,
+    requires: BuildingKind.factory,
+    armor: ArmorClass.vehicle,
+    radius: 0.46,
+    airborne: true,
+  ),
 };
 
 /// 全部建筑参数。
@@ -402,6 +454,25 @@ const Map<BuildingKind, BuildingSpec> buildingSpecs = {
     vsInfantry: 0.9,
     vsVehicle: 0.8,
     vsStructure: 0.2,
+  ),
+  BuildingKind.airDefense: BuildingSpec(
+    kind: BuildingKind.airDefense,
+    cost: 750,
+    maxHp: 800,
+    power: -25,
+    buildSeconds: 12,
+    width: 1,
+    height: 1,
+    requires: BuildingKind.refinery,
+    attack: 48,
+    range: 9.5,
+    cooldown: 0.75,
+    vsInfantry: 0.1,
+    vsVehicle: 0.2,
+    vsStructure: 0.05,
+    vsAir: 1.8,
+    canHitAir: true,
+    canHitGround: false,
   ),
 };
 

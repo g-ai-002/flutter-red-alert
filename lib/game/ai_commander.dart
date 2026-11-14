@@ -5,8 +5,6 @@ import 'battle_types.dart';
 import 'entity.dart';
 
 /// 蓝军 AI 指挥官：维持经济与电力，按科技顺序补建筑，持续扩军并成波进攻。
-///
-/// 每秒思考一次，所有决策都走与玩家相同的生产与放置接口，保证双方规则一致。
 class AiCommander {
   AiCommander({required this.team, required this.difficulty}) {
     _waveTimer = difficulty.waveSeconds * 0.9;
@@ -62,11 +60,15 @@ class AiCommander {
     state.startProduction(team, ProductionCategory.structure, want.name, announce: false);
   }
 
-  /// 先补齐指挥中心与电力，再按计划表补建筑。
+  /// 先补齐指挥中心与电力，再按计划表补建筑；敌方空军出现时优先补防空。
   BuildingKind? _nextBuilding(BattleState state) {
     if (!state.hasBuilding(team, BuildingKind.hq)) return BuildingKind.hq;
     if (state.powerUsed(team) + 30 > state.powerProduced(team)) {
       return BuildingKind.power;
+    }
+    final enemyAir = state.unitsOf(team.opponent).any((u) => u.isAir);
+    if (enemyAir && state.countBuildings(team, BuildingKind.airDefense) < 2) {
+      return BuildingKind.airDefense;
     }
     for (final (kind, target) in _buildPlan) {
       if (state.countBuildings(team, kind) < target) return kind;
@@ -85,7 +87,8 @@ class AiCommander {
         credits >= 500) {
       final needsEngineer =
           state.armySize(team) >= 5 && !state.unitsOf(team).any((u) => u.spec.isEngineer);
-      final wantRocket = state.armySize(team) % 3 == 2;
+      final enemyAir = state.unitsOf(team.opponent).any((u) => u.isAir);
+      final wantRocket = enemyAir || state.armySize(team) % 3 == 2;
       final kind = needsEngineer
           ? UnitKind.engineer
           : wantRocket
@@ -98,9 +101,12 @@ class AiCommander {
   void _startArmor(BattleState state, int credits) {
     final harvesters = state.unitsOf(team).where((u) => u.isHarvester).length;
     final artillery = state.unitsOf(team).where((u) => u.spec.kind == UnitKind.artillery).length;
+    final gunships = state.unitsOf(team).where((u) => u.isAir).length;
     final UnitKind? want;
     if (harvesters < 3 && credits >= 1100) {
       want = UnitKind.harvester;
+    } else if (gunships < 2 && credits >= 1900) {
+      want = UnitKind.gunship;
     } else if (artillery < 2 && state.armySize(team) >= 8 && credits >= 2000) {
       want = UnitKind.artillery;
     } else if (credits >= 1700) {
@@ -119,23 +125,27 @@ class AiCommander {
     final units = state.unitsOf(team).where((u) => !u.isHarvester && !u.spec.isEngineer).toList();
     if (units.isEmpty) return;
 
-    // 基地附近出现敌军时优先回防。
+    // 基地附近出现敌军时优先回防；打不到空中目标的部队继续执行进攻计划。
     final base = state.map.baseOf(team);
     final intruder = state
         .unitsOf(team.opponent)
         .where((u) => (u.position - base).distance < 12)
         .toList();
     if (intruder.isNotEmpty) {
-      final defenders = units.where((u) => u.order != UnitOrder.attack).toList();
+      final air = intruder.first.isAir;
+      final defenders = units
+          .where((u) => u.order != UnitOrder.attack && u.spec.canTarget(air))
+          .toList();
       if (defenders.isNotEmpty) {
         state.issueAttack(defenders, intruder.first.id);
+        return;
       }
-      return;
     }
 
     final readyToAttack = state.armySize(team) >= difficulty.waveSize;
     if (!readyToAttack && _waveTimer > 0) return;
-    if (!readyToAttack && !_sentFirstWave) return;
+    // 首波之后也要攒够最低兵力再出击，避免逐个送死形成无休止的拉锯。
+    if (!readyToAttack && (!_sentFirstWave || units.length < 4)) return;
     _waveTimer = difficulty.waveSeconds;
     final idle = units.where((u) => u.order != UnitOrder.attack).toList();
     if (idle.isEmpty) return;

@@ -42,10 +42,17 @@ class ProductionCatalog {
     'barracks',
     'factory',
     'tower',
+    'airDefense',
     'hq',
   ];
   static const List<String> _infantryOrder = ['rifle', 'rocket', 'engineer'];
-  static const List<String> _armorOrder = ['harvester', 'lightTank', 'heavyTank', 'artillery'];
+  static const List<String> _armorOrder = [
+    'harvester',
+    'lightTank',
+    'heavyTank',
+    'artillery',
+    'gunship',
+  ];
 
   static final Map<String, ProductionItem> _byId = _build();
 

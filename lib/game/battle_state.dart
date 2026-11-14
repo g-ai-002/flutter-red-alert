@@ -27,7 +27,7 @@ class BattleNotice {
 }
 
 /// 一次性视觉事件，由渲染层消费。
-enum BattleEventKind { bullet, shell, explosion, build, spawn, unload, move, repair }
+enum BattleEventKind { bullet, shell, airstrike, explosion, build, spawn, unload, move, repair }
 
 class BattleEvent {
   const BattleEvent(this.kind, this.x, this.y, {this.tx, this.ty, this.team, this.radius = 0.5});
@@ -42,18 +42,11 @@ class BattleEvent {
 }
 
 /// 战场模拟核心：不依赖 Flutter 组件，可在纯 Dart 测试中运行。
-///
-/// 所有坐标为格子单位；逻辑以固定步长推进，渲染层只读取状态。
-/// 生产、建造、机动与战斗的实现分别在同库的 part 文件中。
+/// 所有坐标为格子单位；生产、建造、机动与战斗分别在同库的 part 文件中。
 class BattleState {
-  BattleState({
-    required this.map,
-    this.difficulty = BattleDifficulty.normal,
-    this.mission,
-    int seed = 7,
-  }) : vision = VisionMap(width: map.width, height: map.height) {
+  BattleState({required this.map, this.difficulty = BattleDifficulty.normal, this.mission})
+    : vision = VisionMap(width: map.width, height: map.height) {
     _occupancy = List<Building?>.filled(map.width * map.height, null);
-    _random = math.Random(seed);
     _finder = PathFinder(
       map: map,
       isBlocked: (x, y) => map.blocked(x, y) || _occupancy[y * map.width + x] != null,
@@ -65,13 +58,11 @@ class BattleState {
     BattleDifficulty difficulty = BattleDifficulty.normal,
     GameMission? mission,
     int mapSeed = 20261114,
-    int setupSeed = 7,
   }) {
     final state = BattleState(
       map: GameMap.generate(size: mission?.mapSize ?? 44, seed: mission?.mapSeed ?? mapSeed),
       difficulty: mission?.difficulty ?? difficulty,
       mission: mission,
-      seed: setupSeed,
     );
     state._setupBases();
     state._applyMission();
@@ -115,7 +106,6 @@ class BattleState {
 
   int _nextId = 1;
   late final PathFinder _finder;
-  late final math.Random _random;
   late final List<Building?> _occupancy;
   final Map<int, Actor> _byId = {};
   final Map<Team, Map<BuildingKind, int>> _buildingCounts = {
@@ -134,8 +124,6 @@ class BattleState {
   late final Map<Team, UnmodifiableListView<BuildingKind>> _readyViews = {
     for (final team in Team.values) team: UnmodifiableListView(_readyStructures[team]!),
   };
-
-  // ===== 查询 =====
 
   List<Unit> unitsOf(Team team) => team == Team.red ? redUnits : blueUnits;
 
@@ -218,11 +206,7 @@ class BattleState {
     return buildingAt(tile.dx.floor(), tile.dy.floor());
   }
 
-  // ===== 初始布置 =====
-
   // 基地与战役初始布置见 battle_setup.dart。
-
-  // ===== 视野与雷达 =====
 
   /// 目标是否对玩家可见；己方目标恒为可见。
   bool isVisibleToPlayer(Actor actor) => actor.team == Team.red || vision.sees(actor);
@@ -266,8 +250,6 @@ class BattleState {
     vision.commit();
   }
 
-  // ===== 提示与事件 =====
-
   void addNotice(String text, {NoticeLevel level = NoticeLevel.info}) {
     notices.add(BattleNotice(text, level));
     if (notices.length > 20) notices.removeRange(0, notices.length - 20);
@@ -291,8 +273,6 @@ class BattleState {
     notices.clear();
     return drained;
   }
-
-  // ===== 主循环 =====
 
   void update(double dt) {
     if (result != null) return;
@@ -362,8 +342,6 @@ class BattleState {
     }
   }
 
-  // ===== 资金 =====
-
   void _addCredits(Team team, int amount) {
     if (team == Team.red) {
       creditsRed = math.max(0, creditsRed + amount);
@@ -373,9 +351,6 @@ class BattleState {
   }
 
   void addCredits(Team team, int amount) => _addCredits(team, amount);
-
-  /// 供 AI 使用的随机源，保证测试可复现。
-  int randomInt(int max) => max <= 0 ? 0 : _random.nextInt(max);
 
   /// 测试辅助：直接生成单位与建筑，绕过生产与放置校验。
   Unit spawnUnitForTest(Team team, UnitKind kind, Offset at) => _spawnUnit(team, kind, at);

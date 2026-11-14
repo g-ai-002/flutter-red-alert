@@ -87,6 +87,7 @@ class BattleGame extends FlameGame {
       switch (event.kind) {
         case BattleEventKind.bullet:
         case BattleEventKind.shell:
+        case BattleEventKind.airstrike:
           if (_fireSoundGap <= 0 && event.team == playerTeam) {
             _fireSoundGap = 0.12;
             SoundService.play(BattleFeedback.fire);

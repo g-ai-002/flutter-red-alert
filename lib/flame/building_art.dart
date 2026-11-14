@@ -161,6 +161,18 @@ class BuildingArt {
         );
         canvas.restore();
         break;
+      case BuildingKind.airDefense:
+        canvas.drawCircle(center, rect.width * 0.3, dark);
+        canvas.drawCircle(center, rect.width * 0.17, brush.solid(building.team.color));
+        // 双联装高射炮管，斜指天空。
+        for (final dx in [-0.14, 0.06]) {
+          canvas.drawLine(
+            Offset(center.dx + dx, center.dy),
+            Offset(center.dx + dx + 0.16, center.dy - 0.38),
+            brush.outlined(const Color(0xFF3B3A34), 0.07),
+          );
+        }
+        break;
     }
   }
 }

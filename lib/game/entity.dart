@@ -71,18 +71,18 @@ abstract class Actor {
   int hp;
   final int maxHp;
 
-  /// 朝向，弧度，0 指向 +x。
   double facing = 0;
 
-  /// 受击闪白剩余时间，由渲染层推进。
   double hitFlash = 0;
 
-  /// 开火冷却，单位与防御建筑共用。
   double fireCooldown = 0;
 
   bool get alive => hp > 0;
 
   bool get isBuilding => this is Building;
+
+  /// 空中单位不受地面阻挡，且只能被对空武器命中。
+  bool get isAir => false;
 
   String get displayName;
 
@@ -99,7 +99,6 @@ abstract class Actor {
     return math.sqrt(dx * dx + dy * dy);
   }
 
-  /// 与另一个目标的距离，同样走标量路径。
   double distanceToActor(Actor other) {
     final dx = x - other.x;
     final dy = y - other.y;
@@ -208,6 +207,9 @@ class Unit extends Actor {
   ArmorClass get armor => spec.armor;
 
   bool get isHarvester => spec.isHarvester;
+
+  @override
+  bool get isAir => spec.isAir;
 
   bool get hasPath => pathIndex < path.length;
 

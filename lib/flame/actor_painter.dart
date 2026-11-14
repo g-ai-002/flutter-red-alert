@@ -76,13 +76,14 @@ class ActorPainter {
     final center = Offset(unit.x, unit.y);
     final teamColor = unit.team.color;
 
+    // 空中单位的影子拉远并缩小，配合旋翼造型体现高度。
     canvas.drawOval(
       Rect.fromCenter(
-        center: center + const Offset(0.06, 0.1),
-        width: unit.radius * 2.2,
-        height: unit.radius * 1.1,
+        center: center + Offset(0.06 + (unit.isAir ? 0.28 : 0), 0.1 + (unit.isAir ? 0.42 : 0)),
+        width: unit.radius * (unit.isAir ? 1.7 : 2.2),
+        height: unit.radius * 1.0,
       ),
-      _brush.solid(const Color(0x55000000)),
+      _brush.solid(unit.isAir ? const Color(0x33000000) : const Color(0x55000000)),
     );
     if (selected) {
       canvas.drawOval(

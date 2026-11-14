@@ -64,6 +64,9 @@ class UnitArt {
         case UnitKind.artillery:
           _artilleryBody(canvas, team.color, outline);
           break;
+        case UnitKind.gunship:
+          _gunshipBody(canvas, team.color, outline);
+          break;
       }
     });
   }
@@ -189,6 +192,52 @@ class UnitArt {
       const Rect.fromLTWH(0.62, -0.08, 0.12, 0.16),
       brush.solid(const Color(0xFF24231F)),
     );
+  }
+
+  void _gunshipBody(Canvas canvas, Color teamColor, Paint outline) {
+    final dark = brush.solid(const Color(0xFF2B2A26));
+    // 尾梁、尾桨与短翼，构成直升机的十字轮廓。
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        const Rect.fromLTWH(-0.66, -0.045, 0.7, 0.09),
+        const Radius.circular(0.04),
+      ),
+      dark,
+    );
+    canvas.drawRect(const Rect.fromLTWH(-0.68, -0.16, 0.08, 0.32), dark);
+    canvas.drawRect(const Rect.fromLTWH(-0.1, -0.3, 0.3, 0.1), dark);
+    canvas.drawRect(const Rect.fromLTWH(-0.1, 0.2, 0.3, 0.1), dark);
+    // 机身与座舱。
+    canvas.drawOval(
+      Rect.fromCenter(center: const Offset(0.02, 0), width: 0.6, height: 0.42),
+      brush.solid(teamColor),
+    );
+    canvas.drawOval(
+      Rect.fromCenter(center: const Offset(0.02, 0), width: 0.6, height: 0.42),
+      outline,
+    );
+    canvas.drawOval(
+      Rect.fromCenter(center: const Offset(0.2, 0), width: 0.26, height: 0.22),
+      brush.solid(const Color(0xFF8FB6C4)),
+    );
+    // 旋翼：两层半透明椭圆加一根桨叶。
+    canvas.drawOval(
+      Rect.fromCenter(center: Offset.zero, width: 1.12, height: 0.16),
+      brush.solid(const Color(0x55E8E8E0)),
+    );
+    canvas.drawLine(
+      const Offset(-0.52, 0),
+      const Offset(0.52, 0),
+      brush.outlined(const Color(0x99F0F0E8), 0.035),
+    );
+    // 滑橇。
+    for (final y in [-0.26, 0.2]) {
+      canvas.drawLine(
+        Offset(-0.16, y),
+        Offset(0.28, y),
+        brush.outlined(const Color(0xFF35342F), 0.045),
+      );
+    }
   }
 
   void _harvesterBody(Canvas canvas, Color teamColor, Paint outline) {

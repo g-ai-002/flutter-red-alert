@@ -50,9 +50,7 @@ class BattleController extends ChangeNotifier {
 
   bool paused = false;
 
-  /// 游戏速度倍率，仅 1x 与 2x 两档。
   double speed = 1;
-
   double _notifyAccumulator = 0;
   bool _resultAnnounced = false;
 
@@ -66,12 +64,10 @@ class BattleController extends ChangeNotifier {
   BattleDifficulty get difficulty => state.difficulty;
   bool get isPlacing => _placement.active;
 
-  /// 放置预览状态，供渲染层直接读取。
   PlacementState get placement => _placement;
 
   BuildingSpec? get placingSpec => _placement.spec;
 
-  /// 当前放置位置（左上角格）。
   TilePoint? get ghostTile => _placement.tile;
 
   bool get ghostValid => _placement.valid;
@@ -84,8 +80,6 @@ class BattleController extends ChangeNotifier {
   SelectionInfo? get selection => _selection.summary;
 
   bool get canCommandSelection => _selection.canCommand;
-
-  // ===== 主循环 =====
 
   void tick(double dt) {
     if (state.result == null && !paused) {
@@ -134,8 +128,6 @@ class BattleController extends ChangeNotifier {
     }
     toasts.removeWhere((toast) => toast.remaining <= 0);
   }
-
-  // ===== 交互 =====
 
   /// 单击/点按战场：选择、移动或攻击。
   void tap(Offset screenPosition, {bool additive = false}) {
@@ -218,8 +210,6 @@ class BattleController extends ChangeNotifier {
     _commit();
   }
 
-  // ===== 建造放置 =====
-
   void beginPlacement(String id) {
     final kind = buildingKindFromId(id);
     if (kind == null || !state.hasReadyStructure(playerTeam, kind)) return;
@@ -260,8 +250,6 @@ class BattleController extends ChangeNotifier {
     _commit(BattleFeedback.build);
     return true;
   }
-
-  // ===== 视角与暂停 =====
 
   void focusWorld(Offset tile) {
     camera.focusOn(tile);

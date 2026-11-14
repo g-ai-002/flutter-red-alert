@@ -15,22 +15,11 @@ class SynthNote {
     this.decay = 3.2,
   });
 
-  /// 基频（Hz）。
   final double frequency;
-
-  /// 相对整段音效的起始时间（秒）。
   final double start;
-
-  /// 持续时长（秒）。
   final double duration;
-
-  /// 音量，0 到 1。
   final double gain;
-
-  /// 混入的噪声比例，用于表现爆炸与枪声。
   final double noise;
-
-  /// 指数衰减速度，越大收得越快。
   final double decay;
 }
 

@@ -2,12 +2,13 @@ part of 'battle_state.dart';
 
 /// 索敌与火力：自动索敌、追击、伤害结算，以及防御建筑的自瞄开火。
 extension BattleCombat on BattleState {
-  /// 下达攻击指令：目标可以是单位或建筑。
+  /// 下达攻击指令：目标可以是单位或建筑，武器打不到的目标类型会被忽略。
   void issueAttack(List<Unit> units, int targetId) {
     final target = actorById(targetId);
     if (target == null) return;
     for (final unit in units) {
       if (!unit.alive || unit.isHarvester || unit.spec.isEngineer) continue;
+      if (!unit.spec.canTarget(target.isAir)) continue;
       unit
         ..order = UnitOrder.attack
         ..targetId = targetId
@@ -21,12 +22,22 @@ extension BattleCombat on BattleState {
     if (unit.targetId != null) return;
     if (unit.repathTimer > 0) return;
     unit.repathTimer = 0.4;
-    final target = nearestEnemy(unit.team, unit.position, maxDistance: unit.spec.range + 1.2);
+    final target = nearestEnemy(
+      unit.team,
+      unit.position,
+      weapon: unit.spec,
+      maxDistance: unit.spec.range + 1.2,
+    );
     if (target == null) return;
     unit.targetId = target.id;
   }
 
   void _engage(Unit unit, Actor target, double dt) {
+    // 目标类型与武器不匹配时立即放弃，避免飞行单位被地面火力锁死。
+    if (!unit.spec.canTarget(target.isAir)) {
+      unit.targetId = null;
+      return;
+    }
     final distance = _distanceTo(unit, target);
     if (distance < unit.spec.minRange) {
       _retreat(unit, target, dt);
@@ -37,7 +48,8 @@ extension BattleCombat on BattleState {
       _fireAt(unit, target);
       return;
     }
-    _chase(unit, _approachTile(target), dt, repath: 0.9);
+    final approach = _approachTile(unit, target);
+    _chase(unit, approach, dt, repath: 0.9);
   }
 
   /// 目标进入最近射程时向后拉开距离，给火炮留出开火空间。
@@ -66,6 +78,7 @@ extension BattleCombat on BattleState {
 
   void _fireAt(Unit unit, Actor target) {
     if (unit.fireCooldown > 0) return;
+    if (!unit.spec.canTarget(target.isAir)) return;
     if (!_inFiringBand(unit, target)) return;
     _shoot(unit, target, unit.spec);
   }
@@ -78,9 +91,10 @@ extension BattleCombat on BattleState {
       attacker: attacker,
       target: target,
       attack: spec.attack,
-      multiplier: spec.multiplierAgainst(target.armor),
+      multiplier: target.isAir ? spec.vsAir : spec.multiplierAgainst(target.armor),
       shell: spec.firesShell,
       splash: spec.splash,
+      airstrike: attacker.isAir,
     );
   }
 
@@ -97,12 +111,17 @@ extension BattleCombat on BattleState {
     required double multiplier,
     required bool shell,
     double splash = 0,
+    bool airstrike = false,
   }) {
     final damage = math.max(1, (attack * multiplier).round());
     target.applyDamage(damage);
     _emit(
       BattleEvent(
-        shell ? BattleEventKind.shell : BattleEventKind.bullet,
+        airstrike
+            ? BattleEventKind.airstrike
+            : shell
+            ? BattleEventKind.shell
+            : BattleEventKind.bullet,
         attacker.x,
         attacker.y,
         tx: target.x,
@@ -114,7 +133,7 @@ extension BattleCombat on BattleState {
       final area = splash + (target.isBuilding ? 0.6 : 0.2);
       final spill = math.max(1, (damage * 0.5).round());
       for (final victim in unitsOf(attacker.team.opponent)) {
-        if (victim == target || !victim.alive) continue;
+        if (victim == target || !victim.alive || victim.isAir) continue;
         if (victim.distanceToActor(target) > area) continue;
         victim.applyDamage(spill);
       }
@@ -153,6 +172,7 @@ extension BattleCombat on BattleState {
     final target = nearestEnemy(
       building.team,
       building.position,
+      weapon: spec,
       maxDistance: spec.range,
       building: building,
     );
@@ -166,23 +186,31 @@ extension BattleCombat on BattleState {
     return from.distanceToActor(to) - to.radius * 0.4;
   }
 
-  Actor? nearestEnemy(Team team, Offset from, {double? maxDistance, Building? building}) {
+  /// 最近的可攻击目标：先按武器能打空 / 打地过滤，再挑选距离最近的。
+  /// 具备对空能力的武器给空中目标减 1.5 格等效距离，形成对空优先级。
+  Actor? nearestEnemy(
+    Team team,
+    Offset from, {
+    required WeaponStats weapon,
+    double? maxDistance,
+    Building? building,
+  }) {
     Actor? best;
     var bestScore = double.infinity;
     for (final actor in unitsOf(team.opponent)) {
-      if (!actor.alive) continue;
+      if (!actor.alive || !weapon.canTarget(actor.isAir)) continue;
       final distance = building == null
           ? actor.distanceToPoint(from) - actor.radius * 0.5
           : _distanceTo(building, actor);
       if (maxDistance != null && distance > maxDistance) continue;
-      final score = distance;
+      final score = distance - (actor.isAir ? 1.5 : 0);
       if (score < bestScore) {
         bestScore = score;
         best = actor;
       }
     }
     for (final actor in buildingsOf(team.opponent)) {
-      if (!actor.alive) continue;
+      if (!actor.alive || !weapon.canTarget(false)) continue;
       final distance = building == null
           ? actor.distanceToPoint(from) - actor.radius * 0.5
           : _distanceTo(building, actor);

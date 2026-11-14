@@ -14,15 +14,14 @@ double sightRadiusOf(Actor actor) {
       _ => 8,
     };
   }
-  if (actor is Unit) return actor.isHarvester ? 6 : 7;
+  if (actor is Unit) {
+    if (actor.isAir) return 9;
+    return actor.isHarvester ? 6 : 7;
+  }
   return 6;
 }
 
-/// 战争迷雾：按格记录「当前可见」与「曾经探索」。
-///
-/// 每 0.2 秒由 [BattleState] 用己方单位与建筑重建一次可见范围：新范围先写入
-/// 缓冲区，提交时与上一帧比较，只有真正变化才递增 [version]，渲染层据此
-/// 决定是否重建迷雾图层。敌方 AI 不受迷雾限制。
+/// 战争迷雾：按格记录「当前可见」与「曾经探索」，变化时递增版本号。
 class VisionMap {
   VisionMap({required this.width, required this.height})
     : _visible = Uint8List(width * height),

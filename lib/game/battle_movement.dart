@@ -12,10 +12,18 @@ extension BattleMovement on BattleState {
     for (var i = 0; i < ordered.length; i++) {
       final unit = ordered[i];
       final offset = offsets[i];
-      final slot = _nearestFreeTile(
-        Offset(baseTile.x + 0.5 + offset.dx, baseTile.y + 0.5 + offset.dy),
-        radius: 2,
-      );
+      final desired = Offset(baseTile.x + 0.5 + offset.dx, baseTile.y + 0.5 + offset.dy);
+      // 空中单位直飞，不参与地面寻路，也不需要空闲格。
+      if (unit.isAir) {
+        unit
+          ..order = UnitOrder.move
+          ..targetId = null
+          ..destination = desired
+          ..clearPath();
+        placed++;
+        continue;
+      }
+      final slot = _nearestFreeTile(desired, radius: 2);
       if (slot == null) continue;
       final path = _finder.find(_tileOf(unit), slot);
       if (path == null) continue;
@@ -85,14 +93,17 @@ extension BattleMovement on BattleState {
       }
     }
     if (unit.order == UnitOrder.move) {
-      if (unit.hasPath) {
+      if (unit.isAir) {
+        final goal = unit.destination;
+        if (goal != null) _flyTowards(unit, goal, dt);
+      } else if (unit.hasPath) {
         _followPath(unit, dt);
       } else {
         unit.order = UnitOrder.idle;
         unit.destination = null;
       }
-      // 行军途中只打射程内的临时目标，不为它停下脚步。
-      if (target != null && _inFiringBand(unit, target)) {
+      // 行军途中只打射程内、且武器能命中的临时目标，不为它停下脚步。
+      if (target != null && unit.spec.canTarget(target.isAir) && _inFiringBand(unit, target)) {
         _fireAt(unit, target);
       } else {
         unit.targetId = null;
@@ -137,7 +148,7 @@ extension BattleMovement on BattleState {
     unit.targetId = target.id;
     final gap = _distanceTo(unit, target);
     if (gap > unit.spec.range) {
-      _chase(unit, _approachTile(target), dt, repath: 0.8);
+      _chase(unit, _approachTile(unit, target), dt, repath: 0.8);
       return;
     }
     unit.clearPath();
@@ -196,9 +207,46 @@ extension BattleMovement on BattleState {
   }
 
   /// 追击：到达重算间隔或路径走完时重新寻路，然后跟随当前路径。
+  /// 空中单位跳过 A*，直接朝目标格中心飞行并周期性刷新落点。
   void _chase(Unit unit, TilePoint? goal, double dt, {required double repath}) {
+    if (unit.isAir) {
+      if (goal == null) {
+        unit.destination = null;
+        return;
+      }
+      if (unit.repathTimer <= 0 || unit.destination == null) {
+        unit
+          ..destination = goal.center
+          ..repathTimer = repath;
+      }
+      _flyTowards(unit, unit.destination!, dt, finish: false);
+      return;
+    }
     if (unit.repathTimer <= 0 || !unit.hasPath) _repath(unit, goal, repath: repath);
     if (unit.hasPath) _followPath(unit, dt);
+  }
+
+  /// 低空直飞：忽略地形与建筑占位，抵达终点后按需结束移动指令。
+  void _flyTowards(Unit unit, Offset goal, double dt, {bool finish = true}) {
+    final dx = goal.dx - unit.x;
+    final dy = goal.dy - unit.y;
+    final distance = math.sqrt(dx * dx + dy * dy);
+    final speed = unit.spec.speed * dt;
+    if (distance <= speed || distance < 0.05) {
+      unit
+        ..x = goal.dx
+        ..y = goal.dy;
+      if (finish) {
+        unit
+          ..order = UnitOrder.idle
+          ..destination = null;
+      }
+      return;
+    }
+    unit
+      ..x += dx / distance * speed
+      ..y += dy / distance * speed
+      ..facing = math.atan2(dy, dx);
   }
 
   void _followPath(Unit unit, double dt) {
@@ -209,7 +257,8 @@ extension BattleMovement on BattleState {
     final dx = tx - unit.x;
     final dy = ty - unit.y;
     final distance = math.sqrt(dx * dx + dy * dy);
-    final speed = unit.spec.speed * map.speedFactor(waypoint.x, waypoint.y) * dt;
+    final factor = unit.isAir ? 1.0 : map.speedFactor(waypoint.x, waypoint.y);
+    final speed = unit.spec.speed * factor * dt;
     if (distance <= speed || distance < 0.02) {
       unit
         ..x = tx
@@ -369,14 +418,14 @@ extension BattleMovement on BattleState {
     }
   }
 
-  /// 攻击建筑时找贴近外沿的可站立格，避免单位卡在建筑中心。
-  TilePoint? _approachTile(Actor target) {
-    if (target is! Building) {
-      return TilePoint(target.x.floor(), target.y.floor());
-    }
+  /// 攻击建筑时找贴近外沿的可站立格，避免单位卡在建筑中心；
+  /// 空中单位直接飞到目标所在格。
+  TilePoint? _approachTile(Unit unit, Actor target) {
+    final center = TilePoint(target.x.floor(), target.y.floor());
+    if (unit.isAir || target is! Building) return center;
     return searchTile(
-      centerX: target.x.floor(),
-      centerY: target.y.floor(),
+      centerX: center.x,
+      centerY: center.y,
       maxRadius: 5,
       accept: (x, y) {
         if (x < 0 || y < 0 || x >= map.width || y >= map.height) return false;

@@ -4,10 +4,6 @@ import 'entity.dart';
 import 'terrain.dart';
 
 /// A* 寻路：八方向移动，禁止斜穿障碍，返回不含起点的格子路径。
-///
-/// 距离表、来源表与关闭表在构造时分配一次，每次搜索用代次标记复用，
-/// 避免大兵团反复寻路时产生大量短命数组。单次搜索上限 6000 个节点，
-/// 超出后放弃并让单位直接朝目标移动，避免极端地图拖慢逻辑帧。
 class PathFinder {
   PathFinder({required GameMap map, required this.isBlocked})
     : map = map,

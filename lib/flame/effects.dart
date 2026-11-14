@@ -36,6 +36,15 @@ class Effects {
         ty: event.ty,
         duration: 0.24,
       ),
+      BattleEventKind.airstrike => _Fx(
+        kind: _FxKind.airstrike,
+        x: event.x,
+        y: event.y,
+        tx: event.tx,
+        ty: event.ty,
+        duration: 0.34,
+        team: event.team,
+      ),
       BattleEventKind.explosion => _Fx(
         kind: _FxKind.explosion,
         x: event.x,
@@ -101,6 +110,9 @@ class Effects {
         case _FxKind.shell:
           _drawShell(canvas, item, t);
           break;
+        case _FxKind.airstrike:
+          _drawAirstrike(canvas, item, t);
+          break;
         case _FxKind.explosion:
           _drawExplosion(canvas, item, t);
           break;
@@ -149,6 +161,36 @@ class Effects {
       canvas.drawLine(Offset(x, y), Offset(x - dx / length * 0.5, y - dy / length * 0.5), trail);
     }
     canvas.drawCircle(Offset(x, y), 0.09, _fill..color = _core);
+  }
+
+  /// 直升机扫射：两道平行弹道扑向目标，到位后炸开一小圈烟尘。
+  void _drawAirstrike(Canvas canvas, _Fx fx, double t) {
+    final ex = fx.tx ?? fx.x;
+    final ey = fx.ty ?? fx.y;
+    final dx = ex - fx.x;
+    final dy = ey - fx.y;
+    final length = math.sqrt(dx * dx + dy * dy);
+    if (length <= 0.01) return;
+    final nx = -dy / length * 0.1;
+    final ny = dx / length * 0.1;
+    final progress = math.min(1.0, t * 2.4);
+    final x = fx.x + dx * progress;
+    final y = fx.y + dy * progress;
+    final paint = _stroke
+      ..color = _core.withValues(alpha: 1 - t * 0.7)
+      ..strokeWidth = math.max(0.02, 1.8);
+    canvas.drawLine(Offset(x + nx, y + ny), Offset(ex + nx, ey + ny), paint);
+    canvas.drawLine(Offset(x - nx, y - ny), Offset(ex - nx, ey - ny), paint);
+    if (t > 0.45) {
+      canvas.drawCircle(
+        Offset(ex, ey),
+        0.18 + (t - 0.45) * 1.2,
+        _stroke
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.06
+          ..color = _hot.withValues(alpha: (1 - t) * 0.7),
+      );
+    }
   }
 
   void _drawExplosion(Canvas canvas, _Fx fx, double t) {
@@ -240,7 +282,7 @@ class Effects {
   }
 }
 
-enum _FxKind { tracer, shell, explosion, ring, ping, spark, repair }
+enum _FxKind { tracer, shell, airstrike, explosion, ring, ping, spark, repair }
 
 class _Fx {
   _Fx({

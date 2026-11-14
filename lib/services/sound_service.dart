@@ -8,40 +8,9 @@ import 'log_service.dart';
 import 'tone_synth.dart';
 
 /// 战场反馈类型，决定提示音与震动的强弱。
-enum BattleFeedback {
-  /// 选中单位或建筑。
-  select,
+enum BattleFeedback { select, command, build, ready, fire, explosion, harvest, victory, defeat }
 
-  /// 下达移动、攻击或建造指令。
-  command,
-
-  /// 建筑落地。
-  build,
-
-  /// 生产完成。
-  ready,
-
-  /// 步枪与机枪开火。
-  fire,
-
-  /// 炮击与爆炸。
-  explosion,
-
-  /// 采矿车卸载矿石。
-  harvest,
-
-  /// 胜利号角。
-  victory,
-
-  /// 失败低音。
-  defeat,
-}
-
-/// 战场音效与触感反馈。
-///
-/// 音效由 [synthesizeWav] 在运行时合成，不随包携带音频文件；合成好的 WAV
-/// 交给 flutter_soloud 的内存音源播放，Android、Windows 与 Web 共用同一套
-/// 实现，Web 的自动播放限制会在用户首次操作页面后解除。
+/// 战场音效与触感反馈，音效全部在运行时合成，三端共用一套实现。
 class SoundService {
   SoundService._();
 

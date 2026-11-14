@@ -11,10 +11,7 @@ enum MissionObjective {
   final String brief;
 }
 
-/// 一关战役的全部固定参数：地图、难度、目标与双方初始部队。
-///
-/// 关卡数据与模拟解耦，[BattleState] 只按这里的配置生成地图与初始单位，
-/// 新增关卡不需要改动战斗逻辑。
+/// 一关战役的全部固定参数，关卡数据与模拟逻辑解耦。
 class GameMission {
   const GameMission({
     required this.id,
@@ -32,24 +29,16 @@ class GameMission {
   });
 
   final String id;
-
-  /// 例：`第一关 · 前哨战`。
   final String title;
-
-  /// 一句话氛围描述。
   final String subtitle;
   final String brief;
   final MissionObjective objective;
   final BattleDifficulty difficulty;
   final int mapSeed;
   final int mapSize;
-
-  /// 在难度初始资金之上额外拨付的军费。
   final int bonusCredits;
   final List<UnitKind> startingArmy;
   final List<UnitKind> enemyArmy;
-
-  /// 开局即存在的蓝军建筑，用于布置前哨炮塔等据点。
   final List<BuildingKind> enemyBuildings;
 
   String get objectiveText => objective.brief;
@@ -130,8 +119,8 @@ const List<GameMission> campaignMissions = [
     title: '第五关 · 黎明总攻',
     subtitle: '最后的总攻',
     brief:
-        '蓝军把最后的精锐与指挥中心一起缩进核心阵地。'
-        '带上工程兵与重炮，顶住反扑，把旗帜插上他们的指挥中心。',
+        '蓝军把最后的精锐与指挥中心一起缩进核心阵地，防空炮塔已封锁低空。'
+        '带上工程兵、重炮与直升机，先敲掉防空再压制地面，把旗帜插上他们的指挥中心。',
     objective: MissionObjective.decapitate,
     difficulty: BattleDifficulty.hard,
     mapSeed: 20261128,
@@ -143,6 +132,7 @@ const List<GameMission> campaignMissions = [
       UnitKind.heavyTank,
       UnitKind.artillery,
       UnitKind.rocket,
+      UnitKind.gunship,
     ],
     enemyArmy: [
       UnitKind.heavyTank,
@@ -150,8 +140,14 @@ const List<GameMission> campaignMissions = [
       UnitKind.rocket,
       UnitKind.artillery,
       UnitKind.rifle,
+      UnitKind.gunship,
     ],
-    enemyBuildings: [BuildingKind.tower, BuildingKind.tower, BuildingKind.barracks],
+    enemyBuildings: [
+      BuildingKind.tower,
+      BuildingKind.tower,
+      BuildingKind.barracks,
+      BuildingKind.airDefense,
+    ],
   ),
 ];
 

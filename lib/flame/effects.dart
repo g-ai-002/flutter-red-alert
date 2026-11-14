@@ -18,74 +18,33 @@ class Effects {
   final Paint _fill = Paint();
   final Paint _stroke = Paint()..strokeCap = StrokeCap.round;
 
+  /// 事件到特效的固定参数：只看表就能知道每种事件的时长、半径与颜色。
+  static const Map<BattleEventKind, _FxSpec> _specs = {
+    BattleEventKind.bullet: _FxSpec(_FxKind.tracer, 0.1),
+    BattleEventKind.shell: _FxSpec(_FxKind.shell, 0.24),
+    BattleEventKind.airstrike: _FxSpec(_FxKind.airstrike, 0.34, tint: true),
+    BattleEventKind.explosion: _FxSpec(_FxKind.explosion, 0.6),
+    BattleEventKind.build: _FxSpec(_FxKind.ring, 0.7, minRadius: 1, tint: true),
+    BattleEventKind.spawn: _FxSpec(_FxKind.ring, 0.45, radius: 0.7, tint: true),
+    BattleEventKind.unload: _FxSpec(_FxKind.spark, 0.8, tint: true),
+    BattleEventKind.move: _FxSpec(_FxKind.ping, 0.6, radius: 0.6, tint: true),
+    BattleEventKind.repair: _FxSpec(_FxKind.repair, 0.5),
+  };
+
   void addEvent(BattleEvent event) {
-    final fx = switch (event.kind) {
-      BattleEventKind.bullet => _Fx(
-        kind: _FxKind.tracer,
+    final spec = _specs[event.kind]!;
+    _items.add(
+      _Fx(
+        kind: spec.kind,
         x: event.x,
         y: event.y,
         tx: event.tx,
         ty: event.ty,
-        duration: 0.1,
+        duration: spec.duration,
+        radius: math.max(spec.minRadius ?? event.radius, spec.radius ?? event.radius),
+        team: spec.tint ? event.team : null,
       ),
-      BattleEventKind.shell => _Fx(
-        kind: _FxKind.shell,
-        x: event.x,
-        y: event.y,
-        tx: event.tx,
-        ty: event.ty,
-        duration: 0.24,
-      ),
-      BattleEventKind.airstrike => _Fx(
-        kind: _FxKind.airstrike,
-        x: event.x,
-        y: event.y,
-        tx: event.tx,
-        ty: event.ty,
-        duration: 0.34,
-        team: event.team,
-      ),
-      BattleEventKind.explosion => _Fx(
-        kind: _FxKind.explosion,
-        x: event.x,
-        y: event.y,
-        duration: 0.6,
-        radius: event.radius,
-      ),
-      BattleEventKind.build => _Fx(
-        kind: _FxKind.ring,
-        x: event.x,
-        y: event.y,
-        duration: 0.7,
-        radius: math.max(1, event.radius),
-        team: event.team,
-      ),
-      BattleEventKind.spawn => _Fx(
-        kind: _FxKind.ring,
-        x: event.x,
-        y: event.y,
-        duration: 0.45,
-        radius: 0.7,
-        team: event.team,
-      ),
-      BattleEventKind.unload => _Fx(
-        kind: _FxKind.spark,
-        x: event.x,
-        y: event.y,
-        duration: 0.8,
-        team: event.team,
-      ),
-      BattleEventKind.move => _Fx(
-        kind: _FxKind.ping,
-        x: event.x,
-        y: event.y,
-        duration: 0.6,
-        radius: 0.6,
-        team: event.team,
-      ),
-      BattleEventKind.repair => _Fx(kind: _FxKind.repair, x: event.x, y: event.y, duration: 0.5),
-    };
-    _items.add(fx);
+    );
   }
 
   void update(double dt) {
@@ -133,6 +92,9 @@ class Effects {
   }
 
   void clear() => _items.clear();
+
+  /// 当前存活的特效数量，供渲染调试与测试断言。
+  int get activeCount => _items.length;
 
   void _drawTracer(Canvas canvas, _Fx fx, double t, double tileSize) {
     canvas.drawLine(
@@ -283,6 +245,18 @@ class Effects {
 }
 
 enum _FxKind { tracer, shell, airstrike, explosion, ring, ping, spark, repair }
+
+/// 事件到特效的固定参数：[radius] / [minRadius] 为空时沿用事件半径，
+/// [tint] 表示用事件所属阵营色绘制。
+class _FxSpec {
+  const _FxSpec(this.kind, this.duration, {this.radius, this.minRadius, this.tint = false});
+
+  final _FxKind kind;
+  final double duration;
+  final double? radius;
+  final double? minRadius;
+  final bool tint;
+}
 
 class _Fx {
   _Fx({

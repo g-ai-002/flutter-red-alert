@@ -81,31 +81,28 @@ class UnitArt {
   }
 
   void _infantryBody(Canvas canvas, Color teamColor, Paint outline) {
-    canvas.drawCircle(Offset.zero, 0.28, brush.solid(teamColor));
-    canvas.drawCircle(Offset.zero, 0.28, outline);
-    canvas.drawArc(
-      const Rect.fromLTRB(-0.24, -0.24, 0.24, 0.24),
-      math.pi,
-      math.pi,
-      true,
-      brush.solid(shadeColor(teamColor, -0.25)),
-    );
+    _head(canvas, teamColor, outline, shadeColor(teamColor, -0.25));
   }
 
   void _engineerBody(Canvas canvas, Color teamColor, Paint outline) {
+    // 黄色安全帽，便于在步兵群里一眼认出工兵。
+    _head(canvas, teamColor, outline, const Color(0xFFE8C36A));
+    canvas.drawRect(
+      const Rect.fromLTWH(-0.06, 0.02, 0.12, 0.2),
+      brush.solid(const Color(0xFF8C8C86)),
+    );
+  }
+
+  /// 步兵头部：阵营底圆 + 深色描边 + 头盔弧，工程兵只换头盔颜色。
+  void _head(Canvas canvas, Color teamColor, Paint outline, Color helmet) {
     canvas.drawCircle(Offset.zero, 0.28, brush.solid(teamColor));
     canvas.drawCircle(Offset.zero, 0.28, outline);
-    // 黄色安全帽，便于在步兵群里一眼认出工兵。
     canvas.drawArc(
       const Rect.fromLTRB(-0.24, -0.24, 0.24, 0.24),
       math.pi,
       math.pi,
       true,
-      brush.solid(const Color(0xFFE8C36A)),
-    );
-    canvas.drawRect(
-      const Rect.fromLTWH(-0.06, 0.02, 0.12, 0.2),
-      brush.solid(const Color(0xFF8C8C86)),
+      brush.solid(helmet),
     );
   }
 
@@ -141,16 +138,7 @@ class UnitArt {
     final width = heavy ? 0.86 : 0.74;
     final height = heavy ? 0.72 : 0.62;
     final body = Rect.fromCenter(center: Offset.zero, width: width, height: height);
-    final track = brush.solid(const Color(0xFF24231F));
-    for (final top in [-height / 2, height / 2 - height * 0.24]) {
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(-width / 2, top, width, height * 0.24),
-          const Radius.circular(0.06),
-        ),
-        track,
-      );
-    }
+    _tracks(canvas, width: width, height: height, ratio: 0.24, radius: 0.06);
     canvas.drawRRect(
       RRect.fromRectAndRadius(body, const Radius.circular(0.08)),
       brush.solid(teamColor),
@@ -167,16 +155,7 @@ class UnitArt {
     const width = 0.82;
     const height = 0.6;
     final body = Rect.fromCenter(center: Offset.zero, width: width, height: height);
-    final track = brush.solid(const Color(0xFF24231F));
-    for (final top in [-height / 2, height / 2 - height * 0.22]) {
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(-width / 2, top, width, height * 0.22),
-          const Radius.circular(0.05),
-        ),
-        track,
-      );
-    }
+    _tracks(canvas, width: width, height: height, ratio: 0.22, radius: 0.05);
     canvas.drawRRect(
       RRect.fromRectAndRadius(body, const Radius.circular(0.07)),
       brush.solid(teamColor),
@@ -192,6 +171,26 @@ class UnitArt {
       const Rect.fromLTWH(0.62, -0.08, 0.12, 0.16),
       brush.solid(const Color(0xFF24231F)),
     );
+  }
+
+  /// 车体上下两条履带，坦克与自行火炮共用，只有厚度与圆角不同。
+  void _tracks(
+    Canvas canvas, {
+    required double width,
+    required double height,
+    required double ratio,
+    required double radius,
+  }) {
+    final track = brush.solid(const Color(0xFF24231F));
+    for (final top in [-height / 2, height / 2 - height * ratio]) {
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(-width / 2, top, width, height * ratio),
+          Radius.circular(radius),
+        ),
+        track,
+      );
+    }
   }
 
   void _gunshipBody(Canvas canvas, Color teamColor, Paint outline) {

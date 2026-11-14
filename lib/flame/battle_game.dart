@@ -81,34 +81,28 @@ class BattleGame extends FlameGame {
     super.update(dt);
   }
 
+  /// 战场事件对应的音效，移动与维修保持静默。
+  static const Map<BattleEventKind, BattleFeedback> _eventSounds = {
+    BattleEventKind.bullet: BattleFeedback.fire,
+    BattleEventKind.shell: BattleFeedback.fire,
+    BattleEventKind.airstrike: BattleFeedback.fire,
+    BattleEventKind.explosion: BattleFeedback.explosion,
+    BattleEventKind.build: BattleFeedback.build,
+    BattleEventKind.spawn: BattleFeedback.ready,
+    BattleEventKind.unload: BattleFeedback.harvest,
+  };
+
   void _consumeEvents() {
     for (final event in state.drainEvents()) {
       effects.addEvent(event);
-      switch (event.kind) {
-        case BattleEventKind.bullet:
-        case BattleEventKind.shell:
-        case BattleEventKind.airstrike:
-          if (_fireSoundGap <= 0 && event.team == playerTeam) {
-            _fireSoundGap = 0.12;
-            SoundService.play(BattleFeedback.fire);
-          }
-          break;
-        case BattleEventKind.explosion:
-          SoundService.play(BattleFeedback.explosion);
-          break;
-        case BattleEventKind.build:
-          SoundService.play(BattleFeedback.build);
-          break;
-        case BattleEventKind.spawn:
-          SoundService.play(BattleFeedback.ready);
-          break;
-        case BattleEventKind.unload:
-          SoundService.play(BattleFeedback.harvest);
-          break;
-        case BattleEventKind.move:
-        case BattleEventKind.repair:
-          break;
+      final feedback = _eventSounds[event.kind];
+      if (feedback == null) continue;
+      // 开火声按玩家阵营节流，避免大兵团交火时音效叠成噪音。
+      if (feedback == BattleFeedback.fire) {
+        if (_fireSoundGap > 0 || event.team != playerTeam) continue;
+        _fireSoundGap = 0.12;
       }
+      SoundService.play(feedback);
     }
   }
 

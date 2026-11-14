@@ -228,71 +228,63 @@ extension BattleMovement on BattleState {
 
   /// 低空直飞：忽略地形与建筑占位，抵达终点后按需结束移动指令。
   void _flyTowards(Unit unit, Offset goal, double dt, {bool finish = true}) {
-    final dx = goal.dx - unit.x;
-    final dy = goal.dy - unit.y;
-    final distance = math.sqrt(dx * dx + dy * dy);
-    final speed = unit.spec.speed * dt;
-    if (distance <= speed || distance < 0.05) {
-      unit
-        ..x = goal.dx
-        ..y = goal.dy;
-      if (finish) {
-        unit
-          ..order = UnitOrder.idle
-          ..destination = null;
-      }
-      return;
-    }
+    if (!_stepTowards(unit, goal, unit.spec.speed * dt) || !finish) return;
     unit
-      ..x += dx / distance * speed
-      ..y += dy / distance * speed
-      ..facing = math.atan2(dy, dx);
+      ..order = UnitOrder.idle
+      ..destination = null;
   }
 
   void _followPath(Unit unit, double dt) {
     final waypoint = unit.nextWaypoint;
     if (waypoint == null) return;
-    final tx = waypoint.x + 0.5;
-    final ty = waypoint.y + 0.5;
-    final dx = tx - unit.x;
-    final dy = ty - unit.y;
-    final distance = math.sqrt(dx * dx + dy * dy);
     final factor = unit.isAir ? 1.0 : map.speedFactor(waypoint.x, waypoint.y);
-    final speed = unit.spec.speed * factor * dt;
-    if (distance <= speed || distance < 0.02) {
+    if (_stepTowards(unit, waypoint.center, unit.spec.speed * factor * dt)) {
+      unit.pathIndex += 1;
+    }
+  }
+
+  /// 朝 [goal] 前进一步，抵达该点时对齐坐标并返回 true；地面与空中单位共用。
+  bool _stepTowards(Unit unit, Offset goal, double speed) {
+    final dx = goal.dx - unit.x;
+    final dy = goal.dy - unit.y;
+    final distance = math.sqrt(dx * dx + dy * dy);
+    if (distance <= speed || distance < 0.05) {
       unit
-        ..x = tx
-        ..y = ty
-        ..pathIndex = unit.pathIndex + 1;
-      return;
+        ..x = goal.dx
+        ..y = goal.dy;
+      return true;
     }
     unit
       ..x += dx / distance * speed
       ..y += dy / distance * speed
       ..facing = math.atan2(dy, dx);
+    return false;
+  }
+
+  /// 采矿车回到待命，并按需推迟下一次寻矿。
+  void _idleHarvester(Unit unit, {double delay = 0}) {
+    unit
+      ..phase = HarvesterPhase.idle
+      ..repathTimer = delay;
   }
 
   void _updateHarvester(Unit unit, double dt) {
     switch (unit.phase) {
       case HarvesterPhase.moving:
         _followPath(unit, dt);
-        if (!unit.hasPath) {
-          unit
-            ..phase = HarvesterPhase.idle
-            ..repathTimer = 0;
-        }
+        if (!unit.hasPath) _idleHarvester(unit);
         break;
       case HarvesterPhase.idle:
         if (unit.repathTimer > 0) return;
         unit.repathTimer = 0.8;
         final refinery = nearestRefinery(unit.team, unit.position);
         if (refinery == null) {
-          unit.repathTimer = 3;
+          _idleHarvester(unit, delay: 3);
           return;
         }
         final ore = nearestOre(unit.position);
         if (ore == null) {
-          unit.repathTimer = 4;
+          _idleHarvester(unit, delay: 4);
           return;
         }
         unit
@@ -305,14 +297,11 @@ extension BattleMovement on BattleState {
         if (unit.hasPath) return;
         final ore = unit.oreTile;
         if (ore == null || map.oreAt(ore.x, ore.y) <= 0) {
-          unit.phase = HarvesterPhase.idle;
-          unit.repathTimer = 0;
+          _idleHarvester(unit);
           return;
         }
         if ((unit.position - ore.center).distance > 1.6) {
-          unit
-            ..phase = HarvesterPhase.idle
-            ..repathTimer = 0.6;
+          _idleHarvester(unit, delay: 0.6);
           return;
         }
         unit
@@ -322,7 +311,7 @@ extension BattleMovement on BattleState {
       case HarvesterPhase.mining:
         final ore = unit.oreTile;
         if (ore == null) {
-          unit.phase = HarvesterPhase.idle;
+          _idleHarvester(unit);
           return;
         }
         unit.miningCarry += 180 * dt;
@@ -358,15 +347,14 @@ extension BattleMovement on BattleState {
         if (unit.miningTimer > 0) return;
         final refinery = unit.refineryId == null ? null : actorById(unit.refineryId!);
         if (refinery == null) {
-          unit.phase = HarvesterPhase.idle;
-          unit.repathTimer = 0;
+          _idleHarvester(unit);
           return;
         }
         final earned = unit.unload();
         if (earned > 0) {
           final multiplier = unit.team == Team.blue ? difficulty.aiIncome : 1.0;
           final income = (earned * multiplier).round();
-          _addCredits(unit.team, income);
+          addCredits(unit.team, income);
           _emit(BattleEvent(BattleEventKind.unload, unit.x, unit.y, team: unit.team, radius: 0.4));
           if (unit.team == Team.red) {
             addNotice('采矿车入库 +$income', level: NoticeLevel.success);
@@ -374,8 +362,7 @@ extension BattleMovement on BattleState {
         }
         final ore = nearestOre(unit.position);
         if (ore == null) {
-          unit.phase = HarvesterPhase.idle;
-          unit.repathTimer = 2;
+          _idleHarvester(unit, delay: 2);
         } else {
           unit
             ..oreTile = ore
@@ -390,7 +377,7 @@ extension BattleMovement on BattleState {
   void _sendToRefinery(Unit unit) {
     final refinery = nearestRefinery(unit.team, unit.position);
     if (refinery == null) {
-      unit.phase = HarvesterPhase.idle;
+      _idleHarvester(unit);
       return;
     }
     unit
@@ -430,7 +417,7 @@ extension BattleMovement on BattleState {
       accept: (x, y) {
         if (x < 0 || y < 0 || x >= map.width || y >= map.height) return false;
         if (isBlocked(x, y)) return false;
-        return _rectGap(Offset(x + 0.5, y + 0.5), target.bounds) <= 0.6;
+        return rectGap(Offset(x + 0.5, y + 0.5), target.bounds) <= 0.6;
       },
     );
   }

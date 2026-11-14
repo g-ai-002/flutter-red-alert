@@ -23,17 +23,7 @@ class SelectionState {
     final selected = actors;
     if (selected.isEmpty) return null;
     final first = selected.first;
-    if (selected.length == 1) {
-      return SelectionInfo(
-        name: first.displayName,
-        icon: first is Unit ? first.spec.icon : (first as Building).spec.icon,
-        hp: first.hp,
-        maxHp: first.maxHp,
-        team: first.team,
-        isBuilding: first.isBuilding,
-        count: 1,
-      );
-    }
+    final single = selected.length == 1;
     final sameName = selected.every((actor) => actor.displayName == first.displayName);
     var hp = 0;
     var maxHp = 0;
@@ -43,11 +33,11 @@ class SelectionState {
     }
     return SelectionInfo(
       name: sameName ? first.displayName : '混编部队',
-      icon: sameName ? (first is Unit ? first.spec.icon : (first as Building).spec.icon) : '编',
+      icon: sameName ? first.icon : '编',
       hp: hp,
       maxHp: maxHp,
       team: first.team,
-      isBuilding: false,
+      isBuilding: single && first.isBuilding,
       count: selected.length,
     );
   }

@@ -84,7 +84,7 @@ extension BattleProduction on BattleState {
       }
       return false;
     }
-    _addCredits(team, -item.cost);
+    addCredits(team, -item.cost);
     queue[category] = ProductionJob(item: item);
     return true;
   }
@@ -92,7 +92,7 @@ extension BattleProduction on BattleState {
   void cancelProduction(Team team, ProductionCategory category) {
     final job = _queues[team]![category];
     if (job == null) return;
-    _addCredits(team, job.cost);
+    addCredits(team, job.cost);
     _queues[team]![category] = null;
     if (team == Team.red) {
       addNotice('已取消${job.name}，资金已返还');
@@ -129,7 +129,7 @@ extension BattleProduction on BattleState {
     if (_trySpawnUnit(team, job.item.unit!)) return;
     // 出兵口被占满时保持 100%，等待空位；生产者被摧毁则中止并退款。
     if (hasBuilding(team, producerForCategory[category]!)) return;
-    _addCredits(team, job.cost);
+    addCredits(team, job.cost);
     _queues[team]![category] = null;
     if (team == Team.red) {
       addNotice('生产建筑被摧毁，${job.name}生产中止', level: NoticeLevel.warning);

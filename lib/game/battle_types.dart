@@ -483,21 +483,19 @@ const Map<ProductionCategory, BuildingKind> producerForCategory = {
   ProductionCategory.armor: BuildingKind.factory,
 };
 
-/// 由存档或界面字符串还原建筑类型，未知 id 返回 null。
-BuildingKind? buildingKindFromId(String id) {
-  for (final kind in BuildingKind.values) {
-    if (kind.name == id) return kind;
+/// 由枚举 name 还原类型，未知 id 返回 null；建筑与单位共用同一份查表。
+T? enumValueById<T extends Enum>(List<T> values, String id) {
+  for (final value in values) {
+    if (value.name == id) return value;
   }
   return null;
 }
 
+/// 由存档或界面字符串还原建筑类型，未知 id 返回 null。
+BuildingKind? buildingKindFromId(String id) => enumValueById(BuildingKind.values, id);
+
 /// 由存档或界面字符串还原单位类型，未知 id 返回 null。
-UnitKind? unitKindFromId(String id) {
-  for (final kind in UnitKind.values) {
-    if (kind.name == id) return kind;
-  }
-  return null;
-}
+UnitKind? unitKindFromId(String id) => enumValueById(UnitKind.values, id);
 
 /// 难度：影响经济、AI 出兵规模与初始资金。
 enum BattleDifficulty {

@@ -33,8 +33,9 @@ class AiCommander {
     if (_think > 0) return;
     _think = 1;
     _placeReadyStructures(state);
-    _manageStructures(state);
-    _manageProduction(state);
+    final enemyAir = state.unitsOf(team.opponent).any((u) => u.isAir);
+    _manageStructures(state, enemyAir);
+    _manageProduction(state, enemyAir);
     _manageArmy(state, 1.0);
   }
 
@@ -47,10 +48,10 @@ class AiCommander {
     }
   }
 
-  void _manageStructures(BattleState state) {
+  void _manageStructures(BattleState state, bool enemyAir) {
     if (state.queuesOf(team)[ProductionCategory.structure] != null) return;
     if (state.readyStructuresOf(team).length >= 2) return;
-    final want = _nextBuilding(state);
+    final want = _nextBuilding(state, enemyAir);
     if (want == null) return;
     final cost = buildingSpecs[want]!.cost;
     // 留出生产资金，避免把收入全部砸进建筑导致断兵。
@@ -61,12 +62,11 @@ class AiCommander {
   }
 
   /// 先补齐指挥中心与电力，再按计划表补建筑；敌方空军出现时优先补防空。
-  BuildingKind? _nextBuilding(BattleState state) {
+  BuildingKind? _nextBuilding(BattleState state, bool enemyAir) {
     if (!state.hasBuilding(team, BuildingKind.hq)) return BuildingKind.hq;
     if (state.powerUsed(team) + 30 > state.powerProduced(team)) {
       return BuildingKind.power;
     }
-    final enemyAir = state.unitsOf(team.opponent).any((u) => u.isAir);
     if (enemyAir && state.countBuildings(team, BuildingKind.airDefense) < 2) {
       return BuildingKind.airDefense;
     }
@@ -76,7 +76,7 @@ class AiCommander {
     return null;
   }
 
-  void _manageProduction(BattleState state) {
+  void _manageProduction(BattleState state, bool enemyAir) {
     final credits = state.creditsOf(team);
     if (state.jobOf(team, ProductionCategory.armor) == null &&
         state.canProduce(team, ProductionCategory.armor, UnitKind.lightTank.name)) {
@@ -87,7 +87,6 @@ class AiCommander {
         credits >= 500) {
       final needsEngineer =
           state.armySize(team) >= 5 && !state.unitsOf(team).any((u) => u.spec.isEngineer);
-      final enemyAir = state.unitsOf(team.opponent).any((u) => u.isAir);
       final wantRocket = enemyAir || state.armySize(team) % 3 == 2;
       final kind = needsEngineer
           ? UnitKind.engineer
@@ -99,9 +98,14 @@ class AiCommander {
   }
 
   void _startArmor(BattleState state, int credits) {
-    final harvesters = state.unitsOf(team).where((u) => u.isHarvester).length;
-    final artillery = state.unitsOf(team).where((u) => u.spec.kind == UnitKind.artillery).length;
-    final gunships = state.unitsOf(team).where((u) => u.isAir).length;
+    var harvesters = 0;
+    var artillery = 0;
+    var gunships = 0;
+    for (final unit in state.unitsOf(team)) {
+      if (unit.isHarvester) harvesters++;
+      if (unit.isAir) gunships++;
+      if (unit.spec.kind == UnitKind.artillery) artillery++;
+    }
     final UnitKind? want;
     if (harvesters < 3 && credits >= 1100) {
       want = UnitKind.harvester;

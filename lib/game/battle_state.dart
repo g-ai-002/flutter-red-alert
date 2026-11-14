@@ -260,17 +260,15 @@ class BattleState {
     if (events.length > 240) events.removeRange(0, events.length - 240);
   }
 
-  List<BattleEvent> drainEvents() {
-    if (events.isEmpty) return const [];
-    final drained = List<BattleEvent>.of(events);
-    events.clear();
-    return drained;
-  }
+  List<BattleEvent> drainEvents() => _drain(events);
 
-  List<BattleNotice> drainNotices() {
-    if (notices.isEmpty) return const [];
-    final drained = List<BattleNotice>.of(notices);
-    notices.clear();
+  List<BattleNotice> drainNotices() => _drain(notices);
+
+  /// 取出全部待消费条目并清空列表，事件与提示共用一套实现。
+  List<T> _drain<T>(List<T> items) {
+    if (items.isEmpty) return const [];
+    final drained = List<T>.of(items);
+    items.clear();
     return drained;
   }
 
@@ -342,15 +340,13 @@ class BattleState {
     }
   }
 
-  void _addCredits(Team team, int amount) {
+  void addCredits(Team team, int amount) {
     if (team == Team.red) {
       creditsRed = math.max(0, creditsRed + amount);
     } else {
       creditsBlue = math.max(0, creditsBlue + amount);
     }
   }
-
-  void addCredits(Team team, int amount) => _addCredits(team, amount);
 
   /// 测试辅助：直接生成单位与建筑，绕过生产与放置校验。
   Unit spawnUnitForTest(Team team, UnitKind kind, Offset at) => _spawnUnit(team, kind, at);

@@ -195,18 +195,31 @@ class GameMap {
 
   /// 基地范围强制平整为泥地，避免随机岩石或水域压住初始建筑。
   void _flattenBase(Offset base, double radius) {
-    final minX = math.max(0, (base.dx - radius).floor());
-    final maxX = math.min(width - 1, (base.dx + radius).ceil());
-    final minY = math.max(0, (base.dy - radius).floor());
-    final maxY = math.min(height - 1, (base.dy + radius).ceil());
+    _forEachInDisc(base.dx, base.dy, radius, (index, _, _) {
+      _terrain[index] = TerrainKind.dirt;
+      _ore[index] = 0;
+    });
+  }
+
+  /// 遍历圆内所有格子，生成地图的水域、岩石、矿区与基地平整共用一套边界处理。
+  void _forEachInDisc(
+    double cx,
+    double cy,
+    double radius,
+    void Function(int index, int x, int y) apply,
+  ) {
+    final minX = math.max(0, (cx - radius).floor());
+    final maxX = math.min(width - 1, (cx + radius).ceil());
+    final minY = math.max(0, (cy - radius).floor());
+    final maxY = math.min(height - 1, (cy + radius).ceil());
+    final radiusSquared = radius * radius;
     for (var y = minY; y <= maxY; y++) {
+      final dy = y + 0.5 - cy;
+      final dySquared = dy * dy;
       for (var x = minX; x <= maxX; x++) {
-        final dx = x + 0.5 - base.dx;
-        final dy = y + 0.5 - base.dy;
-        if (dx * dx + dy * dy > radius * radius) continue;
-        final index = y * width + x;
-        _terrain[index] = TerrainKind.dirt;
-        _ore[index] = 0;
+        final dx = x + 0.5 - cx;
+        if (dx * dx + dySquared > radiusSquared) continue;
+        apply(y * width + x, x, y);
       }
     }
   }
@@ -218,49 +231,32 @@ class GameMap {
   }
 
   void _stampDisc(double cx, double cy, double radius, TerrainKind kind) {
-    final minX = math.max(0, (cx - radius).floor());
-    final maxX = math.min(width - 1, (cx + radius).ceil());
-    final minY = math.max(0, (cy - radius).floor());
-    final maxY = math.min(height - 1, (cy + radius).ceil());
-    for (var y = minY; y <= maxY; y++) {
-      for (var x = minX; x <= maxX; x++) {
-        final dx = x + 0.5 - cx;
-        final dy = y + 0.5 - cy;
-        if (dx * dx + dy * dy > radius * radius) continue;
-        final index = y * width + x;
-        if (kind == TerrainKind.ore) {
-          _terrain[index] = TerrainKind.ore;
-          _ore[index] = math.max(_ore[index], 2000);
-        } else if (kind == TerrainKind.dirt) {
-          // 基地平整不覆盖水域与岩石，保留天然屏障。
-          if (_terrain[index] == TerrainKind.water || _terrain[index] == TerrainKind.rock) {
-            continue;
-          }
-          _terrain[index] = TerrainKind.dirt;
-          _ore[index] = 0;
-        } else {
-          _terrain[index] = kind;
-          _ore[index] = 0;
+    _forEachInDisc(cx, cy, radius, (index, _, _) {
+      if (kind == TerrainKind.ore) {
+        _terrain[index] = TerrainKind.ore;
+        _ore[index] = math.max(_ore[index], 2000);
+      } else if (kind == TerrainKind.dirt) {
+        // 基地平整不覆盖水域与岩石，保留天然屏障。
+        if (_terrain[index] == TerrainKind.water || _terrain[index] == TerrainKind.rock) {
+          return;
         }
+        _terrain[index] = TerrainKind.dirt;
+        _ore[index] = 0;
+      } else {
+        _terrain[index] = kind;
+        _ore[index] = 0;
       }
-    }
+    });
   }
 
   void _orePatch(double cx, double cy, double radius, int amount) {
     _stampDisc(cx, cy, radius, TerrainKind.ore);
-    final minX = math.max(0, (cx - radius).floor());
-    final maxX = math.min(width - 1, (cx + radius).ceil());
-    final minY = math.max(0, (cy - radius).floor());
-    final maxY = math.min(height - 1, (cy + radius).ceil());
-    for (var y = minY; y <= maxY; y++) {
-      for (var x = minX; x <= maxX; x++) {
-        final index = y * width + x;
-        if (_terrain[index] != TerrainKind.ore) continue;
-        final dist = (Offset(x + 0.5, y + 0.5) - Offset(cx, cy)).distance;
-        final ratio = (1 - dist / (radius + 0.4)).clamp(0.45, 1.0);
-        _ore[index] = (amount * ratio).round();
-      }
-    }
+    _forEachInDisc(cx, cy, radius, (index, x, y) {
+      if (_terrain[index] != TerrainKind.ore) return;
+      final dist = (Offset(x + 0.5, y + 0.5) - Offset(cx, cy)).distance;
+      final ratio = (1 - dist / (radius + 0.4)).clamp(0.45, 1.0);
+      _ore[index] = (amount * ratio).round();
+    });
   }
 
   /// 把已生成的矿区与地形按 180° 旋转镜像到对侧。

@@ -187,7 +187,8 @@ extension BattleCombat on BattleState {
   }
 
   /// 最近的可攻击目标：先按武器能打空 / 打地过滤，再挑选距离最近的。
-  /// 具备对空能力的武器给空中目标减 1.5 格等效距离，形成对空优先级。
+  /// 具备对空能力的武器给空中目标减 1.5 格等效距离，形成对空优先级；
+  /// 建筑作为次选，评分额外加 2.5 格。
   Actor? nearestEnemy(
     Team team,
     Offset from, {
@@ -197,31 +198,23 @@ extension BattleCombat on BattleState {
   }) {
     Actor? best;
     var bestScore = double.infinity;
-    for (final actor in unitsOf(team.opponent)) {
-      if (!actor.alive || !weapon.canTarget(actor.isAir)) continue;
-      final distance = building == null
-          ? actor.distanceToPoint(from) - actor.radius * 0.5
-          : _distanceTo(building, actor);
-      if (maxDistance != null && distance > maxDistance) continue;
-      final score = distance - (actor.isAir ? 1.5 : 0);
-      if (score < bestScore) {
+
+    void consider(Iterable<Actor> candidates, double bias) {
+      for (final actor in candidates) {
+        if (!actor.alive || !weapon.canTarget(actor.isAir)) continue;
+        final distance = building == null
+            ? actor.distanceToPoint(from) - actor.radius * 0.5
+            : _distanceTo(building, actor);
+        if (maxDistance != null && distance > maxDistance) continue;
+        final score = distance + bias - (actor.isAir ? 1.5 : 0);
+        if (score >= bestScore) continue;
         bestScore = score;
         best = actor;
       }
     }
-    for (final actor in buildingsOf(team.opponent)) {
-      if (!actor.alive || !weapon.canTarget(false)) continue;
-      final distance = building == null
-          ? actor.distanceToPoint(from) - actor.radius * 0.5
-          : _distanceTo(building, actor);
-      if (maxDistance != null && distance > maxDistance) continue;
-      // 优先攻击单位，其次建筑。
-      final score = distance + 2.5;
-      if (score < bestScore) {
-        bestScore = score;
-        best = actor;
-      }
-    }
+
+    consider(unitsOf(team.opponent), 0);
+    consider(buildingsOf(team.opponent), 2.5);
     return best;
   }
 }

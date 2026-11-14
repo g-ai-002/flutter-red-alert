@@ -48,6 +48,13 @@ double distanceToRect(Offset point, Rect rect) {
   return math.sqrt(dx * dx + dy * dy);
 }
 
+/// 点到矩形的最短轴向间距，点在框内返回 0；建造选址与贴近判定共用。
+double rectGap(Offset point, Rect rect) {
+  final dx = math.max(math.max(rect.left - point.dx, 0.0), point.dx - rect.right);
+  final dy = math.max(math.max(rect.top - point.dy, 0.0), point.dy - rect.bottom);
+  return math.max(dx, dy);
+}
+
 /// 单位指令。
 enum UnitOrder { idle, move, attack }
 
@@ -85,6 +92,9 @@ abstract class Actor {
   bool get isAir => false;
 
   String get displayName;
+
+  /// 单字图标，用于迷你地图标签、选中卡片与建造栏。
+  String get icon;
 
   double get radius;
 
@@ -136,6 +146,9 @@ class Building extends Actor {
 
   @override
   String get displayName => spec.name;
+
+  @override
+  String get icon => spec.icon;
 
   @override
   double get radius => math.max(spec.width, spec.height) / 2;
@@ -199,6 +212,9 @@ class Unit extends Actor {
 
   @override
   String get displayName => spec.name;
+
+  @override
+  String get icon => spec.icon;
 
   @override
   double get radius => spec.radius;

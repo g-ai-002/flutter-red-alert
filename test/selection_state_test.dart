@@ -67,12 +67,18 @@ void main() {
 
   test('选中的是建筑时不能下达单位指令', () {
     final state = BattleState.create();
-    final selection = selectionOf(state)..selectActor(state.buildingsOf(Team.red).first);
+    final building = state.buildingsOf(Team.red).first;
+    final selection = selectionOf(state)..selectActor(building);
     expect(selection.canCommand, isFalse);
+    final summary = selection.summary!;
+    expect(summary.isBuilding, isTrue);
+    expect(summary.icon, building.icon);
+    expect(summary.name, building.displayName);
 
     final unit = state.spawnUnitForTest(Team.red, UnitKind.rifle, const Offset(11.5, 32.5));
     selection.selectActor(unit);
     expect(selection.canCommand, isTrue);
+    expect(selection.summary!.isBuilding, isFalse);
   });
 
   test('清除与裁剪失效目标', () {

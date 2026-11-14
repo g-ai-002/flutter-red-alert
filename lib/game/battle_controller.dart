@@ -129,6 +129,12 @@ class BattleController extends ChangeNotifier {
     toasts.removeWhere((toast) => toast.remaining <= 0);
   }
 
+  /// 屏幕落点上的可见目标，迷雾中的敌军不参与选择与攻击。
+  Actor? _visibleActorAt(Offset screenPosition) {
+    final hit = state.actorAt(camera.screenToWorld(screenPosition));
+    return hit != null && state.isVisibleToPlayer(hit) ? hit : null;
+  }
+
   /// 单击/点按战场：选择、移动或攻击。
   void tap(Offset screenPosition, {bool additive = false}) {
     if (isPlacing) {
@@ -138,9 +144,7 @@ class BattleController extends ChangeNotifier {
       return;
     }
 
-    final world = camera.screenToWorld(screenPosition);
-    final hit = state.actorAt(world);
-    final actor = hit != null && state.isVisibleToPlayer(hit) ? hit : null;
+    final actor = _visibleActorAt(screenPosition);
 
     if (actor != null && actor.team != playerTeam && canCommandSelection) {
       state.issueAttack(selectedUnits, actor.id);
@@ -155,7 +159,7 @@ class BattleController extends ChangeNotifier {
     }
 
     if (canCommandSelection) {
-      state.issueMove(selectedUnits, world);
+      state.issueMove(selectedUnits, camera.screenToWorld(screenPosition));
       _commit(BattleFeedback.command);
       return;
     }
@@ -168,13 +172,11 @@ class BattleController extends ChangeNotifier {
   /// 桌面右键：对目标直接下达指令，不改变选择。
   void contextCommand(Offset screenPosition) {
     if (!canCommandSelection) return;
-    final world = camera.screenToWorld(screenPosition);
-    final hit = state.actorAt(world);
-    final actor = hit != null && state.isVisibleToPlayer(hit) ? hit : null;
+    final actor = _visibleActorAt(screenPosition);
     if (actor != null && actor.team != playerTeam) {
       state.issueAttack(selectedUnits, actor.id);
     } else {
-      state.issueMove(selectedUnits, world);
+      state.issueMove(selectedUnits, camera.screenToWorld(screenPosition));
     }
     _commit(BattleFeedback.command);
   }

@@ -119,9 +119,7 @@ class _NodeHeap {
     while (child > 0) {
       final parent = (child - 1) >> 1;
       if (_better(_items[parent], _items[child])) break;
-      final temp = _items[parent];
-      _items[parent] = _items[child];
-      _items[child] = temp;
+      _swap(parent, child);
       child = parent;
     }
   }
@@ -143,13 +141,17 @@ class _NodeHeap {
           best = right;
         }
         if (best == parent) break;
-        final temp = _items[parent];
-        _items[parent] = _items[best];
-        _items[best] = temp;
+        _swap(parent, best);
         parent = best;
       }
     }
     return top.index;
+  }
+
+  void _swap(int a, int b) {
+    final temp = _items[a];
+    _items[a] = _items[b];
+    _items[b] = temp;
   }
 
   bool _better(_HeapEntry a, _HeapEntry b) {

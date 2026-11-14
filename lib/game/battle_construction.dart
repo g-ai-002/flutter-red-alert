@@ -14,12 +14,10 @@ extension BattleConstruction on BattleState {
     if (tileX + spec.width > map.width || tileY + spec.height > map.height) {
       return false;
     }
-    for (var y = tileY; y < tileY + spec.height; y++) {
-      for (var x = tileX; x < tileX + spec.width; x++) {
-        if (!map.buildable(x, y)) return false;
-        if (buildingAt(x, y) != null) return false;
-      }
-    }
+    final clear = forEachBuildingTile(tileX, tileY, spec.width, spec.height, (x, y) {
+      return map.buildable(x, y) && buildingAt(x, y) == null;
+    });
+    if (!clear) return false;
     if (!requireNearBase || team == null) return true;
     final center = Offset(tileX + spec.width / 2, tileY + spec.height / 2);
     for (final building in buildingsOf(team)) {
@@ -88,12 +86,10 @@ extension BattleConstruction on BattleState {
     buildingsOf(team).add(building);
     _trackBuilding(building, 1);
     structureVersion++;
-    for (var y = tileY; y < tileY + building.spec.height; y++) {
-      for (var x = tileX; x < tileX + building.spec.width; x++) {
-        if (!map.inBounds(x, y)) continue;
-        _occupancy[y * map.width + x] = building;
-      }
-    }
+    building.forEachTile((x, y) {
+      if (map.inBounds(x, y)) _occupancy[y * map.width + x] = building;
+      return true;
+    });
     return building;
   }
 

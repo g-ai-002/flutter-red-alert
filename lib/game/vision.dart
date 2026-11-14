@@ -67,20 +67,14 @@ class VisionMap {
   void reveal(Actor actor) => revealCircle(actor.position, sightRadiusOf(actor));
 
   void revealCircle(Offset center, double radius) {
-    final minX = math.max(0, (center.dx - radius).floor());
-    final maxX = math.min(width - 1, (center.dx + radius).ceil());
-    final minY = math.max(0, (center.dy - radius).floor());
-    final maxY = math.min(height - 1, (center.dy + radius).ceil());
-    final radiusSquared = radius * radius;
-    for (var y = minY; y <= maxY; y++) {
-      final dy = y + 0.5 - center.dy;
-      final dySquared = dy * dy;
-      for (var x = minX; x <= maxX; x++) {
-        final dx = x + 0.5 - center.dx;
-        if (dx * dx + dySquared > radiusSquared) continue;
-        _next[y * width + x] = 1;
-      }
-    }
+    forEachTileInDisc(
+      mapWidth: width,
+      mapHeight: height,
+      cx: center.dx,
+      cy: center.dy,
+      radius: radius,
+      visit: (x, y) => _next[y * width + x] = 1,
+    );
   }
 
   /// 提交缓冲区，返回是否发生变化。

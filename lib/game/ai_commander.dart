@@ -142,14 +142,14 @@ class AiCommander {
 
   void _manageArmy(BattleState state, double dt) {
     _waveTimer -= dt;
-    final units = state.unitsOf(team).where((u) => !u.isHarvester && !u.spec.isEngineer).toList();
+    final units = state.unitsOf(team).where((u) => u.isCombat).toList();
     if (units.isEmpty) return;
 
     // 基地附近出现敌军时优先回防；打不到空中目标的部队继续执行进攻计划。
     final base = state.map.baseOf(team);
     final intruder = state
         .unitsOf(team.opponent)
-        .where((u) => (u.position - base).distance < 12)
+        .where((u) => u.distanceToPoint(base) < 12)
         .toList();
     if (intruder.isNotEmpty) {
       final air = intruder.first.isAir;
@@ -185,7 +185,7 @@ class AiCommander {
     var nearestDistance = double.infinity;
     for (final building in enemies) {
       if (building.spec.kind == BuildingKind.hq) hq = building;
-      final distance = (building.position - base).distance;
+      final distance = building.distanceToPoint(base);
       if (distance < nearestDistance) {
         nearestDistance = distance;
         nearest = building;

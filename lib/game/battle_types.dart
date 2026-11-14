@@ -73,26 +73,39 @@ enum BuildingKind {
 }
 
 /// 单位与建筑共用的武器参数：攻击、射程、冷却、护甲倍率与弹道表现。
-mixin WeaponStats {
-  int get attack;
-  double get range;
-  double get cooldown;
-  double get vsInfantry;
-  double get vsVehicle;
-  double get vsStructure;
-  double get vsAir;
+class WeaponStats {
+  const WeaponStats({
+    this.attack = 0,
+    this.range = 0,
+    this.cooldown = 1,
+    this.vsInfantry = 1,
+    this.vsVehicle = 1,
+    this.vsStructure = 1,
+    this.vsAir = 1,
+    this.canHitAir = false,
+    this.canHitGround = true,
+    this.splash = 0,
+  });
+
+  final int attack;
+  final double range;
+  final double cooldown;
+  final double vsInfantry;
+  final double vsVehicle;
+  final double vsStructure;
+  final double vsAir;
 
   /// 能否攻击空中目标；防空炮塔与火箭兵具备此能力。
-  bool get canHitAir;
+  final bool canHitAir;
 
   /// 能否攻击地面目标；防空炮塔专司对空，无法对地。
-  bool get canHitGround;
-
-  /// 是否使用抛物线炮弹特效（车辆与防御建筑）。
-  bool get firesShell;
+  final bool canHitGround;
 
   /// 溅射半径（格），0 表示单体伤害。
-  double get splash;
+  final double splash;
+
+  /// 是否使用抛物线炮弹特效（车辆与防御建筑）。
+  bool get firesShell => false;
 
   /// 该武器能否攻击给定目标类型。
   bool canTarget(bool airborne) => airborne ? canHitAir : canHitGround;
@@ -105,7 +118,7 @@ mixin WeaponStats {
 }
 
 /// 单位参数。数值集中在这里，平衡调整只改这一处。
-class UnitSpec with WeaponStats {
+class UnitSpec extends WeaponStats {
   const UnitSpec({
     required this.kind,
     required this.cost,
@@ -113,20 +126,20 @@ class UnitSpec with WeaponStats {
     required this.speed,
     required this.buildSeconds,
     required this.category,
-    this.attack = 0,
-    this.range = 0,
-    this.cooldown = 1,
-    this.vsInfantry = 1,
-    this.vsVehicle = 1,
-    this.vsStructure = 1,
-    this.vsAir = 1,
-    this.canHitAir = false,
-    this.canHitGround = true,
+    super.attack,
+    super.range,
+    super.cooldown,
+    super.vsInfantry,
+    super.vsVehicle,
+    super.vsStructure,
+    super.vsAir,
+    super.canHitAir,
+    super.canHitGround,
     this.airborne = false,
     this.requires,
     this.capacity = 0,
     this.minRange = 0,
-    this.splash = 0,
+    super.splash,
     this.repair = 0,
     this.armor = ArmorClass.infantry,
     this.radius = 0.3,
@@ -140,24 +153,6 @@ class UnitSpec with WeaponStats {
   final double speed;
   final double buildSeconds;
   final ProductionCategory category;
-  @override
-  final int attack;
-  @override
-  final double range;
-  @override
-  final double cooldown;
-  @override
-  final double vsInfantry;
-  @override
-  final double vsVehicle;
-  @override
-  final double vsStructure;
-  @override
-  final double vsAir;
-  @override
-  final bool canHitAir;
-  @override
-  final bool canHitGround;
 
   /// 是否为空中单位：无视地形与建筑占位，只会被对空武器命中。
   final bool airborne;
@@ -168,10 +163,6 @@ class UnitSpec with WeaponStats {
 
   /// 最近射程：目标贴得过近时火炮无法开火。
   final double minRange;
-
-  /// 溅射半径（格），0 表示单体伤害。
-  @override
-  final double splash;
 
   /// 每秒维修量，0 表示没有维修能力。
   final int repair;
@@ -191,7 +182,7 @@ class UnitSpec with WeaponStats {
 }
 
 /// 建筑参数。
-class BuildingSpec with WeaponStats {
+class BuildingSpec extends WeaponStats {
   const BuildingSpec({
     required this.kind,
     required this.cost,
@@ -201,15 +192,15 @@ class BuildingSpec with WeaponStats {
     required this.width,
     required this.height,
     this.requires,
-    this.attack = 0,
-    this.range = 0,
-    this.cooldown = 1,
-    this.vsInfantry = 1,
-    this.vsVehicle = 1,
-    this.vsStructure = 1,
-    this.vsAir = 1,
-    this.canHitAir = false,
-    this.canHitGround = true,
+    super.attack,
+    super.range,
+    super.cooldown,
+    super.vsInfantry,
+    super.vsVehicle,
+    super.vsStructure,
+    super.vsAir,
+    super.canHitAir,
+    super.canHitGround,
     this.producesCategory,
   });
 
@@ -223,24 +214,6 @@ class BuildingSpec with WeaponStats {
   final int width;
   final int height;
   final BuildingKind? requires;
-  @override
-  final int attack;
-  @override
-  final double range;
-  @override
-  final double cooldown;
-  @override
-  final double vsInfantry;
-  @override
-  final double vsVehicle;
-  @override
-  final double vsStructure;
-  @override
-  final double vsAir;
-  @override
-  final bool canHitAir;
-  @override
-  final bool canHitGround;
 
   /// 该建筑可排产的生产分类。
   final ProductionCategory? producesCategory;
@@ -255,9 +228,6 @@ class BuildingSpec with WeaponStats {
 
   @override
   bool get firesShell => true;
-
-  @override
-  double get splash => 0;
 }
 
 /// 全部单位参数。

@@ -200,7 +200,7 @@ class BattleState {
   int armySize(Team team) => _armyCount[team]!;
 
   void _trackArmy(Unit unit, int delta) {
-    if (unit.isHarvester || unit.spec.isEngineer) return;
+    if (!unit.isCombat) return;
     _armyCount[unit.team] = _armyCount[unit.team]! + delta;
   }
 
@@ -337,14 +337,12 @@ class BattleState {
         buildingsOf(actor.team).remove(actor);
         _trackBuilding(actor, -1);
         structureVersion++;
-        for (var y = actor.tileY; y < actor.tileY + actor.spec.height; y++) {
-          for (var x = actor.tileX; x < actor.tileX + actor.spec.width; x++) {
-            if (!map.inBounds(x, y)) continue;
-            if (_occupancy[y * map.width + x] == actor) {
-              _occupancy[y * map.width + x] = null;
-            }
+        actor.forEachTile((x, y) {
+          if (map.inBounds(x, y) && _occupancy[y * map.width + x] == actor) {
+            _occupancy[y * map.width + x] = null;
           }
-        }
+          return true;
+        });
         if (actor.team == Team.red) {
           addNotice('${actor.spec.kind.label}被摧毁', level: NoticeLevel.warning);
         }

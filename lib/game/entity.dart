@@ -19,6 +19,48 @@ class TilePoint {
   int get hashCode => x * 100003 + y;
 }
 
+/// 遍历矩形占格区域；[visit] 返回 false 时提前结束，返回是否全部访问完毕。
+bool forEachBuildingTile(
+  int tileX,
+  int tileY,
+  int width,
+  int height,
+  bool Function(int x, int y) visit,
+) {
+  for (var y = tileY; y < tileY + height; y++) {
+    for (var x = tileX; x < tileX + width; x++) {
+      if (!visit(x, y)) return false;
+    }
+  }
+  return true;
+}
+
+/// 遍历以 [cx]/[cy] 为中心、半径 [radius] 的圆内格子。
+/// 地形生成与战争迷雾共用同一套边界裁剪与格心距离判定。
+void forEachTileInDisc({
+  required int mapWidth,
+  required int mapHeight,
+  required double cx,
+  required double cy,
+  required double radius,
+  required void Function(int x, int y) visit,
+}) {
+  final minX = math.max(0, (cx - radius).floor());
+  final maxX = math.min(mapWidth - 1, (cx + radius).ceil());
+  final minY = math.max(0, (cy - radius).floor());
+  final maxY = math.min(mapHeight - 1, (cy + radius).ceil());
+  final radiusSquared = radius * radius;
+  for (var y = minY; y <= maxY; y++) {
+    final dy = y + 0.5 - cy;
+    final dySquared = dy * dy;
+    for (var x = minX; x <= maxX; x++) {
+      final dx = x + 0.5 - cx;
+      if (dx * dx + dySquared > radiusSquared) continue;
+      visit(x, y);
+    }
+  }
+}
+
 /// 以 [centerX]/[centerY] 格为中心、按半径由内向外环形扫描，返回第一个通过
 /// [accept] 的格子。同一圈内先扫上边、再扫左右、最后扫下边，结果稳定可复现。
 TilePoint? searchTile({
@@ -41,17 +83,22 @@ TilePoint? searchTile({
   return null;
 }
 
-/// 点到矩形的最短欧氏距离，点在框内返回 0；射程判定与放置预览共用。
-double distanceToRect(Offset point, Rect rect) {
+/// 点到矩形的两个轴向间距，框内为 0；欧氏距离与轴向间距共用。
+(double, double) _rectGaps(Offset point, Rect rect) {
   final dx = math.max(math.max(rect.left - point.dx, 0.0), point.dx - rect.right);
   final dy = math.max(math.max(rect.top - point.dy, 0.0), point.dy - rect.bottom);
+  return (dx, dy);
+}
+
+/// 点到矩形的最短欧氏距离，点在框内返回 0；射程判定与放置预览共用。
+double distanceToRect(Offset point, Rect rect) {
+  final (dx, dy) = _rectGaps(point, rect);
   return math.sqrt(dx * dx + dy * dy);
 }
 
 /// 点到矩形的最短轴向间距，点在框内返回 0；建造选址与贴近判定共用。
 double rectGap(Offset point, Rect rect) {
-  final dx = math.max(math.max(rect.left - point.dx, 0.0), point.dx - rect.right);
-  final dy = math.max(math.max(rect.top - point.dy, 0.0), point.dy - rect.bottom);
+  final (dx, dy) = _rectGaps(point, rect);
   return math.max(dx, dy);
 }
 
@@ -163,6 +210,10 @@ class Building extends Actor {
     tileX + spec.width.toDouble(),
     tileY + spec.height.toDouble(),
   );
+
+  /// 遍历建筑占据的每一格，占位表登记与拆除共用。
+  bool forEachTile(bool Function(int x, int y) visit) =>
+      forEachBuildingTile(tileX, tileY, spec.width, spec.height, visit);
 }
 
 /// 作战单位：持续朝路径点移动，进入射程后开火。
@@ -223,6 +274,9 @@ class Unit extends Actor {
   ArmorClass get armor => spec.armor;
 
   bool get isHarvester => spec.isHarvester;
+
+  /// 是否计入部队数量：采矿车与工程兵属于支援单位，不算战斗部队。
+  bool get isCombat => !isHarvester && !spec.isEngineer;
 
   @override
   bool get isAir => spec.isAir;

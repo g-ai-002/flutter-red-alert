@@ -177,16 +177,16 @@ extension BattleCombat on BattleState {
     if (splash > 0) {
       final area = splash + (target.isBuilding ? 0.6 : 0.2);
       final spill = math.max(1, (damage * 0.5).round());
-      for (final victim in unitsOf(attacker.team.opponent)) {
-        if (victim == target || !victim.alive || victim.isAir) continue;
-        if (victim.distanceToActor(target) > area) continue;
-        victim.applyDamage(spill);
+      void splashTo(Iterable<Actor> victims) {
+        for (final victim in victims) {
+          if (victim == target || !victim.alive || victim.isAir) continue;
+          if (victim.distanceToActor(target) > area) continue;
+          victim.applyDamage(spill);
+        }
       }
-      for (final victim in buildingsOf(attacker.team.opponent)) {
-        if (victim == target || !victim.alive) continue;
-        if (victim.distanceToActor(target) > area) continue;
-        victim.applyDamage(spill);
-      }
+
+      splashTo(unitsOf(attacker.team.opponent));
+      splashTo(buildingsOf(attacker.team.opponent));
     }
     if (!target.alive) {
       _emit(

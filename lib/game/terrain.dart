@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'battle_types.dart';
+import 'entity.dart';
 
 /// 战场地图：固定格子的地形与矿石分布，由固定种子生成，保证同一难度下开局一致。
 ///
@@ -208,20 +209,14 @@ class GameMap {
     double radius,
     void Function(int index, int x, int y) apply,
   ) {
-    final minX = math.max(0, (cx - radius).floor());
-    final maxX = math.min(width - 1, (cx + radius).ceil());
-    final minY = math.max(0, (cy - radius).floor());
-    final maxY = math.min(height - 1, (cy + radius).ceil());
-    final radiusSquared = radius * radius;
-    for (var y = minY; y <= maxY; y++) {
-      final dy = y + 0.5 - cy;
-      final dySquared = dy * dy;
-      for (var x = minX; x <= maxX; x++) {
-        final dx = x + 0.5 - cx;
-        if (dx * dx + dySquared > radiusSquared) continue;
-        apply(y * width + x, x, y);
-      }
-    }
+    forEachTileInDisc(
+      mapWidth: width,
+      mapHeight: height,
+      cx: cx,
+      cy: cy,
+      radius: radius,
+      visit: (x, y) => apply(y * width + x, x, y),
+    );
   }
 
   bool _nearBase(double x, double y, double radius) {

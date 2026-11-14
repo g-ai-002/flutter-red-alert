@@ -14,7 +14,7 @@ class AppConstants {
   AppConstants._();
 
   static const String appName = '赤色黎明';
-  static const String version = '0.4.1';
+  static const String version = '0.4.2';
   static const String tagline = '单机即时战略';
 
   static const String prefKeyDarkMode = 'dark_mode';

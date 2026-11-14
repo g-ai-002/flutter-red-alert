@@ -1,7 +1,7 @@
 name: flutter_red_alert
 description: 赤色黎明 - 单机即时战略，采集矿石、建造基地、指挥装甲集群，覆盖 Android、Windows 与 Web
 publish_to: 'none'
-version: 0.4.1
+version: 0.4.2
 
 environment:
   sdk: '>=3.13.7 <4.0.0'

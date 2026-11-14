@@ -1,10 +1,10 @@
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_red_alert/flame/terrain_painter.dart';
 import 'package:flutter_red_alert/game/battle_types.dart';
 import 'package:flutter_red_alert/game/terrain.dart';
+import 'package:material_ui/material_ui.dart';
 
 Canvas _recorder() => Canvas(ui.PictureRecorder());
 

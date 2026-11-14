@@ -110,7 +110,7 @@ flutter test
 
 ## 技术栈
 
-- Flutter 3.47 / Dart 3.13，Flame 1.38 负责游戏循环与渲染
+- Flutter 3.50 / Dart 3.14，Flame 1.38 负责游戏循环与渲染
 - provider 管理偏好，shared_preferences 持久化，window_manager 管理桌面窗口
 - flutter_soloud 播放运行时合成的 WAV，soup_fonts 提供 Web 中文字体
 - Android minSdk 35 / targetSdk 37 / compileSdk 37，仅打包 arm64

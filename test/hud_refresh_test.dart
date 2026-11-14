@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_red_alert/game/battle_controller.dart';
 import 'package:flutter_red_alert/game/battle_state.dart';
 import 'package:flutter_red_alert/game/battle_types.dart';
@@ -7,6 +6,7 @@ import 'package:flutter_red_alert/game/production_catalog.dart';
 import 'package:flutter_red_alert/pages/widgets/minimap.dart';
 import 'package:flutter_red_alert/services/sound_service.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 BattleController _controller() {
   final state = BattleState.create();

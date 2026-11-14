@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 战场是否值得横屏全屏：即时战略需要同时容纳战场、迷你地图与建造栏，
 /// 手机等窄屏（短边 < 600）横屏能显著增加可用宽度，平板与桌面不改变方向。

@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 作战室背景：暗色地图网格、雷达圈与角落斜纹。
 class WarRoomPainter extends CustomPainter {

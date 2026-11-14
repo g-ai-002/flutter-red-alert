@@ -57,8 +57,6 @@ extension BattleProduction on BattleState {
     return null;
   }
 
-  int costOf(String id) => ProductionCatalog.byId(id)?.cost ?? 0;
-
   String nameOf(String id) => ProductionCatalog.byId(id)?.name ?? id;
 
   /// 开始生产；资金立即扣除，队列已有任务或条件不足时返回 false。

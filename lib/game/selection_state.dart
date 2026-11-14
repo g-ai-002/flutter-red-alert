@@ -23,7 +23,6 @@ class SelectionState {
     final selected = actors;
     if (selected.isEmpty) return null;
     final first = selected.first;
-    final single = selected.length == 1;
     final sameName = selected.every((actor) => actor.displayName == first.displayName);
     var hp = 0;
     var maxHp = 0;
@@ -37,7 +36,6 @@ class SelectionState {
       hp: hp,
       maxHp: maxHp,
       team: first.team,
-      isBuilding: single && first.isBuilding,
       count: selected.length,
     );
   }
@@ -60,14 +58,6 @@ class SelectionState {
   bool toggle(int id) {
     if (!ids.remove(id)) ids.add(id);
     return ids.contains(id);
-  }
-
-  /// 点选世界坐标上的目标；返回命中的目标，未命中返回 null。
-  Actor? selectAt(Offset world, {bool additive = false}) {
-    final hit = state.actorAt(world);
-    if (hit == null || !state.isVisibleToPlayer(hit)) return null;
-    selectActor(hit, additive: additive);
-    return hit;
   }
 
   /// 选中一个已知目标；追加模式下再次点击会取消选择。

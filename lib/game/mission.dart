@@ -42,8 +42,6 @@ class GameMission {
   final List<BuildingKind> enemyBuildings;
 
   String get objectiveText => objective.brief;
-
-  int get startingCredits => difficulty.playerCredits + bonusCredits;
 }
 
 /// 五关战役，按顺序解锁。

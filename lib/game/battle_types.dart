@@ -172,7 +172,6 @@ class UnitSpec extends WeaponStats {
 
   String get name => kind.label;
   String get icon => kind.icon;
-  String get description => kind.description;
   bool get isHarvester => kind == UnitKind.harvester;
   bool get isEngineer => repair > 0;
   bool get isAir => airborne;
@@ -201,7 +200,6 @@ class BuildingSpec extends WeaponStats {
     super.vsAir,
     super.canHitAir,
     super.canHitGround,
-    this.producesCategory,
   });
 
   final BuildingKind kind;
@@ -215,15 +213,10 @@ class BuildingSpec extends WeaponStats {
   final int height;
   final BuildingKind? requires;
 
-  /// 该建筑可排产的生产分类。
-  final ProductionCategory? producesCategory;
-
   String get name => kind.label;
   String get icon => kind.icon;
-  String get description => kind.description;
   ArmorClass get armor => ArmorClass.structure;
 
-  bool get isProducer => producesCategory != null;
   bool get isDefense => attack > 0;
 
   @override
@@ -398,7 +391,6 @@ const Map<BuildingKind, BuildingSpec> buildingSpecs = {
     width: 2,
     height: 2,
     requires: BuildingKind.power,
-    producesCategory: ProductionCategory.infantry,
   ),
   BuildingKind.factory: BuildingSpec(
     kind: BuildingKind.factory,
@@ -409,7 +401,6 @@ const Map<BuildingKind, BuildingSpec> buildingSpecs = {
     width: 3,
     height: 3,
     requires: BuildingKind.refinery,
-    producesCategory: ProductionCategory.armor,
   ),
   BuildingKind.tower: BuildingSpec(
     kind: BuildingKind.tower,
@@ -546,7 +537,6 @@ class SelectionInfo {
     required this.hp,
     required this.maxHp,
     required this.team,
-    required this.isBuilding,
     required this.count,
   });
 
@@ -555,7 +545,6 @@ class SelectionInfo {
   final int hp;
   final int maxHp;
   final Team team;
-  final bool isBuilding;
   final int count;
 
   double get hpRatio => maxHp <= 0 ? 0 : hp / maxHp;

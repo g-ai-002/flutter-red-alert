@@ -71,15 +71,23 @@ extension BattleCombat on BattleState {
       unit.team,
       unit.position,
       weapon: unit.spec,
-      maxDistance: unit.spec.range + 1.2,
+      maxDistance: unit.guardRadius,
     );
     if (target == null) return;
+    // 已进入射程的目标照旧自动开火；圈外的远处目标只追击玩家看得见的敌军。
+    final close = unit.distanceToActor(target) <= unit.spec.range + 1.2;
+    if (unit.team == Team.red && !close && !isVisibleToPlayer(target)) return;
+    if (!_autoEngageAllowed(unit, target)) return;
     unit.targetId = target.id;
   }
 
   void _engage(Unit unit, Actor target, double dt) {
     // 目标类型与武器不匹配时立即放弃，避免飞行单位被地面火力锁死。
     if (!unit.spec.canTarget(target.isAir)) {
+      unit.targetId = null;
+      return;
+    }
+    if (unit.order == UnitOrder.idle && !_autoEngageAllowed(unit, target)) {
       unit.targetId = null;
       return;
     }

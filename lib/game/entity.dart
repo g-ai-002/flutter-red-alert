@@ -224,9 +224,16 @@ class Unit extends Actor {
     required this.spec,
     required super.x,
     required super.y,
-  }) : super(maxHp: spec.maxHp);
+  }) : guardPost = Offset(x, y),
+       super(maxHp: spec.maxHp);
 
   final UnitSpec spec;
+
+  /// 待命时驻守的位置：自动迎敌只在警戒圈内追击，清空目标后回到这里。
+  Offset guardPost;
+
+  /// 自动迎敌的警戒半径：以武器射程为主，保证远程单位能主动进入射界。
+  double get guardRadius => math.max(7, spec.range + 2);
 
   /// 当前移动路径（不含起点），[pathIndex] 指向下一个目标点。
   List<TilePoint> path = const [];
@@ -305,6 +312,7 @@ class Unit extends Actor {
     order = UnitOrder.idle;
     targetId = null;
     destination = null;
+    guardPost = position;
     clearPath();
   }
 

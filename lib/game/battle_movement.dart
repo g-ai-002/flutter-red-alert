@@ -99,8 +99,10 @@ extension BattleMovement on BattleState {
       } else if (unit.hasPath) {
         _followPath(unit, dt);
       } else {
-        unit.order = UnitOrder.idle;
-        unit.destination = null;
+        unit
+          ..order = UnitOrder.idle
+          ..destination = null
+          ..guardPost = unit.position;
       }
       // 行军途中只打射程内、且武器能命中的临时目标，不为它停下脚步。
       if (target != null && unit.spec.canTarget(target.isAir) && _inFiringBand(unit, target)) {
@@ -111,18 +113,37 @@ extension BattleMovement on BattleState {
       _acquireIfIdle(unit);
       return;
     }
-    // 待命：有目标就原地开火；贴得太近的火炮先拉开距离。
-    if (target != null) {
-      final distance = _distanceTo(unit, target);
-      if (distance < unit.spec.minRange) {
-        _retreat(unit, target, dt);
-      } else if (distance <= unit.spec.range) {
-        _fireAt(unit, target);
-      } else {
-        unit.targetId = null;
-      }
+    // 待命：主动迎击警戒圈内的敌军；清空目标后回到驻守点。
+    if (target != null && _autoEngageAllowed(unit, target)) {
+      _engage(unit, target, dt);
+      return;
+    }
+    unit.targetId = null;
+    if (unit.distanceToPoint(unit.guardPost) > 0.9) {
+      _returnToPost(unit, dt);
+      return;
     }
     _acquireIfIdle(unit);
+  }
+
+  /// 自动迎敌只在驻守点附近的警戒圈内生效；手动攻击不受此限制。
+  bool _autoEngageAllowed(Unit unit, Actor target) {
+    final post = unit.guardPost;
+    return target.distanceToPoint(post) <= unit.guardRadius + 1.5 &&
+        unit.distanceToPoint(post) <= unit.guardRadius + 4;
+  }
+
+  /// 回到驻守点：与追击共用寻路与低空直飞，抵达后重新进入自动索敌。
+  void _returnToPost(Unit unit, double dt) {
+    final post = unit.guardPost;
+    if (unit.isAir) {
+      _flyTowards(unit, post, dt, finish: false);
+      return;
+    }
+    if (unit.repathTimer <= 0 || !unit.hasPath) {
+      _repath(unit, _nearestFreeTile(post, radius: 2), repath: 0.8);
+    }
+    if (unit.hasPath) _followPath(unit, dt);
   }
 
   /// 工程兵：玩家指定的移动优先，空闲时自动维修附近受损的己方单位与建筑。
@@ -239,7 +260,8 @@ extension BattleMovement on BattleState {
     if (!_stepTowards(unit, goal, unit.spec.speed * dt) || !finish) return;
     unit
       ..order = UnitOrder.idle
-      ..destination = null;
+      ..destination = null
+      ..guardPost = unit.position;
   }
 
   void _followPath(Unit unit, double dt) {

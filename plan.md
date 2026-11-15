@@ -57,7 +57,11 @@
 ### v0.5.4 (PATCH, 修复 Issue) — 2026-11-15
 
 - **状态**: 开发与测试完成（166 个用例通过，静态分析 0 告警，非测试代码 9948 行）；
-  Gitea Actions 与 Tag 构建、Release 待执行
+  Gitea Actions main 全流程（测试 / Android / Windows / Web）成功，
+  [构建记录](http://192.168.31.120:3020/GTech/flutter-red-alert/actions/runs/3337)；
+  v0.5.4 Tag 构建测试 / Android / Windows / Web 全部成功并发布三端产物，
+  [Tag 构建](http://192.168.31.120:3020/GTech/flutter-red-alert/actions/runs/3339)、
+  [Release](http://192.168.31.120:3020/GTech/flutter-red-alert/releases/tag/v0.5.4)
 - **目标**: 解决 [Issue #1](http://192.168.31.120:3020/GTech/flutter-red-alert/issues/1)：
   待命部队能主动迎击靠近的敌军，让玩家专注经营；同时细化单位与建筑的造型辨识度。
 - **任务**:

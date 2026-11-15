@@ -53,5 +53,34 @@ void main() {
       art.dispose();
       expect(art.cachedPictures, 0);
     });
+
+    test('全部单位与建筑造型均可绘制', () {
+      final units = UnitArt(ArtBrush());
+      var id = 0;
+      for (final team in Team.values) {
+        for (final kind in UnitKind.values) {
+          final unit = Unit(id: ++id, team: team, spec: unitSpecs[kind]!, x: 1, y: 1);
+          units.paint(_recorder(), unit, outline);
+        }
+      }
+      expect(units.cachedPictures, greaterThan(0));
+      units.dispose();
+
+      final buildings = BuildingArt(ArtBrush());
+      for (final team in Team.values) {
+        for (final kind in BuildingKind.values) {
+          final building = Building(
+            id: ++id,
+            team: team,
+            spec: buildingSpecs[kind]!,
+            tileX: 0,
+            tileY: 0,
+          );
+          buildings.paint(_recorder(), building, outline);
+        }
+      }
+      expect(buildings.cachedPictures, greaterThan(0));
+      buildings.dispose();
+    });
   });
 }

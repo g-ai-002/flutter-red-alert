@@ -10,6 +10,7 @@ import 'services/music_service.dart';
 import 'services/sound_service.dart';
 import 'services/storage_service.dart';
 import 'utils/constants.dart';
+import 'utils/system_ui.dart';
 import 'utils/window_setup.dart';
 
 Future<void> main() async {
@@ -25,6 +26,7 @@ Future<void> main() async {
   };
 
   await setupDesktopWindow();
+  await applyImmersiveWindow();
   await initLogging();
 
   final storage = await StorageService.instance;

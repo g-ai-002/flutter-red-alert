@@ -30,7 +30,11 @@ class ActorPainter {
   final PlacementState placement;
 
   final Map<String, TextPainter> _labels = {};
-  final List<Actor> _visible = [];
+  late final List<List<Actor>> _rows = List.generate(
+    state.map.height + 2,
+    (_) => <Actor>[],
+    growable: false,
+  );
   late final ArtBrush _brush;
   late final UnitArt _unitArt;
   late final BuildingArt _buildingArt;
@@ -48,7 +52,9 @@ class ActorPainter {
   // ===== 单位与建筑 =====
 
   void drawActors(Canvas canvas, Rect view) {
-    _visible.clear();
+    for (final row in _rows) {
+      row.clear();
+    }
     for (final actor in state.actors) {
       if (!actor.alive) continue;
       if (!state.isVisibleToPlayer(actor)) continue;
@@ -60,14 +66,16 @@ class ActorPainter {
           actor.y - actor.radius > view.bottom) {
         continue;
       }
-      _visible.add(actor);
+      // 按行分桶替代每帧排序：绘制顺序仍是自上而下，分配与比较都更少。
+      _rows[actor.y.floor().clamp(0, _rows.length - 1)].add(actor);
     }
-    _visible.sort((a, b) => a.y.compareTo(b.y));
-    for (final actor in _visible) {
-      if (actor is Building) {
-        _drawBuilding(canvas, actor);
-      } else if (actor is Unit) {
-        _drawUnit(canvas, actor);
+    for (final row in _rows) {
+      for (final actor in row) {
+        if (actor is Building) {
+          _drawBuilding(canvas, actor);
+        } else if (actor is Unit) {
+          _drawUnit(canvas, actor);
+        }
       }
     }
   }

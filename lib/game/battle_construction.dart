@@ -86,6 +86,8 @@ extension BattleConstruction on BattleState {
     buildingsOf(team).add(building);
     _trackBuilding(building, 1);
     structureVersion++;
+    if (team == Team.red) _visionDirty = true;
+    _gridAge = 0.1;
     building.forEachTile((x, y) {
       if (map.inBounds(x, y)) _occupancy[y * map.width + x] = building;
       return true;
@@ -107,6 +109,8 @@ extension BattleConstruction on BattleState {
     _byId[unit.id] = unit;
     unitsOf(team).add(unit);
     _trackArmy(unit, 1);
+    if (team == Team.red) _visionDirty = true;
+    _gridAge = 0.1;
     return unit;
   }
 

@@ -62,6 +62,7 @@ class BattleState {
       map: map,
       isBlocked: (x, y) => map.blocked(x, y) || _occupancy[y * map.width + x] != null,
     );
+    _targetGrids = {for (final team in Team.values) team: _ActorGrid(map.width)};
   }
 
   /// 创建一张新地图并布置双方初始基地；传入战役时按关卡配置生成。
@@ -78,6 +79,7 @@ class BattleState {
     state._setupBases();
     state._applyMission();
     state._refreshVision();
+    state._updateTargetGrid(0);
     return state;
   }
 
@@ -124,6 +126,8 @@ class BattleState {
 
   int _nextId = 1;
   late final PathFinder _finder;
+  late final Map<Team, _ActorGrid> _targetGrids;
+  double _gridAge = 0.1;
   late final List<Building?> _occupancy;
   final Map<int, Actor> _byId = {};
   final Map<Team, Map<BuildingKind, int>> _buildingCounts = {
@@ -254,12 +258,23 @@ class BattleState {
   }
 
   double _visionTimer = 0;
+  bool _visionDirty = true;
 
   void _updateVision(double dt) {
     _visionTimer += dt;
     if (_visionTimer < 0.2) return;
     _visionTimer = 0;
+    if (!_visionDirty) return;
     _refreshVision();
+  }
+
+  void _updateTargetGrid(double dt) {
+    _gridAge += dt;
+    if (_gridAge < 0.1) return;
+    _gridAge = 0;
+    for (final team in Team.values) {
+      _targetGrids[team]!.rebuild(actors, team);
+    }
   }
 
   /// 用己方全部存活单位与建筑重建可见范围。
@@ -272,6 +287,7 @@ class BattleState {
       if (building.alive) vision.reveal(building);
     }
     vision.commit();
+    _visionDirty = false;
   }
 
   void addNotice(String text, {NoticeLevel level = NoticeLevel.info}) {
@@ -302,6 +318,7 @@ class BattleState {
     _updateVision(dt);
     _updateRadar(dt);
     _updateStrike(dt);
+    _updateTargetGrid(dt);
     _updateProduction(dt);
     // 主循环直接遍历两方列表，避免每步都为 sync* 生成器分配迭代器。
     for (final unit in redUnits) {
@@ -330,6 +347,8 @@ class BattleState {
       if (actor.alive) continue;
       actors.removeAt(i);
       _byId.remove(actor.id);
+      _gridAge = 0.1;
+      if (actor.team == Team.red) _visionDirty = true;
       if (actor is Unit) {
         unitsOf(actor.team).remove(actor);
         _trackArmy(actor, -1);

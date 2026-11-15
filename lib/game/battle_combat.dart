@@ -231,35 +231,73 @@ extension BattleCombat on BattleState {
     return from.distanceToActor(to) - to.radius * 0.4;
   }
 
-  /// 最近的可攻击目标：先按武器能打空 / 打地过滤，再挑选距离最近的。
-  /// 具备对空能力的武器给空中目标减 1.5 格等效距离，形成对空优先级；
-  /// 建筑作为次选，评分额外加 2.5 格。
+  /// 最近的可攻击目标：只遍历敌方网格中射程覆盖的桶，再按距离评分。
+  /// 对空武器给空中目标减 1.5 格、建筑加 2.5 格，形成对空与建筑优先级。
   Actor? nearestEnemy(
     Team team,
     Offset from, {
     required WeaponStats weapon,
-    double? maxDistance,
+    required double maxDistance,
     Building? building,
   }) {
     Actor? best;
     var bestScore = double.infinity;
 
-    void consider(Iterable<Actor> candidates, double bias) {
-      for (final actor in candidates) {
-        if (!actor.alive || !weapon.canTarget(actor.isAir)) continue;
-        final distance = building == null
-            ? actor.distanceToPoint(from) - actor.radius * 0.5
-            : _distanceTo(building, actor);
-        if (maxDistance != null && distance > maxDistance) continue;
-        final score = distance + bias - (actor.isAir ? 1.5 : 0);
-        if (score >= bestScore) continue;
-        bestScore = score;
-        best = actor;
+    void consider(Actor actor) {
+      if (!actor.alive || !weapon.canTarget(actor.isAir)) return;
+      final double distance;
+      if (building == null) {
+        final dx = actor.x - from.dx;
+        final dy = actor.y - from.dy;
+        final squared = dx * dx + dy * dy;
+        // 先用平方距离排除远处目标，避免为每个候选都开方。
+        final reach = maxDistance + actor.radius;
+        if (squared > reach * reach) return;
+        distance = math.sqrt(squared) - actor.radius * 0.5;
+      } else {
+        distance = _distanceTo(building, actor);
       }
+      if (distance > maxDistance) return;
+      final score = distance + (actor.isBuilding ? 2.5 : 0) - (actor.isAir ? 1.5 : 0);
+      if (score >= bestScore) return;
+      bestScore = score;
+      best = actor;
     }
 
-    consider(unitsOf(team.opponent), 0);
-    consider(buildingsOf(team.opponent), 2.5);
+    _targetGrids[team.opponent]!.forEachNear(from.dx, from.dy, maxDistance + 2.5, consider);
     return best;
+  }
+}
+
+class _ActorGrid {
+  _ActorGrid(int mapSize) : _columns = (mapSize / cellSize).ceil() {
+    _cells = List.generate(_columns * _columns, (_) => <Actor>[]);
+  }
+
+  static const int cellSize = 4;
+  final int _columns;
+  late final List<List<Actor>> _cells;
+
+  void rebuild(Iterable<Actor> actors, Team team) {
+    for (final cell in _cells) {
+      cell.clear();
+    }
+    for (final actor in actors) {
+      if (actor.alive && actor.team == team) _add(actor);
+    }
+  }
+
+  int _cell(double value) => (value / cellSize).floor().clamp(0, _columns - 1).toInt();
+
+  void _add(Actor actor) => _cells[_cell(actor.y) * _columns + _cell(actor.x)].add(actor);
+
+  void forEachNear(double x, double y, double radius, void Function(Actor) visit) {
+    final minColumn = _cell(x - radius), maxColumn = _cell(x + radius);
+    final minRow = _cell(y - radius), maxRow = _cell(y + radius);
+    for (var row = minRow; row <= maxRow; row++) {
+      for (var column = minColumn; column <= maxColumn; column++) {
+        _cells[row * _columns + column].forEach(visit);
+      }
+    }
   }
 }

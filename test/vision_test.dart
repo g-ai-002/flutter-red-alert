@@ -1,4 +1,7 @@
 import 'package:flutter_red_alert/game/battle_state.dart';
+import 'package:flutter_red_alert/game/battle_types.dart';
+import 'package:flutter_red_alert/game/entity.dart';
+import 'package:flutter_red_alert/game/terrain.dart';
 import 'package:flutter_red_alert/game/vision.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -50,6 +53,27 @@ void main() {
     state.update(0.25);
     expect(state.isVisibleToPlayer(own), isTrue);
     expect(state.vision.isExplored(own.x.floor(), own.y.floor()), isTrue);
+  });
+
+  test('己方全部静止时跳过视野重建，单位移动后重新计算', () {
+    final state = BattleState(map: GameMap.generate());
+    state.spawnBuildingForTest(Team.red, BuildingKind.hq, 6, 33);
+    state.spawnBuildingForTest(Team.blue, BuildingKind.hq, 35, 8);
+    final unit = state.spawnUnitForTest(Team.red, UnitKind.rifle, const Offset(9.5, 35.5));
+    state.update(0.25);
+    final version = state.vision.version;
+    for (var i = 0; i < 4; i++) {
+      state.update(0.1);
+    }
+    expect(state.vision.version, version, reason: '没有单位移动时不需要重建视野');
+
+    const goal = TilePoint(13, 35);
+    state.issueMove([unit], goal.center);
+    for (var i = 0; i < 20; i++) {
+      state.update(0.1);
+    }
+    expect(state.vision.isVisible(goal.x, goal.y), isTrue);
+    expect(state.vision.version, greaterThan(version));
   });
 
   test('雷达扫描会进入冷却并随时间恢复', () {

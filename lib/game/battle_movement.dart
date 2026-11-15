@@ -256,6 +256,7 @@ extension BattleMovement on BattleState {
     final dx = goal.dx - unit.x;
     final dy = goal.dy - unit.y;
     final distance = math.sqrt(dx * dx + dy * dy);
+    if (unit.team == Team.red) _visionDirty = true;
     if (distance <= speed || distance < 0.05) {
       unit
         ..x = goal.dx

@@ -58,6 +58,9 @@
 - **状态**: 开发与测试完成（162 个用例通过，静态分析 0 告警，非测试代码 9999 行）；
   Gitea Actions main 全流程（测试 / Android / Windows / Web）成功，
   [构建记录](http://192.168.31.120:3020/GTech/flutter-red-alert/actions/runs/3306)；
+  v0.5.3 Tag 构建测试 / Android / Windows / Web 全部成功并发布三端产物，
+  [Tag 构建](http://192.168.31.120:3020/GTech/flutter-red-alert/actions/runs/3308)、
+  [Release](http://192.168.31.120:3020/GTech/flutter-red-alert/releases/tag/v0.5.3)
 - **目标**: 不改变玩法、数值与操作方式，削减大兵团对局中的索敌与渲染固定开销，
   并让 Android 启动首页进入沉浸式全屏。
 - **任务**:

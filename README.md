@@ -44,31 +44,31 @@
 
 ## 下载
 
-v0.5.4 修复 Issue #1：待命部队会自动迎击警戒圈内的敌军，清空目标后回到驻守点；
-同时细化步兵、载具、直升机与建筑造型。构建产物由 CI 生成。
-[Release 下载](http://192.168.31.120:3020/GTech/flutter-red-alert/releases/tag/v0.5.4) ·
-Web 试玩：[v0.5.4](http://192.168.31.120:3020/GTech/flutter-red-alert/src/branch/tea-pages/v0.5.4/index.html)。
+v0.5.5 把音频引擎 flutter_soloud 升级到 5.3.0，玩法、音效配方与音量保持不变。构建产物由 CI 生成。
+[Release 下载](http://192.168.31.120:3020/GTech/flutter-red-alert/releases/tag/v0.5.5) ·
+Web 试玩：[v0.5.5](http://192.168.31.120:3020/GTech/flutter-red-alert/src/branch/tea-pages/v0.5.5/index.html)。
 
 | 平台 | 产物 |
 | --- | --- |
-| Android (arm64) | `flutter-red-alert-0.5.4-android-aarch64.apk` |
-| Windows (x64, Win10+) | `flutter-red-alert-0.5.4-windows-x86_64.zip` |
-| Web | `flutter-red-alert-0.5.4-web.zip`（解压后起静态服务器） |
+| Android (arm64) | `flutter-red-alert-0.5.5-android-aarch64.apk` |
+| Windows (x64, Win10+) | `flutter-red-alert-0.5.5-windows-x86_64.zip` |
+| Web | `flutter-red-alert-0.5.5-web.zip`（解压后起静态服务器） |
 
 ## 版本
 
 | 版本 | 说明 |
 | --- | --- |
+| v0.5.5 | 依赖升级：flutter_soloud 5.3.0，含 SIMD 混音与 Windows 退出修复 |
 | v0.5.4 | 修复 Issue #1：待命部队自动迎敌并返回驻守点，单位与建筑造型细化 |
 | v0.5.3 | 性能与流畅度优化：索敌网格、视野静止跳过、单位按行分桶与沉浸式全屏启动 |
 | v0.5.2 | 性能与流畅度优化：HUD 按需重建、迷你地图独立刷帧、工程兵维修扫描节流 |
 | v0.5.1 | 重构优化：建筑占格、圆形扫描、武器参数、溅射遍历、战斗部队定义与偏好读写收敛 |
-| v0.5.0 | 战略打击：导弹发射井、东风快递瞄准打击、蓝军超武反击与导弹特效 |
 
 早期版本：
 
 | 版本 | 说明 |
 | --- | --- |
+| v0.5.0 | 战略打击：导弹发射井、东风快递瞄准打击、蓝军超武反击与导弹特效 |
 | v0.4.2 | 性能与流畅度优化：地形整图合批与进场预热、特效视野裁剪、视口裁剪 |
 | v0.4.1 | 重构优化：索敌评分、步进移动、特效参数、地形填充与 HUD 配色收敛 |
 | v0.4.0 | 空军与防空：武装直升机、防空炮塔与对空目标优先级 |
@@ -117,5 +117,5 @@ flutter test
 
 - Flutter 3.50 / Dart 3.14，Flame 1.38 负责游戏循环与渲染
 - provider 管理偏好，shared_preferences 持久化，window_manager 管理桌面窗口
-- flutter_soloud 播放运行时合成的 WAV，soup_fonts 提供 Web 中文字体
+- flutter_soloud 5.3 播放运行时合成的 WAV，soup_fonts 提供 Web 中文字体
 - Android minSdk 35 / targetSdk 37 / compileSdk 37，仅打包 arm64

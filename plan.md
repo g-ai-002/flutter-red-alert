@@ -57,7 +57,12 @@
 
 ### v0.5.5 (PATCH, 依赖升级) — 2026-11-16
 
-- **状态**: 开发与测试完成（166 个用例通过，静态分析 0 告警，非测试代码 9948 行）；CI 验证中。
+- **状态**: 开发与测试完成（166 个用例通过，静态分析 0 告警，非测试代码 9948 行）；
+  Gitea Actions main 全流程（测试 / Android / Windows / Web）成功，
+  [构建记录](http://192.168.31.120:3020/GTech/flutter-red-alert/actions/runs/3389)；
+  v0.5.5 Tag 构建测试 / Android / Windows / Web 全部成功并发布三端产物，
+  [Tag 构建](http://192.168.31.120:3020/GTech/flutter-red-alert/actions/runs/3391)、
+  [Release](http://192.168.31.120:3020/GTech/flutter-red-alert/releases/tag/v0.5.5)
 - **目标**: 把音频引擎 flutter_soloud 从 5.2.3 升级到 5.3.0，获得 SIMD 混音与重采样、
   事件驱动的输出唤醒以及 Windows 退出无残留进程等修复，玩法、音效配方与音量保持不变。
 - **任务**:
